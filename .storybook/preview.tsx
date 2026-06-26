@@ -1,21 +1,21 @@
 import type { Preview } from '@storybook/tanstack-react'
 
+import "../src/styles.css";
+
 const preview: Preview = {
   parameters: {
-    controls: {
-      matchers: {
-       color: /(background|color)$/i,
-       date: /Date$/i,
+    backgrounds: {
+      options: {
+        dark: { name: 'Dark', value: '#2b2d33' },
+        light: { name: 'Light', value: '#f9e4d6' },
       },
     },
-
-    a11y: {
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
-      test: 'todo'
-    }
   },
+  initialGlobals: {
+    backgrounds: {
+      value: 'light'
+    }
+  }
 };
 
 export default preview;
