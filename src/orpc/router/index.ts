@@ -1,7 +1,8 @@
-import { addNode, deleteNode, listNodes, updateNode } from './nodes'
+import { addNode, deleteNode, getNode, listNodes, updateNode } from './nodes'
 
 export default {
   listNodes,
+  getNode,
   addNode,
   updateNode,
   deleteNode,

@@ -1,14 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import type { NodeType } from "#/db/schema";
+import type { TreeNode } from "#/db/schema";
 import { NodeList } from "#/ui/patterns/node-list/node-list";
 
 export function NodeItem({
 	node,
-	allNodes,
 	withTransition,
 }: {
-	node: NodeType;
-	allNodes: NodeType[];
+	node: TreeNode;
 	withTransition?: boolean;
 }) {
 	return (
@@ -29,7 +27,7 @@ export function NodeItem({
 				</div>
 			</div>
 
-			<NodeList nodes={allNodes} parentId={node.id} />
+			<NodeList nodes={node.children} withTransition={withTransition} />
 		</div>
 	);
 }
