@@ -27,7 +27,7 @@ export function NodeItem({
 				</div>
 			</div>
 
-			<NodeList nodes={node.children} />
+			<NodeList nodes={node.children} withTransition={withTransition} />
 		</div>
 	);
 }
