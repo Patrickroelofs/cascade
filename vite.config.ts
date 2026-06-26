@@ -9,6 +9,7 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 
 const dirname =
@@ -17,12 +18,13 @@ const dirname =
 		: path.dirname(fileURLToPath(import.meta.url));
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
-const config = defineConfig({
+const config = defineConfig(({ mode }) => ({
 	resolve: {
 		tsconfigPaths: true,
 	},
 	plugins: [
 		devtools(),
+		mode === "production" ? nitro() : null, // Using the nitro plugin breaks vitest, so only enable it in production
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
@@ -57,5 +59,6 @@ const config = defineConfig({
 			},
 		],
 	},
-});
+}));
+
 export default config;
