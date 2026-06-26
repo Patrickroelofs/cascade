@@ -15,3 +15,4 @@ export const nodes = sqliteTable("nodes", {
 
 export type NodeType = InferSelectModel<typeof nodes>;
 export type NodeInsertType = InferInsertModel<typeof nodes>;
+export type TreeNode = NodeType & { children: TreeNode[] };

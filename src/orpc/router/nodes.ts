@@ -1,13 +1,37 @@
-import { os } from "@orpc/server";
+import { ORPCError, os } from "@orpc/server";
 import { eq } from "drizzle-orm";
 import * as z from "zod";
 
 import { db } from "#/db";
-import { nodes } from "#/db/schema";
+import { nodes, type NodeType, type TreeNode } from "#/db/schema";
+
+function buildTree(flat: NodeType[], rootId: string | null = null): TreeNode[] {
+	const map = new Map(flat.map((n) => [n.id, { ...n, children: [] as TreeNode[] }]));
+	const roots: TreeNode[] = [];
+	for (const node of map.values()) {
+		if (node.parentId === rootId) roots.push(node);
+		else map.get(node.parentId!)?.children.push(node);
+	}
+	const sort = (ns: TreeNode[]) => {
+		ns.sort((a, b) => a.position - b.position);
+		ns.forEach((n) => sort(n.children));
+	};
+	sort(roots);
+	return roots;
+}
 
 export const listNodes = os.handler(() => {
-	return db.select().from(nodes).all();
+	return buildTree(db.select().from(nodes).all());
 });
+
+export const getNode = os
+	.input(z.object({ id: z.string() }))
+	.handler(({ input }) => {
+		const flat = db.select().from(nodes).all();
+		const node = flat.find((n) => n.id === input.id);
+		if (!node) throw new ORPCError("NOT_FOUND");
+		return { ...node, children: buildTree(flat, input.id) };
+	});
 
 export const addNode = os
 	.input(
