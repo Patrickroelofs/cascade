@@ -9,7 +9,6 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { playwright } from "@vitest/browser-playwright";
-import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 
 const dirname =
@@ -24,13 +23,6 @@ const config = defineConfig({
 	},
 	plugins: [
 		devtools(),
-		nitro({
-			config: {
-				rollupConfig: {
-					external: [/^@sentry\//],
-				},
-			},
-		}),
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
