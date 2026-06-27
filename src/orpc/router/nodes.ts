@@ -24,6 +24,7 @@ export const listNodes = authedProcedure.handler(async () => {
 			parentId: nodes.parentId,
 			position: nodes.position,
 			text: nodes.text,
+			isOpen: nodes.isOpen,
 			hasChildren: hasChildrenExpr,
 		})
 		.from(nodes)
@@ -40,6 +41,7 @@ export const getChildren = authedProcedure
 				parentId: nodes.parentId,
 				position: nodes.position,
 				text: nodes.text,
+				isOpen: nodes.isOpen,
 				hasChildren: hasChildrenExpr,
 			})
 			.from(nodes)
@@ -92,6 +94,7 @@ export const updateNode = authedProcedure
 			id: z.string(),
 			text: z.string().optional(),
 			position: z.number().optional(),
+			isOpen: z.boolean().optional(),
 		}),
 	)
 	.handler(async ({ input }) => {

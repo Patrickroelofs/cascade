@@ -1,13 +1,10 @@
 import { CaretRightIcon } from "@phosphor-icons/react/ssr";
-import { useQueries } from "@tanstack/react-query";
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useState } from "react";
 import type { NodeWithMeta } from "#/db/schema";
 import { orpc } from "#/orpc/client";
-
-// ponytail: module-level set survives SPA back-nav; use sessionStorage if refresh persistence matters
-const openNodes = new Set<string>();
 
 type FlatNode = { node: NodeWithMeta; depth: number };
 
@@ -35,7 +32,25 @@ export function NodeTree({
 	roots: NodeWithMeta[];
 	withTransition?: boolean;
 }) {
-	const [openSet, setOpenSet] = useState(() => new Set(openNodes));
+	const queryClient = useQueryClient();
+	const [openSet, setOpenSet] = useState<Set<string>>(() => {
+		// Walk the pre-fetched cache to find all open node IDs synchronously,
+		// so the tree renders fully-expanded on first paint with no re-render passes.
+		const result = new Set<string>();
+		const queue = [...roots];
+		while (queue.length) {
+			const node = queue.pop()!;
+			if (node.isOpen) {
+				result.add(node.id);
+				const cached = queryClient.getQueryData<NodeWithMeta[]>(
+					orpc.getChildren.queryOptions({ input: { parentId: node.id } })
+						.queryKey,
+				);
+				if (cached) queue.push(...cached);
+			}
+		}
+		return result;
+	});
 
 	const openIds = [...openSet];
 
@@ -57,18 +72,17 @@ export function NodeTree({
 		overscan: 10,
 	});
 
-	const toggle = (nodeId: string) => {
+	const { mutate: updateNode } = useMutation(orpc.updateNode.mutationOptions());
+
+	const toggle = (node: NodeWithMeta) => {
+		const next = !openSet.has(node.id);
 		setOpenSet((prev) => {
-			const next = new Set(prev);
-			if (next.has(nodeId)) {
-				next.delete(nodeId);
-				openNodes.delete(nodeId);
-			} else {
-				next.add(nodeId);
-				openNodes.add(nodeId);
-			}
-			return next;
+			const s = new Set(prev);
+			if (next) s.add(node.id);
+			else s.delete(node.id);
+			return s;
 		});
+		updateNode({ id: node.id, isOpen: next });
 	};
 
 	return (
@@ -97,7 +111,7 @@ export function NodeTree({
 							{node.hasChildren ? (
 								<button
 									type="button"
-									onClick={() => toggle(node.id)}
+									onClick={() => toggle(node)}
 									className={`shrink-0 text-gray-400 hover:text-gray-700 transition-all opacity-0 group-hover/node:opacity-100 ${isOpen ? "rotate-90" : ""}`}
 								>
 									<CaretRightIcon size={12} weight="bold" />

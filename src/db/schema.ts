@@ -13,6 +13,7 @@ export const nodes = pgTable("nodes", {
 	parentId: text("parent_id").references((): AnyPgColumn => nodes.id),
 	position: real().notNull(),
 	text: text().notNull(),
+	isOpen: boolean("is_open").notNull().default(false),
 });
 
 export type NodeType = InferSelectModel<typeof nodes>;
