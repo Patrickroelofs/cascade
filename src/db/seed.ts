@@ -1,9 +1,5 @@
-import { migrate } from "drizzle-orm/postgres-js/migrator";
-
 import { db } from "./index.ts";
 import { nodes } from "./schema.ts";
-
-migrate(db, { migrationsFolder: "./drizzle" });
 
 type NodeRow = {
 	id: string;
