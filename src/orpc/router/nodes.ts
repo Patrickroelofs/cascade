@@ -4,6 +4,16 @@ import * as z from "zod";
 
 import { db } from "#/db";
 import { nodes, type NodeType, type TreeNode } from "#/db/schema";
+import { auth } from "#/integrations/better-auth/auth";
+
+type Session = Awaited<ReturnType<typeof auth.api.getSession>>;
+
+const authedProcedure = os
+	.$context<{ session?: Session | null }>()
+	.use(({ context, next }) => {
+		if (!context.session) throw new ORPCError("UNAUTHORIZED");
+		return next({ context });
+	});
 
 function buildTree(flat: NodeType[], rootId: string | null = null): TreeNode[] {
 	const map = new Map(flat.map((n) => [n.id, { ...n, children: [] as TreeNode[] }]));
@@ -20,11 +30,11 @@ function buildTree(flat: NodeType[], rootId: string | null = null): TreeNode[] {
 	return roots;
 }
 
-export const listNodes = os.handler(async () => {
+export const listNodes = authedProcedure.handler(async () => {
 	return buildTree(await db.select().from(nodes));
 });
 
-export const getNode = os
+export const getNode = authedProcedure
 	.input(z.object({ id: z.string() }))
 	.handler(async ({ input }) => {
 		const flat = await db.select().from(nodes);
@@ -33,7 +43,7 @@ export const getNode = os
 		return { ...node, children: buildTree(flat, input.id) };
 	});
 
-export const addNode = os
+export const addNode = authedProcedure
 	.input(
 		z.object({
 			parentId: z.string().nullable(),
@@ -49,7 +59,7 @@ export const addNode = os
 		return row;
 	});
 
-export const updateNode = os
+export const updateNode = authedProcedure
 	.input(
 		z.object({
 			id: z.string(),
@@ -67,7 +77,7 @@ export const updateNode = os
 		return row;
 	});
 
-export const deleteNode = os
+export const deleteNode = authedProcedure
 	.input(z.object({ id: z.string() }))
 	.handler(async ({ input }) => {
 		const [row] = await db.delete(nodes).where(eq(nodes.id, input.id)).returning();

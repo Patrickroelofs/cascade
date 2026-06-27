@@ -1,8 +1,9 @@
 import { Avatar } from "@base-ui/react/avatar";
 import { Menu } from "@base-ui/react/menu";
+import { Link } from "@tanstack/react-router";
 import { authClient } from "#/integrations/better-auth/auth-client";
 
-const NAV_ITEMS = [{ label: "Nodes", href: "/node" }];
+const NAV_ITEMS = [{ label: "Nodes", to: "/node" as const }];
 
 export function UserMenu() {
 	const { data: session } = authClient.useSession();
@@ -25,10 +26,10 @@ export function UserMenu() {
 								</div>
 							)}
 							{session?.user &&
-								NAV_ITEMS.map(({ label, href }) => (
+								NAV_ITEMS.map(({ label, to }) => (
 									<Menu.LinkItem
-										key={href}
-										href={href}
+										key={to}
+										render={<Link to={to} />}
 										className="flex items-center rounded-lg px-3 py-2 text-sm text-dark-grey cursor-pointer outline-none data-highlighted:bg-ginger"
 									>
 										{label}
@@ -43,7 +44,7 @@ export function UserMenu() {
 								</Menu.Item>
 							) : (
 								<Menu.LinkItem
-									href="/auth/sign-in"
+									render={<Link to="/auth/sign-in" />}
 									className="flex items-center rounded-lg px-3 py-2 text-sm text-dark-grey cursor-pointer outline-none data-highlighted:bg-ginger"
 								>
 									Sign in

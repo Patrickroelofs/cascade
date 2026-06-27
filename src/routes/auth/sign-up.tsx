@@ -1,9 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "#/integrations/better-auth/auth-client";
+import { getSession } from "#/integrations/better-auth/auth.functions";
 
 export const Route = createFileRoute("/auth/sign-up")({
+	beforeLoad: async () => {
+		const session = await getSession();
+		if (session) throw redirect({ to: "/" });
+	},
 	component: SignUp,
 });
 
@@ -17,7 +22,7 @@ function SignUp() {
 			if (error) {
 				setError(error.message ?? "Sign up failed");
 			} else {
-				await navigate({ to: "/" });
+				await navigate({ to: "/node" });
 			}
 		},
 	});
@@ -27,7 +32,7 @@ function SignUp() {
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
-					form.handleSubmit().then((r) => console.log(r));
+					form.handleSubmit();
 				}}
 				className="flex flex-col gap-4 w-80"
 			>

@@ -1,9 +1,14 @@
 import { useForm } from "@tanstack/react-form";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { authClient } from "#/integrations/better-auth/auth-client";
+import { getSession } from "#/integrations/better-auth/auth.functions";
 
 export const Route = createFileRoute("/auth/sign-in")({
+	beforeLoad: async () => {
+		const session = await getSession();
+		if (session) throw redirect({ to: "/" });
+	},
 	component: SignIn,
 });
 
@@ -17,7 +22,7 @@ function SignIn() {
 			if (error) {
 				setError(error.message ?? "Sign in failed");
 			} else {
-				await navigate({ to: "/" });
+				await navigate({ to: "/node" });
 			}
 		},
 	});
