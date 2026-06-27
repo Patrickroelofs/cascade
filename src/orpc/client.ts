@@ -7,14 +7,17 @@ import { createIsomorphicFn } from '@tanstack/react-start'
 
 import type { RouterClient } from '@orpc/server'
 
+import { auth } from '#/integrations/better-auth/auth'
 import router from '#/orpc/router'
 
 const getORPCClient = createIsomorphicFn()
   .server(() =>
     createRouterClient(router, {
-      context: () => ({
-        headers: getRequestHeaders(),
-      }),
+      context: async () => {
+        const headers = getRequestHeaders()
+        const session = await auth.api.getSession({ headers })
+        return { session }
+      },
     }),
   )
   .client((): RouterClient<typeof router> => {
