@@ -8,6 +8,6 @@ export function useSlot<K extends keyof CascadeUISlots>(
 	key: K,
 ): NonNullable<CascadeUISlots[K]> {
 	return useContext(SlotsCtx).flatMap(
-		(s) => s[key] ?? [],
+		(s) => (s[key] ?? []) as unknown[],
 	) as NonNullable<CascadeUISlots[K]>;
 }

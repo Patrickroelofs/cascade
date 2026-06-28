@@ -62,38 +62,3 @@ export const getNode = os
 			.orderBy(nodes.position);
 		return { ...node, children };
 	});
-
-export const addNode = os
-	.input(
-		z.object({
-			parentId: z.string().nullable(),
-			position: z.number(),
-			text: z.string(),
-		}),
-	)
-	.handler(async ({ input }) => {
-		const [row] = await db
-			.insert(nodes)
-			.values({ ...input, id: crypto.randomUUID() })
-			.returning();
-		return row;
-	});
-
-export const updateNode = os
-	.input(
-		z.object({
-			id: z.string(),
-			text: z.string().optional(),
-			position: z.number().optional(),
-			isOpen: z.boolean().optional(),
-		}),
-	)
-	.handler(async ({ input }) => {
-		const { id, ...patch } = input;
-		const [row] = await db
-			.update(nodes)
-			.set(patch)
-			.where(eq(nodes.id, id))
-			.returning();
-		return row;
-	});

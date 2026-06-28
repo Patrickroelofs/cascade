@@ -19,6 +19,12 @@ export interface CascadeUISlots {
 		nodeId: string;
 		nodeParentId: string | null;
 	}>[];
+	nodeText?: React.ComponentType<{
+		nodeId: string;
+		text: string;
+		parentId: string | null;
+		withTransition?: boolean;
+	}>[];
 }
 
 export interface CascadeFeature {

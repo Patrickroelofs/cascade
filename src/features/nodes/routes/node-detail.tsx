@@ -1,8 +1,8 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
+import { EditableNodeTitle } from "#/features/edit-node/components/editable-node-title";
 import { orpc } from "#/orpc/client";
-import { EditableNodeTitle } from "../components/editable-node-title";
 import { NodeTree } from "../components/node-tree";
 
 export const nodeDetailLoader = async ({

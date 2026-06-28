@@ -1,5 +1,6 @@
 import { assembleRouter } from "#/core/assemble";
 import type * as deleteNodeProcedures from "#/features/delete-node/procedures";
+import type * as editNodeProcedures from "#/features/edit-node/procedures";
 import type * as nodesProcedures from "#/features/nodes/procedures";
 import config from "../../../cascade.config";
 
@@ -7,4 +8,5 @@ import config from "../../../cascade.config";
 // Type assertion preserves ORPC procedure brands for the client.
 // When adding a new feature with procedures, add its type to this intersection.
 export default assembleRouter(config) as typeof nodesProcedures &
-	typeof deleteNodeProcedures;
+	typeof deleteNodeProcedures &
+	typeof editNodeProcedures;

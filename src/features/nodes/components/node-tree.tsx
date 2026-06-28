@@ -2,44 +2,13 @@ import { CaretRightIcon } from "@phosphor-icons/react/ssr";
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { useSlot } from "#/core/slots-context";
 import { orpc } from "#/orpc/client";
-import { useInlineEdit } from "#/ui/hooks/use-inline-edit";
 import type { NodeWithMeta } from "../schema";
 import { NodeMenu } from "./node-menu";
 
 type FlatNode = { node: NodeWithMeta; depth: number };
-
-function EditableText({
-	initialValue,
-	onSave,
-	onCancel,
-	clickAt,
-}: {
-	initialValue: string;
-	onSave: (value: string) => void;
-	onCancel: () => void;
-	clickAt?: { x: number; y: number };
-}) {
-	const { mountRef, handleKeyDown, handleBlur } = useInlineEdit({
-		onSave,
-		onCancel,
-		clickAt,
-	});
-	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: For now allow this
-		<div
-			ref={mountRef}
-			contentEditable
-			suppressContentEditableWarning
-			className="outline-none wrap-break-word min-w-4 flex-1"
-			onKeyDown={handleKeyDown}
-			onBlur={handleBlur}
-		>
-			{initialValue}
-		</div>
-	);
-}
 
 function buildFlat(
 	nodes: NodeWithMeta[],
@@ -66,8 +35,7 @@ export function NodeTree({
 	withTransition?: boolean;
 }) {
 	const queryClient = useQueryClient();
-	const [editingId, setEditingId] = useState<string | null>(null);
-	const editClickAt = useRef<{ x: number; y: number } | undefined>(undefined);
+	const [NodeText] = useSlot("nodeText");
 	const [openSet, setOpenSet] = useState<Set<string>>(() => {
 		// Walk the pre-fetched cache to find all open node IDs synchronously,
 		// so the tree renders fully-expanded on first paint with no re-render passes.
@@ -108,7 +76,6 @@ export function NodeTree({
 	});
 
 	const { mutate: updateNode } = useMutation(orpc.updateNode.mutationOptions());
-
 	const toggle = (node: NodeWithMeta) => {
 		const next = !openSet.has(node.id);
 		setOpenSet((prev) => {
@@ -163,58 +130,23 @@ export function NodeTree({
 							/>
 
 							<div className="flex-1 flex items-center gap-2 min-w-0">
-								{editingId === node.id ? (
-									<EditableText
-										initialValue={node.text}
-										clickAt={editClickAt.current}
-										onSave={(text) => {
-											const trimmed = text.trim();
-											if (trimmed && trimmed !== node.text) {
-												const queryOptions = node.parentId
-													? orpc.getChildren.queryOptions({
-															input: { parentId: node.parentId },
-														})
-													: orpc.listNodes.queryOptions();
-												queryClient.setQueryData(
-													queryOptions.queryKey,
-													(old: NodeWithMeta[] | undefined) =>
-														old?.map((n) =>
-															n.id === node.id ? { ...n, text: trimmed } : n,
-														),
-												);
-												updateNode(
-													{ id: node.id, text: trimmed },
-													{
-														onSettled: () =>
-															queryClient.invalidateQueries(queryOptions),
-													},
-												);
-											}
-											setEditingId(null);
-										}}
-										onCancel={() => setEditingId(null)}
+								{NodeText ? (
+									<NodeText
+										nodeId={node.id}
+										text={node.text}
+										parentId={node.parentId}
+										withTransition={withTransition}
 									/>
 								) : (
-									// biome-ignore lint/a11y/useSemanticElements: div is used for interaction
-									<div
-										className="outline-none wrap-break-word cursor-text text-left"
-										role="button"
-										tabIndex={0}
+									<span
 										style={
 											withTransition
 												? { viewTransitionName: `node-text-${node.id}` }
 												: undefined
 										}
-										onClick={(e) => {
-											editClickAt.current = { x: e.clientX, y: e.clientY };
-											setEditingId(node.id);
-										}}
-										onKeyDown={(e) => {
-											if (e.key === "Enter") setEditingId(node.id);
-										}}
 									>
 										{node.text}
-									</div>
+									</span>
 								)}
 								<NodeMenu node={node} />
 							</div>

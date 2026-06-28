@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import type { NodeType, NodeWithMeta } from "#/features/nodes/schema";
 import { orpc } from "#/orpc/client";
 import { useInlineEdit } from "#/ui/hooks/use-inline-edit";
-import type { NodeType, NodeWithMeta } from "../schema";
 
 export function EditableNodeTitle({
 	nodeId,
@@ -15,7 +15,9 @@ export function EditableNodeTitle({
 }) {
 	const queryClient = useQueryClient();
 	const [isEditing, setIsEditing] = useState(false);
-	const [clickAt, setClickAt] = useState<{ x: number; y: number } | undefined>();
+	const [clickAt, setClickAt] = useState<
+		{ x: number; y: number } | undefined
+	>();
 	const { mutate: updateNode } = useMutation(orpc.updateNode.mutationOptions());
 
 	const nodeQueryOptions = orpc.getNode.queryOptions({ input: { id: nodeId } });
