@@ -28,10 +28,8 @@ export function EditableTreeNodeText({
 		onSave: (value) => {
 			const trimmed = value.trim();
 			if (trimmed && trimmed !== text) {
-				queryClient.setQueryData(
-					queryOptions.queryKey,
-					(old: { id: string; text: string }[] | undefined) =>
-						old?.map((n) => (n.id === nodeId ? { ...n, text: trimmed } : n)),
+				queryClient.setQueryData(queryOptions.queryKey, (old) =>
+					old?.map((n) => (n.id === nodeId ? { ...n, text: trimmed } : n)),
 				);
 				updateNode(
 					{ id: nodeId, text: trimmed },
