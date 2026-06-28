@@ -1,6 +1,7 @@
 import { defineFeature } from "#/core/feature";
-import * as procedures from "./procedures";
-import * as schema from "./schema";
+
+const procedures = import.meta.env.SSR ? await import("./procedures") : undefined;
+const schema = import.meta.env.SSR ? await import("./schema") : undefined;
 
 export const nodesFeature = defineFeature({
 	name: "nodes",

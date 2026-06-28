@@ -6,6 +6,8 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import config from "../../cascade.config";
+import { SlotsProvider } from "../core/slots-context";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
 
@@ -44,7 +46,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				{children}
+				<SlotsProvider value={config.features.map((f) => f.slots ?? {})}>
+					{children}
+				</SlotsProvider>
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",

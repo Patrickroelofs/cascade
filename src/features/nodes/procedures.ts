@@ -97,13 +97,3 @@ export const updateNode = os
 			.returning();
 		return row;
 	});
-
-export const deleteNode = os
-	.input(z.object({ id: z.string() }))
-	.handler(async ({ input }) => {
-		const [row] = await db
-			.delete(nodes)
-			.where(eq(nodes.id, input.id))
-			.returning();
-		return row;
-	});

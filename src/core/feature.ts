@@ -15,6 +15,10 @@ export interface CascadeUISlots {
 	topLeftMenu?: React.ComponentType[];
 	bottomLeftMenu?: React.ComponentType[];
 	bottomRightMenu?: React.ComponentType[];
+	afterNodeActions?: React.ComponentType<{
+		nodeId: string;
+		nodeParentId: string | null;
+	}>[];
 }
 
 export interface CascadeFeature {
