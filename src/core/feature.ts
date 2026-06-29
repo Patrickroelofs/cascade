@@ -32,16 +32,20 @@ export interface CascadeFeature {
 	name: string;
 	/** Human-readable description */
 	description?: string;
-	/** Drizzle table definitions contributed by this feature */
-	schema?: Record<string, AnyPgTable>;
-	/** ORPC procedures contributed to the top-level router */
-	procedures?: Record<string, unknown>;
+	/** Lazy thunk returning Drizzle table definitions — use `() => import("./schema?cascade-server")` */
+	schema?: () => Promise<Record<string, AnyPgTable>>;
+	/** Lazy thunk returning ORPC procedures — use `() => import("./procedures?cascade-server")` */
+	procedures?: () => Promise<Record<string, unknown>>;
 	/** Feature names this feature depends on (validated at startup) */
 	dependencies?: string[];
 	/** Lifecycle hooks */
 	hooks?: FeatureHooks;
 	/** UI components contributed to named layout slots */
 	slots?: CascadeUISlots;
+	/** Resolved by bootstrap — do not set manually */
+	_resolvedSchema?: Record<string, AnyPgTable>;
+	/** Resolved by bootstrap — do not set manually */
+	_resolvedProcedures?: Record<string, unknown>;
 }
 
 export interface ResolvedCascadeConfig {

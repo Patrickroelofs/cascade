@@ -1,5 +1,9 @@
-import { db } from "./index.ts";
-import { nodes } from "./schema.ts";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
+import { nodes } from "#/features/nodes/schema";
+
+// seed.ts runs via tsx outside of Vite, so it initializes db directly
+const db = drizzle(postgres(process.env.DATABASE_URL!), { schema: { nodes } });
 
 type NodeRow = {
 	id: string;
