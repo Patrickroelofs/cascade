@@ -5,5 +5,5 @@ export const nodesFeature = defineFeature({
 	description: "Hierarchical tree node management",
 	schema: () => import("./schema?cascade-server"),
 	procedures: () => import("./procedures?cascade-server"),
-	dependencies: ["auth"],
+	dependencies: [],
 });

@@ -52,7 +52,7 @@ export function EditableTreeNodeText({
 				ref={mountRef}
 				contentEditable
 				suppressContentEditableWarning
-				className="outline-none wrap-break-word min-w-4 flex-1"
+				className="outline-none wrap-break-word min-w-4 inline-flex"
 				style={style}
 				onKeyDown={handleKeyDown}
 				onBlur={handleBlur}
@@ -65,7 +65,7 @@ export function EditableTreeNodeText({
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: div is used for interaction
 		<div
-			className="outline-none wrap-break-word cursor-text text-left flex-1"
+			className="outline-none wrap-break-word cursor-text text-left inline-flex"
 			role="button"
 			tabIndex={0}
 			style={style}
