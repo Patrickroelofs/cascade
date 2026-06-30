@@ -1,33 +1,31 @@
 import { randomUUID } from "node:crypto";
+import { faker } from "@faker-js/faker";
 import { nodes } from "#/core/nodes/node.schema";
 import { db } from "#/db";
 
-// A few roots with nesting so the tree UI has something to expand.
-const tree = {
-	Groceries: {
-		Produce: { Apples: {}, Spinach: {} },
-		Dairy: { Milk: {}, Cheese: {} },
-	},
-	Project: {
-		Design: { Wireframes: {}, "Color palette": {} },
-		Build: { "Set up CI": {}, "Write tests": {} },
-	},
-	"Reading list": {},
-};
+const config = {
+	roots: 30, // number of root nodes
+	maxDepth: 3, // max nesting depth
+	maxChildren: 12, // max children per node
+} as const;
 
-type Tree = { [text: string]: Tree };
-
-async function insert(subtree: Tree, parentId: string | null) {
-	for (const [text, children] of Object.entries(subtree)) {
+async function insertTree(parentId: string | null, depth: number) {
+	if (depth <= 0) return;
+	const count = faker.number.int({ min: 1, max: config.maxChildren });
+	for (let i = 0; i < count; i++) {
 		const id = randomUUID();
+		const text = faker.lorem.sentences({ min: 1, max: 3 });
 		await db.insert(nodes).values({ id, parentId, text });
-		await insert(children, id);
+		console.log(`inserted: ${id} "${text}" (parent: ${parentId ?? "root"})`);
+		await insertTree(id, depth - 1);
 	}
 }
 
 async function main() {
-	await db.delete(nodes); // ponytail: dev seed wipes the table; not for prod
-	await insert(tree, null);
+	await db.delete(nodes);
+	for (let i = 0; i < config.roots; i++) {
+		await insertTree(null, config.maxDepth);
+	}
 	console.log("Seeded nodes.");
 	process.exit(0);
 }
