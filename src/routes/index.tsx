@@ -1,6 +1,7 @@
 import { type QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { orpc } from "#/orpc/client";
+import { GenericErrorComponent } from "#/ui/ErrorComponent/GenericErrorComponent";
 
 export const nodeListLoader = async ({
 	context,
@@ -13,6 +14,7 @@ export const nodeListLoader = async ({
 };
 
 export const Route = createFileRoute("/")({
+	errorComponent: GenericErrorComponent,
 	component: () => {
 		const { data } = useSuspenseQuery(orpc.listNodes.queryOptions());
 
