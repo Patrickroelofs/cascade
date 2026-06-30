@@ -10,14 +10,98 @@ const config = {
 	maxChildren: 12, // max children per node
 } as const;
 
+type LexicalTextNode = {
+	detail: number;
+	format: number;
+	mode: string;
+	style: string;
+	text: string;
+	type: "text";
+	version: 1;
+};
+
+// format bitmask: 1=bold, 2=italic, 3=bold+italic
+function randomFormat(): number {
+	return faker.helpers.weightedArrayElement([
+		{ value: 0, weight: 5 },
+		{ value: 1, weight: 2 },
+		{ value: 2, weight: 2 },
+		{ value: 3, weight: 1 },
+	]);
+}
+
+function textToLexicalContent(text: string) {
+	// Split into words and randomly apply bold/italic to some spans
+	const words = text.split(" ");
+	const children: LexicalTextNode[] = [];
+	let i = 0;
+	while (i < words.length) {
+		const format = randomFormat();
+		// grab a run of 1-4 words with the same format
+		const runLen =
+			format === 0
+				? faker.number.int({ min: 3, max: 8 })
+				: faker.number.int({ min: 1, max: 4 });
+		const slice = words.slice(i, i + runLen).join(" ");
+		if (children.length > 0 && format !== 0) {
+			// add a space before formatted runs
+			children.push({
+				detail: 0,
+				format: 0,
+				mode: "normal",
+				style: "",
+				text: " ",
+				type: "text",
+				version: 1,
+			});
+		}
+		children.push({
+			detail: 0,
+			format,
+			mode: "normal",
+			style: "",
+			text:
+				children.length === 0 || format === 0
+					? children.length === 0
+						? slice
+						: ` ${slice}`
+					: slice,
+			type: "text",
+			version: 1,
+		});
+		i += runLen;
+	}
+
+	return {
+		root: {
+			children: [
+				{
+					children,
+					direction: "ltr",
+					format: "",
+					indent: 0,
+					type: "paragraph",
+					version: 1,
+				},
+			],
+			direction: "ltr",
+			format: "",
+			indent: 0,
+			type: "root",
+			version: 1,
+		},
+	};
+}
+
 async function insertTree(parentId: string | null, depth: number) {
 	if (depth <= 0) return;
 	const count = faker.number.int({ min: 1, max: config.maxChildren });
 	const orders = generateNKeysBetween(null, null, count);
 	for (let i = 0; i < count; i++) {
 		const id = randomUUID();
-		const text = faker.lorem.sentences({ min: 1, max: 3 });
-		await db.insert(nodes).values({ id, parentId, text, order: orders[i] });
+		const text = faker.lorem.sentences({ min: 1, max: 2 });
+		const content = textToLexicalContent(text);
+		await db.insert(nodes).values({ id, parentId, content, order: orders[i] });
 		console.log(`inserted: ${id} "${text}" (parent: ${parentId ?? "root"})`);
 		await insertTree(id, depth - 1);
 	}
@@ -32,4 +116,9 @@ async function main() {
 	process.exit(0);
 }
 
-main();
+main()
+	.then(() => console.log("Done."))
+	.catch((err) => {
+		console.error(err);
+		process.exit(1);
+	});

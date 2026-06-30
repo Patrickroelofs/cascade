@@ -2,6 +2,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { sortByOrder } from "#/lib/node-sort";
 import { orpc } from "#/orpc/client";
+import {
+	type LexicalElementNode,
+	LexicalReadView,
+} from "#/ui/Nodes/lexical-read-view";
 import { Node } from "#/ui/Nodes/node";
 
 export const Route = createFileRoute("/node/$nodeId")({
@@ -30,12 +34,15 @@ function NodeDetailPage() {
 
 	return (
 		<div className="max-w-6xl mx-auto py-32">
-			<h1
+			<div
 				style={{ viewTransitionName: `node-${nodeId}` }}
-				className="text-2xl font-semibold mb-8"
+				className="text-2xl mb-8"
 			>
-				{node.text}
-			</h1>
+				<LexicalReadView
+					// TODO: Improve type handling
+					content={node.content as { root: LexicalElementNode }}
+				/>
+			</div>
 			<div>
 				{sortByOrder(children ?? []).map((child) => (
 					<Node key={child.id} node={child} />

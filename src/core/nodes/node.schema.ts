@@ -2,6 +2,7 @@ import {
 	type AnyPgColumn,
 	boolean,
 	index,
+	jsonb,
 	pgTable,
 	text,
 } from "drizzle-orm/pg-core";
@@ -13,7 +14,7 @@ export const nodes = pgTable(
 		parentId: text("parent_id").references((): AnyPgColumn => nodes.id, {
 			onDelete: "cascade",
 		}),
-		text: text().notNull(),
+		content: jsonb("content"),
 		expanded: boolean().notNull().default(false),
 		order: text("order"),
 	},

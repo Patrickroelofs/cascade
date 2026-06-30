@@ -11,7 +11,7 @@ export const listNodes = os
 			.select({
 				id: nodes.id,
 				parentId: nodes.parentId,
-				text: nodes.text,
+				content: nodes.content,
 				expanded: nodes.expanded,
 				order: nodes.order,
 				hasChildren: sql<boolean>`EXISTS (SELECT 1 FROM nodes c WHERE c.parent_id = nodes.id)`,
@@ -32,7 +32,7 @@ export const getNode = os
 			.select({
 				id: nodes.id,
 				parentId: nodes.parentId,
-				text: nodes.text,
+				content: nodes.content,
 				expanded: nodes.expanded,
 				order: nodes.order,
 				hasChildren: sql<boolean>`EXISTS (SELECT 1 FROM nodes c WHERE c.parent_id = nodes.id)`,

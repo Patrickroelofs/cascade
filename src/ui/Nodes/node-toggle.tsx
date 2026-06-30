@@ -44,7 +44,7 @@ export function NodeToggle({
 					onClick={() => mutate({ id, expanded: !expanded })}
 					aria-label={expanded ? "Collapse" : "Expand"}
 					aria-expanded={expanded}
-					className="shrink-0 text-gray-400 hover:text-black transition-colors"
+					className="shrink-0 text-dark-grey hover:text-redleather transition-colors"
 				>
 					<CaretRightIcon
 						className={nodeToggleCaret({
