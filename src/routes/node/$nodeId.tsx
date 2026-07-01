@@ -5,7 +5,7 @@ import { orpc } from "#/orpc/client";
 import {
 	type LexicalElementNode,
 	LexicalReadView,
-} from "#/ui/Nodes/lexical-read-view";
+} from "#/ui/Lexical/Read/lexical-read-view";
 import { Node } from "#/ui/Nodes/node";
 
 export const Route = createFileRoute("/node/$nodeId")({

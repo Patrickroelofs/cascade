@@ -2,7 +2,7 @@ import type { NodeType } from "#/core/nodes/node.types";
 import {
 	type LexicalElementNode,
 	LexicalReadView,
-} from "#/ui/Nodes/lexical-read-view";
+} from "#/ui/Lexical/Read/lexical-read-view";
 
 interface NodeEditorProps {
 	node: NodeType;
