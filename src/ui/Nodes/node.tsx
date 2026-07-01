@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { NodeType } from "#/core/nodes/node.types";
 import { sortByOrder } from "#/lib/node-sort";
 import { orpc } from "#/orpc/client";
+import { NodeActions } from "#/ui/Nodes/node-actions";
 import { NodeEditor } from "#/ui/Nodes/node-editor";
 import { NodeLink } from "#/ui/Nodes/node-link";
 import { NodeToggle } from "#/ui/Nodes/node-toggle";
@@ -26,10 +27,11 @@ export function Node({ node }: { node: NodeProps }) {
 				<NodeLink id={node.id} />
 
 				<div
-					className="flex-1 flex items-center gap-2 min-w-0"
+					className="inline-flex items-center gap-2 min-w-0"
 					style={{ viewTransitionName: `node-${node.id}` }}
 				>
 					<NodeEditor node={node} />
+					<NodeActions id={node.id} parentId={node.parentId} />
 				</div>
 			</div>
 

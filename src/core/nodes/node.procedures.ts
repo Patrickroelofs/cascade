@@ -51,3 +51,9 @@ export const toggleNodeExpanded = os
 			.set({ expanded: input.expanded })
 			.where(eq(nodes.id, input.id));
 	});
+
+export const deleteNode = os
+	.input(z.object({ id: z.string() }))
+	.handler(async ({ input }) => {
+		await db.delete(nodes).where(eq(nodes.id, input.id));
+	});
