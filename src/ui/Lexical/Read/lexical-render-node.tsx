@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import type { LexicalElementNode } from "#/ui/Lexical/Read/lexical-read-view";
+import type { LexicalElementNode } from "#/ui/lexical/read/lexical-read-view";
 import {
 	type LexicalTextNode,
 	renderTextNode,
-} from "#/ui/Lexical/Read/render-text-nodes";
+} from "#/ui/lexical/read/render-text-nodes";
 
 export function renderNode(
 	node: LexicalTextNode | LexicalElementNode,
@@ -21,7 +21,13 @@ export function renderNode(
 		}
 
 		default: {
-			throw new Error(`Unknown type ${node.type}`);
+			// Unknown node types degrade to their text content instead of
+			// crashing the read view; the editor remains the source of truth.
+			const children =
+				"children" in node && node.children
+					? node.children.map((child, index) => renderNode(child, index))
+					: null;
+			return <span key={key}>{children}</span>;
 		}
 	}
 }

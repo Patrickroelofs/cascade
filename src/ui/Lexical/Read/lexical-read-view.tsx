@@ -1,5 +1,5 @@
-import { renderNode } from "#/ui/Lexical/Read/lexical-render-node";
-import type { LexicalTextNode } from "#/ui/Lexical/Read/render-text-nodes";
+import { renderNode } from "#/ui/lexical/read/lexical-render-node";
+import type { LexicalTextNode } from "#/ui/lexical/read/render-text-nodes";
 
 export interface LexicalElementNode {
 	type: string;
@@ -7,12 +7,11 @@ export interface LexicalElementNode {
 }
 
 interface LexicalReadViewProps {
-	content: {
-		root: LexicalElementNode;
-	};
+	content: { root: LexicalElementNode } | null;
 }
 
 export function LexicalReadView({ content }: LexicalReadViewProps) {
+	if (!content) return <p>&nbsp;</p>;
 	return (
 		<>
 			{content.root.children?.map((child, index) => renderNode(child, index))}
