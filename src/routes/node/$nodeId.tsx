@@ -43,8 +43,13 @@ function NodeDetailPage() {
 				/>
 			</div>
 			<div>
-				{children.map((child) => (
-					<Node key={child.id} node={child} />
+				{children.map((child, index) => (
+					<Node
+						key={child.id}
+						node={child}
+						level={0}
+						isLastChild={index === children.length - 1}
+					/>
 				))}
 			</div>
 		</div>

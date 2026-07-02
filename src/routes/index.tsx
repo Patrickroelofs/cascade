@@ -13,8 +13,15 @@ export const Route = createFileRoute("/")({
 
 		return (
 			<div className="max-w-6xl mx-auto py-32">
-				{data.map((node) => {
-					return <Node key={node.id} node={node} />;
+				{data.map((node, index) => {
+					return (
+						<Node
+							key={node.id}
+							node={node}
+							level={0}
+							isLastChild={index === data.length - 1}
+						/>
+					);
 				})}
 			</div>
 		);

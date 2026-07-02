@@ -93,7 +93,7 @@ function textToLexicalContent(text: string) {
 	};
 }
 
-async function insertTree(parentId: string | null, depth: number) {
+async function insertChildren(parentId: string, depth: number) {
 	if (depth <= 0) return;
 	const count = faker.number.int({ min: 1, max: config.maxChildren });
 	const orders = generateNKeysBetween(null, null, count);
@@ -102,16 +102,28 @@ async function insertTree(parentId: string | null, depth: number) {
 		const text = faker.lorem.sentences({ min: 1, max: 2 });
 		const content = textToLexicalContent(text);
 		await db.insert(nodes).values({ id, parentId, content, order: orders[i] });
-		console.log(`inserted: ${id} "${text}" (parent: ${parentId ?? "root"})`);
-		await insertTree(id, depth - 1);
+		console.log(`inserted: ${id} "${text}" (parent: ${parentId})`);
+		await insertChildren(id, depth - 1);
 	}
 }
 
 async function main() {
 	await db.delete(nodes);
+
+	// All root nodes are siblings under the same parent (null), so they must
+	// share a single order batch rather than each generating its own from scratch.
+	const rootOrders = generateNKeysBetween(null, null, config.roots);
 	for (let i = 0; i < config.roots; i++) {
-		await insertTree(null, config.maxDepth);
+		const id = randomUUID();
+		const text = faker.lorem.sentences({ min: 1, max: 2 });
+		const content = textToLexicalContent(text);
+		await db
+			.insert(nodes)
+			.values({ id, parentId: null, content, order: rootOrders[i] });
+		console.log(`inserted: ${id} "${text}" (parent: root)`);
+		await insertChildren(id, config.maxDepth - 1);
 	}
+
 	console.log("Seeded nodes.");
 	process.exit(0);
 }

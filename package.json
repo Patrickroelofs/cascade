@@ -23,6 +23,8 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.0.0",
     "@base-ui/react": "^1.6.0",
     "@lexical/history": "^0.46.0",
     "@lexical/react": "^0.46.0",
