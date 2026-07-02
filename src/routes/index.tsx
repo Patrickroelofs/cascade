@@ -1,29 +1,11 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { orpc } from "#/orpc/client";
-import { GenericErrorComponent } from "#/ui/ErrorComponent/GenericErrorComponent";
-import { Node } from "#/ui/Nodes/node";
+import { GenericErrorComponent } from "#/ui/error/generic-error";
+import { visibleTreeOptions } from "#/ui/nodes/virtual-tree/use-visible-tree";
+import { VirtualTree } from "#/ui/nodes/virtual-tree/virtual-tree";
 
 export const Route = createFileRoute("/")({
+	loader: ({ context: { queryClient } }) =>
+		queryClient.ensureQueryData(visibleTreeOptions(null)),
 	errorComponent: GenericErrorComponent,
-	component: () => {
-		const { data } = useSuspenseQuery(
-			orpc.listNodes.queryOptions({ input: { parentId: null } }),
-		);
-
-		return (
-			<div className="max-w-6xl mx-auto py-32">
-				{data.map((node, index) => {
-					return (
-						<Node
-							key={node.id}
-							node={node}
-							level={0}
-							isLastChild={index === data.length - 1}
-						/>
-					);
-				})}
-			</div>
-		);
-	},
+	component: () => <VirtualTree rootId={null} />,
 });

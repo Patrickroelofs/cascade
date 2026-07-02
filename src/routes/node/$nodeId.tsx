@@ -1,57 +1,41 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { orpc } from "#/orpc/client";
-import {
-	type LexicalElementNode,
-	LexicalReadView,
-} from "#/ui/Lexical/Read/lexical-read-view";
-import { Node } from "#/ui/Nodes/node";
+import { GenericErrorComponent } from "#/ui/error/generic-error";
+import { toLexicalContent } from "#/ui/lexical/lexical-content";
+import { LexicalReadView } from "#/ui/lexical/read/lexical-read-view";
+import { visibleTreeOptions } from "#/ui/nodes/virtual-tree/use-visible-tree";
+import { VirtualTree } from "#/ui/nodes/virtual-tree/virtual-tree";
 
 export const Route = createFileRoute("/node/$nodeId")({
 	loader: ({ context: { queryClient }, params: { nodeId } }) =>
 		Promise.all([
 			queryClient.ensureQueryData(
-				orpc.getNode.queryOptions({ input: { id: nodeId } }),
+				orpc.nodes.get.queryOptions({ input: { id: nodeId } }),
 			),
-			queryClient.ensureQueryData(
-				orpc.listNodes.queryOptions({ input: { parentId: nodeId } }),
-			),
+			queryClient.ensureQueryData(visibleTreeOptions(nodeId)),
 		]),
+	errorComponent: GenericErrorComponent,
 	component: NodeDetailPage,
 });
 
 function NodeDetailPage() {
 	const { nodeId } = Route.useParams();
 	const { data: node } = useSuspenseQuery(
-		orpc.getNode.queryOptions({ input: { id: nodeId } }),
+		orpc.nodes.get.queryOptions({ input: { id: nodeId } }),
 	);
-	const { data: children } = useSuspenseQuery(
-		orpc.listNodes.queryOptions({ input: { parentId: nodeId } }),
-	);
-
-	if (!node) return <p>Node not found</p>;
 
 	return (
-		<div className="max-w-6xl mx-auto py-32">
-			<div
-				style={{ viewTransitionName: `node-${nodeId}` }}
-				className="text-2xl mb-8"
-			>
-				<LexicalReadView
-					// TODO: Improve type handling
-					content={node.content as { root: LexicalElementNode }}
-				/>
-			</div>
-			<div>
-				{children.map((child, index) => (
-					<Node
-						key={child.id}
-						node={child}
-						level={0}
-						isLastChild={index === children.length - 1}
-					/>
-				))}
-			</div>
-		</div>
+		<VirtualTree
+			rootId={nodeId}
+			header={
+				<div
+					style={{ viewTransitionName: `node-${nodeId}` }}
+					className="text-2xl mb-8"
+				>
+					<LexicalReadView content={toLexicalContent(node.content)} />
+				</div>
+			}
+		/>
 	);
 }

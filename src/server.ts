@@ -6,4 +6,20 @@ import { FastResponse } from "srvx";
 
 globalThis.Response = FastResponse;
 
-export default { fetch: createStartHandler(defaultStreamHandler) };
+const startHandler = createStartHandler(defaultStreamHandler);
+
+const securityHeaders: Record<string, string> = {
+	"X-Content-Type-Options": "nosniff",
+	"X-Frame-Options": "DENY",
+	"Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
+export default {
+	async fetch(request: Request): Promise<Response> {
+		const response = await startHandler(request);
+		for (const [key, value] of Object.entries(securityHeaders)) {
+			response.headers.set(key, value);
+		}
+		return response;
+	},
+};
