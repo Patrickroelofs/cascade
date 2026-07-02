@@ -1,12 +1,11 @@
 # Cascade
 
-A self-hosted, plugin-based outliner.
+A self-hosted outliner.
 
 ## Features
 
-- Tree-based outliner with infinitely nestable nodes
+- Tree-based outliner with infinitely nestable nodes, virtualized for large trees
 - Self-hosted on your own infrastructure with a PostgreSQL database
-- Plugin architecture: add, remove, or replace any feature
 - Type-safe throughout — RPC, database queries, and routing
 
 ## Getting started
@@ -23,7 +22,6 @@ Copy `.env.local.example` to `.env.local` and set:
 
 ```env
 DATABASE_URL=postgres://user:password@localhost:5432/cascade
-BETTER_AUTH_SECRET=your-secret
 ```
 
 Start a local database:
@@ -32,12 +30,17 @@ Start a local database:
 docker compose up -d
 ```
 
-Run migrations and seed:
+Apply the schema and seed:
 
 ```bash
-pnpm db:migrate
+pnpm db:push
 pnpm db:seed
 ```
+
+> Note: the `order` column must use `COLLATE "C"` (byte-order comparison for
+> fractional-index keys). `db:push` can't express collation — on a fresh
+> database run once:
+> `ALTER TABLE nodes ALTER COLUMN "order" TYPE text COLLATE "C";`
 
 Start the dev server:
 
@@ -61,8 +64,7 @@ pnpm dev          # Start dev server
 pnpm test         # Run tests
 pnpm check        # Lint + format
 
-pnpm db:generate  # Generate migration from schema changes
-pnpm db:migrate   # Apply migrations
+pnpm db:push      # Apply schema changes to the database
 pnpm db:studio    # Open Drizzle Studio
 ```
 
