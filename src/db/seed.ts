@@ -109,8 +109,18 @@ async function insertChildren(parentId: string, depth: number) {
 	}
 }
 
+function expectedNodeCount(): number {
+	// geometric series: roots * sum(avgBranching^depth for depth in 0..maxDepth-1)
+	const avgBranching = (1 + config.maxChildren) / 2;
+	let perRoot = 0;
+	for (let d = 0; d < config.maxDepth; d++) perRoot += avgBranching ** d;
+	return Math.round(config.roots * perRoot);
+}
+
 async function main() {
 	await db.delete(nodes);
+
+	console.log(`expected ~${expectedNodeCount()} nodes`);
 
 	// All root nodes are siblings under the same parent (null), so they must
 	// share a single order batch rather than each generating its own from scratch.
