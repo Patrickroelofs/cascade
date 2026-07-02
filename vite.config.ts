@@ -1,4 +1,3 @@
-import path from "node:path";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
@@ -10,12 +9,6 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	resolve: {
 		tsconfigPaths: true,
-		alias: [
-			{
-				find: /^#\/(.*)/,
-				replacement: path.resolve(import.meta.dirname, "src/$1"),
-			},
-		],
 	},
 	plugins: [
 		devtools(),
