@@ -11,8 +11,8 @@ const root = cva({
 
 const spring =
 	"transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
-const slide = `${spring} group-hover:translate-x-4.75`;
-const grow = `${spring} group-hover:scale-[1.05]`;
+const slide = `${spring} group-hover:translate-x-4.75 group-active:translate-x-4.75`;
+const grow = `${spring} group-hover:scale-[1.05] group-active:scale-[1.05]`;
 
 export interface ButtonProps extends React.ComponentProps<typeof BaseButton> {
 	icon: React.ReactNode;
