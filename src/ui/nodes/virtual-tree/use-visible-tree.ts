@@ -104,6 +104,9 @@ export function useVisibleTree(rootId: string | null) {
 		setRows((rows) => patchRow(rows, id, { content }));
 		try {
 			await client.nodes.updateContent({ id, content });
+
+			// Bust breadcrumbs to refresh its data
+			queryClient.invalidateQueries({ queryKey: orpc.nodes.ancestors.key() });
 		} catch {
 			invalidate();
 		}
