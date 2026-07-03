@@ -5,6 +5,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
 import { nodeTypeDefs, type TypedMetadata } from "@/core/nodes/node-types";
+import { Button } from "@/ui/button";
 import type { DragPreviewHandle } from "@/ui/nodes/drag-animation/drag-preview";
 import { findNodeRow } from "@/ui/nodes/drag-animation/node-rows";
 import type { FocusPoint } from "@/ui/nodes/node-editor";
@@ -127,7 +128,10 @@ export function VirtualTree({
 									} as TypedMetadata)
 								}
 								onToggleTask={(completed) =>
-									tree.setType(row.id, { type: "task", metadata: { completed } })
+									tree.setType(row.id, {
+										type: "task",
+										metadata: { completed },
+									})
 								}
 								onDelete={() => tree.remove(row.id)}
 								onSaveContent={(content) => tree.updateContent(row.id, content)}
@@ -137,19 +141,18 @@ export function VirtualTree({
 						);
 					})}
 				</div>
-				<button
-					type="button"
+				<Button
 					data-flip-id="add-node"
+					icon={<PlusIcon className="size-4" />}
 					onClick={async () => {
 						const id = await tree.add();
 						setFocusPoint(null);
 						setEditingNodeId(id);
 					}}
-					className="mt-1 flex items-center gap-2 p-1 -m-1 text-dark-grey hover:text-redleather transition-colors"
+					className="mt-4"
 				>
-					<PlusIcon className="w-4 shrink-0" />
 					Add node
-				</button>
+				</Button>
 			</div>
 		</div>
 	);
