@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { createInterface } from "node:readline/promises";
 import { faker } from "@faker-js/faker";
 import { generateNKeysBetween } from "fractional-indexing";
 import { nodes } from "@/core/nodes/node.schema";
@@ -8,7 +9,17 @@ const config = {
 	roots: 25, // number of root nodes
 	maxDepth: 6, // max nesting depth
 	maxChildren: 12, // max children per node
-} as const;
+};
+
+async function promptConfig() {
+	const rl = createInterface({ input: process.stdin, output: process.stdout });
+	for (const key of Object.keys(config) as Array<keyof typeof config>) {
+		const answer = await rl.question(`${key} [${config[key]}]: `);
+		const n = Number.parseInt(answer, 10);
+		if (Number.isFinite(n) && n > 0) config[key] = n;
+	}
+	rl.close();
+}
 
 type LexicalTextNode = {
 	detail: number;
@@ -147,6 +158,7 @@ function expectedNodeCount(): number {
 }
 
 async function main() {
+	await promptConfig();
 	await db.delete(nodes);
 
 	console.log(`expected ~${expectedNodeCount()} nodes`);
