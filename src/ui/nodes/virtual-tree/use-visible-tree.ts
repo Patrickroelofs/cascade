@@ -1,5 +1,6 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
+import type { TypedMetadata } from "@/core/nodes/node-types";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
 import { client, orpc } from "@/orpc/client";
 import {
@@ -105,6 +106,18 @@ export function useVisibleTree(rootId: string | null) {
 		}
 	};
 
+	/** Convert a node's type or update its per-type metadata (e.g. task completion). */
+	const setType = async (id: string, typed: TypedMetadata) => {
+		setRows((rows) =>
+			patchRow(rows, id, { type: typed.type, metadata: typed.metadata }),
+		);
+		try {
+			await client.nodes.setType({ id, ...typed });
+		} catch {
+			invalidate();
+		}
+	};
+
 	/** Create and append a new node as the last child of this view's root. */
 	const add = async () => {
 		const created = await client.nodes.create({ parentId: rootId });
@@ -113,6 +126,8 @@ export function useVisibleTree(rootId: string | null) {
 				id: created.id,
 				parentId: created.parentId,
 				content: created.content,
+				type: created.type,
+				metadata: created.metadata,
 				expanded: created.expanded,
 				order: created.order,
 				depth: 0,
@@ -151,6 +166,7 @@ export function useVisibleTree(rootId: string | null) {
 		move,
 		remove,
 		updateContent,
+		setType,
 		add,
 		loadMore,
 	};

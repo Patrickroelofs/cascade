@@ -7,6 +7,8 @@ export const nodeColumns = {
 	id: nodes.id,
 	parentId: nodes.parentId,
 	content: nodes.content,
+	type: nodes.type,
+	metadata: nodes.metadata,
 	expanded: nodes.expanded,
 	order: nodes.order,
 	hasChildren,

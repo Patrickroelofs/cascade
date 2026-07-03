@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
+import { type NodeTypeName, typedMetadataSchema } from "@/core/nodes/node-types";
 import { nodeColumns } from "@/core/nodes/node.queries";
 import { nodes } from "@/core/nodes/node.schema";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
@@ -25,6 +26,8 @@ interface VisibleTreeSqlRow {
 	id: string;
 	parent_id: string | null;
 	content: unknown;
+	type: NodeTypeName;
+	metadata: unknown;
 	expanded: boolean;
 	order: string;
 	depth: number;
@@ -52,20 +55,20 @@ export const visibleTree = base
 
 		const result = (await db.execute(sql`
 			WITH RECURSIVE visible AS (
-				SELECT n.id, n.parent_id, n.content, n.expanded, n."order",
+				SELECT n.id, n.parent_id, n.content, n.type, n.metadata, n.expanded, n."order",
 					0 AS depth,
 					ARRAY[n."order"] AS path
 				FROM nodes n
 				WHERE ${rootId === null ? sql`n.parent_id IS NULL` : sql`n.parent_id = ${rootId}`}
 				UNION ALL
-				SELECT c.id, c.parent_id, c.content, c.expanded, c."order",
+				SELECT c.id, c.parent_id, c.content, c.type, c.metadata, c.expanded, c."order",
 					v.depth + 1,
 					v.path || c."order"
 				FROM nodes c
 				JOIN visible v ON c.parent_id = v.id
 				WHERE v.expanded = true AND v.depth < 64
 			)
-			SELECT v.id, v.parent_id, v.content, v.expanded, v."order", v.depth, v.path,
+			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.depth, v.path,
 				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id) AS has_children,
 				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
 			FROM visible v
@@ -79,6 +82,8 @@ export const visibleTree = base
 			id: r.id,
 			parentId: r.parent_id,
 			content: r.content,
+			type: r.type,
+			metadata: r.metadata,
 			expanded: r.expanded,
 			order: r.order,
 			depth: Number(r.depth),
@@ -136,6 +141,15 @@ export const toggleNodeExpanded = base
 		await db
 			.update(nodes)
 			.set({ expanded: input.expanded })
+			.where(eq(nodes.id, input.id));
+	});
+
+export const setNodeType = base
+	.input(z.object({ id: z.string() }).and(typedMetadataSchema))
+	.handler(async ({ input }) => {
+		await db
+			.update(nodes)
+			.set({ type: input.type, metadata: input.metadata })
 			.where(eq(nodes.id, input.id));
 	});
 

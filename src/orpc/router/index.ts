@@ -4,6 +4,7 @@ import {
 	getNode,
 	listNodes,
 	moveNode,
+	setNodeType,
 	toggleNodeExpanded,
 	updateNodeContent,
 	visibleTree,
@@ -19,5 +20,6 @@ export default {
 		toggleExpanded: toggleNodeExpanded,
 		delete: deleteNode,
 		updateContent: updateNodeContent,
+		setType: setNodeType,
 	},
 };

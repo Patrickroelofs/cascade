@@ -1,9 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { orpc } from "#/orpc/client";
+import { client, orpc } from "#/orpc/client";
 import { GenericErrorComponent } from "#/ui/error/generic-error";
 import { toLexicalContent } from "#/ui/lexical/lexical-content";
 import { LexicalReadView } from "#/ui/lexical/read/lexical-read-view";
+import { NodeCheckbox } from "#/ui/nodes/node-checkbox";
 import { visibleTreeOptions } from "#/ui/nodes/virtual-tree/use-visible-tree";
 import { VirtualTree } from "#/ui/nodes/virtual-tree/virtual-tree";
 
@@ -21,9 +22,24 @@ export const Route = createFileRoute("/node/$nodeId")({
 
 function NodeDetailPage() {
 	const { nodeId } = Route.useParams();
-	const { data: node } = useSuspenseQuery(
-		orpc.nodes.get.queryOptions({ input: { id: nodeId } }),
-	);
+	const queryClient = useQueryClient();
+	const options = orpc.nodes.get.queryOptions({ input: { id: nodeId } });
+	const { data: node } = useSuspenseQuery(options);
+
+	const toggleTask = async (completed: boolean) => {
+		queryClient.setQueryData(options.queryKey, (old) =>
+			old ? { ...old, metadata: { completed } } : old,
+		);
+		try {
+			await client.nodes.setType({
+				id: nodeId,
+				type: "task",
+				metadata: { completed },
+			});
+		} catch {
+			queryClient.invalidateQueries({ queryKey: options.queryKey });
+		}
+	};
 
 	return (
 		<VirtualTree
@@ -31,8 +47,11 @@ function NodeDetailPage() {
 			header={
 				<div
 					style={{ viewTransitionName: `node-${nodeId}` }}
-					className="text-2xl mb-8"
+					className="text-2xl mb-8 flex items-center gap-3"
 				>
+					{node.type === "task" && (
+						<NodeCheckbox metadata={node.metadata} onToggle={toggleTask} />
+					)}
 					<LexicalReadView content={toLexicalContent(node.content)} />
 				</div>
 			}

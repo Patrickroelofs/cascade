@@ -1,9 +1,11 @@
 "use no memo";
 
 import type { RefObject } from "react";
+import type { NodeTypeName } from "@/core/nodes/node-types";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
 import { NodeActions } from "@/ui/nodes/node-actions";
+import { NodeCheckbox } from "@/ui/nodes/node-checkbox";
 import { type FocusPoint, NodeEditor } from "@/ui/nodes/node-editor";
 import { NodeLink } from "@/ui/nodes/node-link";
 import { NodeToggle } from "@/ui/nodes/node-toggle";
@@ -22,6 +24,8 @@ export interface VirtualTreeRowProps {
 	onStartEdit: (point?: FocusPoint) => void;
 	onExitEdit: () => void;
 	onToggle: (expanded: boolean) => void;
+	onConvert: (type: NodeTypeName) => void;
+	onToggleTask: (completed: boolean) => void;
 	onDelete: () => void;
 	onSaveContent: (content: { root: LexicalElementNode }) => void;
 	onMoveDrop: (draggedId: string, target: MoveTarget) => void;
@@ -58,9 +62,14 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				/>
 				<NodeLink id={row.id} />
 				<NodeActions
+					nodeType={row.type}
+					onConvert={props.onConvert}
 					onDelete={props.onDelete}
 					viewTransitionName={`node-${row.id}`}
 				>
+					{row.type === "task" && (
+						<NodeCheckbox metadata={row.metadata} onToggle={props.onToggleTask} />
+					)}
 					<div className="block w-full">
 						<NodeEditor
 							id={row.id}

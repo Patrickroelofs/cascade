@@ -4,6 +4,7 @@ import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-sc
 import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
+import { nodeTypeDefs, type TypedMetadata } from "@/core/nodes/node-types";
 import type { DragPreviewHandle } from "@/ui/nodes/drag-animation/drag-preview";
 import { findNodeRow } from "@/ui/nodes/drag-animation/node-rows";
 import type { FocusPoint } from "@/ui/nodes/node-editor";
@@ -119,6 +120,15 @@ export function VirtualTree({
 								}}
 								onExitEdit={() => setEditingNodeId(null)}
 								onToggle={(expanded) => handleToggle(row.id, expanded)}
+								onConvert={(type) =>
+									tree.setType(row.id, {
+										type,
+										metadata: nodeTypeDefs[type].defaultMetadata,
+									} as TypedMetadata)
+								}
+								onToggleTask={(completed) =>
+									tree.setType(row.id, { type: "task", metadata: { completed } })
+								}
 								onDelete={() => tree.remove(row.id)}
 								onSaveContent={(content) => tree.updateContent(row.id, content)}
 								onMoveDrop={handleMoveDrop}

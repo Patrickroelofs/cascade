@@ -1,9 +1,10 @@
 import type { InferSelectModel } from "drizzle-orm";
+import type { NodeTypeName } from "@/core/nodes/node-types";
 import type { nodes } from "@/core/nodes/node.schema";
 
 export type NodeType = Pick<
 	InferSelectModel<typeof nodes>,
-	"id" | "parentId" | "content" | "expanded" | "order"
+	"id" | "parentId" | "content" | "type" | "metadata" | "expanded" | "order"
 > & {
 	hasChildren: boolean;
 };
@@ -13,6 +14,9 @@ export interface VisibleNodeRow {
 	id: string;
 	parentId: string | null;
 	content: unknown;
+	type: NodeTypeName;
+	/** Per-type data; narrow via the `type` discriminant (see node-types.ts). */
+	metadata: unknown;
 	expanded: boolean;
 	order: string;
 	depth: number;

@@ -8,6 +8,7 @@ import {
 	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
+import type { NodeTypeName } from "@/core/nodes/node-types";
 
 export const nodes = pgTable(
 	"nodes",
@@ -17,6 +18,8 @@ export const nodes = pgTable(
 			onDelete: "cascade",
 		}),
 		content: jsonb("content"),
+		type: text().notNull().default("text").$type<NodeTypeName>(),
+		metadata: jsonb("metadata"),
 		expanded: boolean().notNull().default(false),
 		// Must use COLLATE "C" in the database (applied via one-off SQL; drizzle
 		// can't declare collation) — fractional-index keys require byte-order
