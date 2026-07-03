@@ -62,11 +62,7 @@ export function useVisibleTree(rootId: string | null) {
 		}
 	};
 
-	const move = async (
-		id: string,
-		target: MoveTarget,
-		opts?: { expandParent?: boolean },
-	) => {
+	const move = async (id: string, target: MoveTarget) => {
 		setRows((rows) => moveSubtree(rows, id, target));
 		try {
 			await client.nodes.move(
@@ -79,12 +75,6 @@ export function useVisibleTree(rootId: string | null) {
 							targetId: target.targetId,
 						},
 			);
-			if (opts?.expandParent && target.parentId) {
-				await client.nodes.toggleExpanded({
-					id: target.parentId,
-					expanded: true,
-				});
-			}
 		} finally {
 			// Server-computed fractional order is authoritative; positions match,
 			// so this reconciliation is invisible unless a concurrent edit raced us.

@@ -61,21 +61,16 @@ export function VirtualTree({
 	/**
 	 * Drop orchestration: capture rendered row positions, splice the cache
 	 * optimistically, then after the React commit FLIP the displaced rows and
-	 * fly the drag preview into the moved row's new position.
+	 * fly the drag preview into its new position. Dropping into a collapsed
+	 * node never expands it — the preview just flies to the parent row instead
+	 * of the (still hidden) dragged row.
 	 */
 	const handleMoveDrop = (draggedId: string, target: MoveTarget) => {
 		const container = scrollRef.current;
 		if (!container) return;
 
-		const parentRow =
-			target.position === "append" && target.parentId
-				? tree.rows.find((r) => r.id === target.parentId)
-				: undefined;
-
 		const before = captureRowPositions(container);
-		tree.move(draggedId, target, {
-			expandParent: parentRow ? !parentRow.expanded : false,
-		});
+		tree.move(draggedId, target);
 
 		// Double rAF: the cache splice schedules a React render; wait for commit.
 		requestAnimationFrame(() => {
@@ -84,11 +79,15 @@ export function VirtualTree({
 				const active = previewRef.current;
 				previewRef.current = null;
 				if (!active) return;
-				const rowElement = findNodeRow(container, draggedId);
+				const rowElement =
+					findNodeRow(container, draggedId) ??
+					(target.position === "append" && target.parentId
+						? findNodeRow(container, target.parentId)
+						: null);
 				if (rowElement) {
 					active.preview.settleInto(rowElement.getBoundingClientRect());
 				} else {
-					// Row landed outside the rendered window.
+					// Neither the row nor its parent is in the rendered window.
 					active.preview.cancel();
 				}
 			});

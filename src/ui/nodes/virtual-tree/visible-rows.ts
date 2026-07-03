@@ -129,6 +129,7 @@ export function moveSubtree(
 
 	let insertAt: number;
 	let newDepth: number;
+	let skipInsert = false;
 
 	if (target.position === "append") {
 		if (target.parentId === null) {
@@ -139,10 +140,10 @@ export function moveSubtree(
 			if (!parentRange) return rows;
 			insertAt = parentRange.end;
 			newDepth = rest[parentRange.start].depth + 1;
-			rest = patchRow(rest, target.parentId, {
-				hasChildren: true,
-				expanded: true,
-			});
+			// A collapsed parent keeps its children hidden: mark it as having
+			// children without splicing the moved rows into the visible list.
+			skipInsert = !rest[parentRange.start].expanded;
+			rest = patchRow(rest, target.parentId, { hasChildren: true });
 		}
 	} else {
 		const targetRange = subtreeRange(rest, target.targetId);
@@ -159,7 +160,9 @@ export function moveSubtree(
 			: { ...r, depth: r.depth + depthDelta },
 	);
 
-	let out = [...rest.slice(0, insertAt), ...moved, ...rest.slice(insertAt)];
+	let out = skipInsert
+		? rest
+		: [...rest.slice(0, insertAt), ...moved, ...rest.slice(insertAt)];
 	if (
 		oldParentId !== null &&
 		oldParentId !== target.parentId &&
