@@ -55,18 +55,18 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				onMoveDrop={props.onMoveDrop}
 				previewRef={props.previewRef}
 			>
-				<NodeToggle
-					hasChildren={row.hasChildren}
-					expanded={row.expanded}
-					onToggle={props.onToggle}
-				/>
-				<NodeLink id={row.id} />
 				<NodeActions
 					nodeType={row.type}
 					onConvert={props.onConvert}
 					onDelete={props.onDelete}
 					viewTransitionName={`node-${row.id}`}
 				>
+					<NodeToggle
+						hasChildren={row.hasChildren}
+						expanded={row.expanded}
+						onToggle={props.onToggle}
+					/>
+					<NodeLink id={row.id} />
 					{row.type === "task" && (
 						<NodeCheckbox
 							metadata={row.metadata}
