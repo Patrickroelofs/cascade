@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
 import { NodeActions } from "@/ui/nodes/node-actions";
-import { NodeEditor, type FocusPoint } from "@/ui/nodes/node-editor";
+import { type FocusPoint, NodeEditor } from "@/ui/nodes/node-editor";
 import { NodeLink } from "@/ui/nodes/node-link";
 import { NodeToggle } from "@/ui/nodes/node-toggle";
 import { RowDragAndDrop } from "@/ui/nodes/virtual-tree/row-drag-drop";
@@ -58,18 +58,20 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				/>
 				<NodeLink id={row.id} />
 				<div
-					className="inline-flex items-center gap-2 min-w-0 flex-1"
+					className="flex items-center gap-2 min-w-0 flex-1"
 					style={{ viewTransitionName: `node-${row.id}` }}
 				>
-					<NodeEditor
-						id={row.id}
-						content={row.content}
-						editing={props.editing}
-						focusPoint={props.focusPoint}
-						onStartEdit={props.onStartEdit}
-						onExit={props.onExitEdit}
-						onSave={props.onSaveContent}
-					/>
+					<div className="block">
+						<NodeEditor
+							id={row.id}
+							content={row.content}
+							editing={props.editing}
+							focusPoint={props.focusPoint}
+							onStartEdit={props.onStartEdit}
+							onExit={props.onExitEdit}
+							onSave={props.onSaveContent}
+						/>
+					</div>
 					<NodeActions onDelete={props.onDelete} />
 				</div>
 			</RowDragAndDrop>
