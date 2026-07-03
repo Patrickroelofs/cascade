@@ -1,6 +1,9 @@
 import { gsap } from "gsap";
 import { dragAnimationConfig } from "@/ui/nodes/drag-animation/config";
-import { NODE_ROW_ATTRIBUTE } from "@/ui/nodes/drag-animation/node-rows";
+import {
+	findNodeRow,
+	NODE_ROW_ATTRIBUTE,
+} from "@/ui/nodes/drag-animation/node-rows";
 
 export interface Point {
 	x: number;
@@ -14,14 +17,15 @@ export interface DragPreviewHandle {
 }
 
 /**
- * Cursor-following clone of a single row (rows are flat siblings under
- * virtualization, so there is no subtree element to clone). An optional
- * descendant count is shown as a badge on the preview.
+ * Cursor-following clone of a row plus, if it's being dragged with
+ * descendants, a stack of their rows underneath (capped at
+ * `maxVisibleRows`, fading out via a mask so the cut-off isn't abrupt).
+ * Rows beyond the cap are never queried or cloned.
  */
 export function createDragPreview(
 	sourceRow: HTMLElement,
 	grabPoint: Point,
-	descendantCount = 0,
+	descendantIds: string[] = [],
 ): DragPreviewHandle {
 	const { preview, settle, cancel, sourceDimOpacity } = dragAnimationConfig;
 
@@ -29,50 +33,50 @@ export function createDragPreview(
 	const grabX = grabPoint.x - rect.left;
 	const grabY = grabPoint.y - rect.top;
 
-	const el = sourceRow.cloneNode(true) as HTMLElement;
-	el.removeAttribute(NODE_ROW_ATTRIBUTE);
-	Object.assign(el.style, {
+	const wrapper = document.createElement("div");
+	Object.assign(wrapper.style, {
 		position: "fixed",
 		top: "0",
 		left: "0",
 		width: `${rect.width}px`,
-		margin: "0",
 		pointerEvents: "none",
 		zIndex: String(preview.zIndex),
 		background: preview.background,
 		borderRadius: preview.borderRadius,
 		boxShadow: preview.boxShadow,
+		overflow: "hidden",
 	});
 
-	if (descendantCount > 0) {
-		const badge = document.createElement("span");
-		badge.textContent = String(descendantCount + 1);
-		Object.assign(badge.style, {
-			position: "absolute",
-			top: "-8px",
-			right: "-8px",
-			minWidth: "20px",
-			height: "20px",
-			padding: "0 5px",
-			borderRadius: "10px",
-			background: "var(--color-redleather, #b3402a)",
-			color: "white",
-			fontSize: "11px",
-			lineHeight: "20px",
-			textAlign: "center",
+	const el = sourceRow.cloneNode(true) as HTMLElement;
+	el.removeAttribute(NODE_ROW_ATTRIBUTE);
+	el.style.margin = "0";
+	wrapper.appendChild(el);
+
+	const shownIds = descendantIds.slice(0, preview.maxVisibleRows - 1);
+	for (const id of shownIds) {
+		const row = findNodeRow(document.body, id);
+		if (!row) continue;
+		const clone = row.cloneNode(true) as HTMLElement;
+		clone.removeAttribute(NODE_ROW_ATTRIBUTE);
+		clone.style.margin = "0";
+		wrapper.appendChild(clone);
+	}
+	if (shownIds.length > 0) {
+		Object.assign(wrapper.style, {
+			maskImage: preview.overflowMask,
+			WebkitMaskImage: preview.overflowMask,
 		});
-		el.appendChild(badge);
 	}
 
-	document.body.appendChild(el);
+	document.body.appendChild(wrapper);
 	sourceRow.style.opacity = String(sourceDimOpacity);
 
-	gsap.set(el, {
+	gsap.set(wrapper, {
 		x: rect.left,
 		y: rect.top,
 		transformOrigin: `${grabX}px ${grabY}px`,
 	});
-	gsap.to(el, {
+	gsap.to(wrapper, {
 		opacity: preview.opacity,
 		scale: preview.scale,
 		rotate: preview.rotationDeg,
@@ -80,15 +84,15 @@ export function createDragPreview(
 		ease: preview.intro.ease,
 	});
 
-	const toX = gsap.quickTo(el, "x", preview.follow);
-	const toY = gsap.quickTo(el, "y", preview.follow);
+	const toX = gsap.quickTo(wrapper, "x", preview.follow);
+	const toY = gsap.quickTo(wrapper, "y", preview.follow);
 
 	let finished = false;
 	const finish = (): boolean => {
 		if (finished) return false;
 		finished = true;
 		sourceRow.style.opacity = "";
-		gsap.killTweensOf(el);
+		gsap.killTweensOf(wrapper);
 		return true;
 	};
 
@@ -102,8 +106,8 @@ export function createDragPreview(
 		settleInto(target) {
 			if (!finish()) return;
 			gsap
-				.timeline({ onComplete: () => el.remove() })
-				.to(el, {
+				.timeline({ onComplete: () => wrapper.remove() })
+				.to(wrapper, {
 					x: target.left,
 					y: target.top,
 					rotate: 0,
@@ -114,14 +118,14 @@ export function createDragPreview(
 					duration: settle.flight.duration,
 					ease: settle.flight.ease,
 				})
-				.to(el, {
+				.to(wrapper, {
 					scaleX: 1,
 					scaleY: 1,
 					duration: settle.spring.duration,
 					ease: settle.spring.ease,
 				})
 				.to(
-					el,
+					wrapper,
 					{
 						opacity: 0,
 						duration: settle.fade.duration,
@@ -133,12 +137,12 @@ export function createDragPreview(
 
 		cancel() {
 			if (!finish()) return;
-			gsap.to(el, {
+			gsap.to(wrapper, {
 				opacity: 0,
 				scale: cancel.scale,
 				duration: cancel.duration,
 				ease: cancel.ease,
-				onComplete: () => el.remove(),
+				onComplete: () => wrapper.remove(),
 			});
 		},
 	};

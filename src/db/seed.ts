@@ -125,6 +125,7 @@ function* buildTree(): Generator<Row> {
 	}
 
 	while (queue.length > 0) {
+		// biome-ignore lint/style/noNonNullAssertion: for cleanliness keep this; we know queue.length > 0 so pop() will never return undefined
 		const { parentId, depth } = queue.pop()!;
 		if (depth <= 0) continue;
 		const count = faker.number.int({ min: 1, max: config.maxChildren });

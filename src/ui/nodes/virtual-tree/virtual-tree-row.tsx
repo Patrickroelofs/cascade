@@ -39,11 +39,8 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 		<div
 			ref={measureElement}
 			data-index={index}
+			className="top-0 left-0 w-full absolute"
 			style={{
-				position: "absolute",
-				top: 0,
-				left: 0,
-				width: "100%",
 				transform: `translateY(${start}px)`,
 			}}
 		>

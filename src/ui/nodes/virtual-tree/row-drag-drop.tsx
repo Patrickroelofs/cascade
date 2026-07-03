@@ -86,13 +86,17 @@ export function RowDragAndDrop({
 				onDragStart: ({ location }) => {
 					const { clientX, clientY } = location.current.input;
 					const range = subtreeRange(latest.current.rows, id);
-					const descendantCount = range ? range.end - range.start - 1 : 0;
+					const descendantIds = range
+						? latest.current.rows
+								.slice(range.start + 1, range.end)
+								.map((r) => r.id)
+						: [];
 					previewRef.current = {
 						nodeId: id,
 						preview: createDragPreview(
 							rowElement,
 							{ x: clientX, y: clientY },
-							descendantCount,
+							descendantIds,
 						),
 					};
 				},
