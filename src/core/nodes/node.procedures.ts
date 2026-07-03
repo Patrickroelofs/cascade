@@ -94,6 +94,27 @@ export const visibleTree = base
 		};
 	});
 
+export const createNode = base
+	.input(z.object({ parentId: z.string().nullable() }))
+	.handler(async ({ input }) => {
+		const parentFilter =
+			input.parentId === null
+				? isNull(nodes.parentId)
+				: eq(nodes.parentId, input.parentId);
+		const [last] = await db
+			.select({ order: nodes.order })
+			.from(nodes)
+			.where(parentFilter)
+			.orderBy(desc(nodes.order))
+			.limit(1);
+		const order = generateKeyBetween(last?.order ?? null, null);
+		const [created] = await db
+			.insert(nodes)
+			.values({ parentId: input.parentId, order })
+			.returning(nodeColumns);
+		return created;
+	});
+
 export const getNode = base
 	.errors({
 		NOT_FOUND: { status: 404, message: "Node not found" },

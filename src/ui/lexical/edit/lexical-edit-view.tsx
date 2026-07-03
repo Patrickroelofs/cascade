@@ -1,10 +1,12 @@
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
 import { EditableContent } from "@/ui/lexical/edit/lexical-editable-content";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
+import type { FocusPoint } from "@/ui/nodes/node-editor";
 
 export interface LexicalEditViewProps {
 	id: string;
 	content: { root: LexicalElementNode } | null;
+	focusPoint: FocusPoint | null;
 	onSave: (content: { root: LexicalElementNode }) => void;
 	onExit?: () => void;
 }
@@ -12,6 +14,7 @@ export interface LexicalEditViewProps {
 export function LexicalEditView({
 	id,
 	content,
+	focusPoint,
 	onSave,
 	onExit,
 }: LexicalEditViewProps) {
@@ -23,7 +26,11 @@ export function LexicalEditView({
 				editorState: content ? JSON.stringify(content) : null,
 			}}
 		>
-			<EditableContent onSave={onSave} onExit={onExit} />
+			<EditableContent
+				focusPoint={focusPoint}
+				onSave={onSave}
+				onExit={onExit}
+			/>
 		</LexicalComposer>
 	);
 }

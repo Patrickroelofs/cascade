@@ -107,6 +107,14 @@ export function removeSubtree(
 	return recomputeIsLastChild(out);
 }
 
+/** Append a freshly created root node to the end of the flat list. */
+export function appendRow(
+	rows: VisibleNodeRow[],
+	row: VisibleNodeRow,
+): VisibleNodeRow[] {
+	return recomputeIsLastChild([...rows, row]);
+}
+
 export type MoveTarget =
 	| { position: "before" | "after"; targetId: string; parentId: string | null }
 	| { position: "append"; parentId: string | null };

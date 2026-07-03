@@ -3,6 +3,7 @@ import { useRef } from "react";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
 import { client, orpc } from "@/orpc/client";
 import {
+	appendRow,
 	collapseNode,
 	expandNode,
 	type MoveTarget,
@@ -100,6 +101,25 @@ export function useVisibleTree(rootId: string | null) {
 		}
 	};
 
+	/** Create and append a new node as the last child of this view's root. */
+	const add = async () => {
+		const created = await client.nodes.create({ parentId: rootId });
+		setRows((rows) =>
+			appendRow(rows, {
+				id: created.id,
+				parentId: created.parentId,
+				content: created.content,
+				expanded: created.expanded,
+				order: created.order,
+				depth: 0,
+				path: [created.order],
+				hasChildren: created.hasChildren,
+				isLastChild: true,
+			}),
+		);
+		return created.id;
+	};
+
 	const loadMore = async () => {
 		if (loadingMore.current || !data.nextCursor) return;
 		loadingMore.current = true;
@@ -127,6 +147,7 @@ export function useVisibleTree(rootId: string | null) {
 		move,
 		remove,
 		updateContent,
+		add,
 		loadMore,
 	};
 }

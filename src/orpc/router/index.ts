@@ -1,4 +1,5 @@
 import {
+	createNode,
 	deleteNode,
 	getNode,
 	listNodes,
@@ -13,6 +14,7 @@ export default {
 		list: listNodes,
 		get: getNode,
 		visibleTree,
+		create: createNode,
 		move: moveNode,
 		toggleExpanded: toggleNodeExpanded,
 		delete: deleteNode,

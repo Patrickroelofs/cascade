@@ -4,7 +4,7 @@ import type { RefObject } from "react";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
 import { NodeActions } from "@/ui/nodes/node-actions";
-import { NodeEditor } from "@/ui/nodes/node-editor";
+import { NodeEditor, type FocusPoint } from "@/ui/nodes/node-editor";
 import { NodeLink } from "@/ui/nodes/node-link";
 import { NodeToggle } from "@/ui/nodes/node-toggle";
 import { RowDragAndDrop } from "@/ui/nodes/virtual-tree/row-drag-drop";
@@ -18,7 +18,8 @@ export interface VirtualTreeRowProps {
 	index: number;
 	measureElement: (element: HTMLElement | null) => void;
 	editing: boolean;
-	onStartEdit: () => void;
+	focusPoint: FocusPoint | null;
+	onStartEdit: (point?: FocusPoint) => void;
 	onExitEdit: () => void;
 	onToggle: (expanded: boolean) => void;
 	onDelete: () => void;
@@ -64,6 +65,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 						id={row.id}
 						content={row.content}
 						editing={props.editing}
+						focusPoint={props.focusPoint}
 						onStartEdit={props.onStartEdit}
 						onExit={props.onExitEdit}
 						onSave={props.onSaveContent}

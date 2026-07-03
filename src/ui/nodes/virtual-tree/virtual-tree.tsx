@@ -1,10 +1,12 @@
 "use no memo";
 
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
+import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
 import type { DragPreviewHandle } from "@/ui/nodes/drag-animation/drag-preview";
 import { findNodeRow } from "@/ui/nodes/drag-animation/node-rows";
+import type { FocusPoint } from "@/ui/nodes/node-editor";
 import {
 	captureRowPositions,
 	playDisplacement,
@@ -34,6 +36,7 @@ export function VirtualTree({
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<ActiveDragPreview | null>(null);
 	const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+	const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null);
 	const tree = useVisibleTree(rootId);
 
 	const virtualizer = useVirtualizer({
@@ -116,7 +119,11 @@ export function VirtualTree({
 								index={virtualItem.index}
 								measureElement={virtualizer.measureElement}
 								editing={editingNodeId === row.id}
-								onStartEdit={() => setEditingNodeId(row.id)}
+								focusPoint={editingNodeId === row.id ? focusPoint : null}
+								onStartEdit={(point) => {
+									setEditingNodeId(row.id);
+									setFocusPoint(point ?? null);
+								}}
 								onExitEdit={() => setEditingNodeId(null)}
 								onToggle={(expanded) => tree.toggle(row.id, expanded)}
 								onDelete={() => tree.remove(row.id)}
@@ -127,6 +134,18 @@ export function VirtualTree({
 						);
 					})}
 				</div>
+				<button
+					type="button"
+					onClick={async () => {
+						const id = await tree.add();
+						setFocusPoint(null);
+						setEditingNodeId(id);
+					}}
+					className="mt-1 flex items-center gap-2 p-1 -m-1 text-dark-grey hover:text-redleather transition-colors"
+				>
+					<PlusIcon className="w-4 shrink-0" />
+					Add node
+				</button>
 			</div>
 		</div>
 	);
