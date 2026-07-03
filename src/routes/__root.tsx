@@ -27,11 +27,27 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			{
 				title: "Cascade",
 			},
+			{
+				name: "theme-color",
+				content: "#f9e4d6",
+			},
 		],
 		links: [
 			{
 				rel: "stylesheet",
 				href: appCss,
+			},
+			{
+				rel: "icon",
+				href: "/favicon.ico",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/logo192.png",
+			},
+			{
+				rel: "manifest",
+				href: "/manifest.json",
 			},
 		],
 	}),
