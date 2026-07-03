@@ -57,9 +57,9 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					onToggle={props.onToggle}
 				/>
 				<NodeLink id={row.id} />
-				<div
-					className="flex items-center gap-2 min-w-0 flex-1"
-					style={{ viewTransitionName: `node-${row.id}` }}
+				<NodeActions
+					onDelete={props.onDelete}
+					viewTransitionName={`node-${row.id}`}
 				>
 					<div className="block w-full">
 						<NodeEditor
@@ -72,8 +72,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							onSave={props.onSaveContent}
 						/>
 					</div>
-					<NodeActions onDelete={props.onDelete} />
-				</div>
+				</NodeActions>
 			</RowDragAndDrop>
 		</div>
 	);

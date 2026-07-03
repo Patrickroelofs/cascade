@@ -1,32 +1,39 @@
-import { Menu } from "@base-ui/react";
-import { DotsThreeIcon, TrashIcon } from "@phosphor-icons/react/ssr";
+import { ContextMenu } from "@base-ui/react";
+import { TrashIcon } from "@phosphor-icons/react/ssr";
+import type { ReactNode } from "react";
 
 interface NodeActionsProps {
 	onDelete: () => void;
+	viewTransitionName?: string;
+	children: ReactNode;
 }
 
-export function NodeActions({ onDelete }: NodeActionsProps) {
+export function NodeActions({
+	onDelete,
+	viewTransitionName,
+	children,
+}: NodeActionsProps) {
 	return (
-		<Menu.Root>
-			<Menu.Trigger
-				className="opacity-0 group-hover/node:opacity-100 group-focus-within/node:opacity-100 pointer-coarse:opacity-100 transition-opacity shrink-0 text-gray-400 hover:text-gray-700 p-0.5 rounded"
-				aria-label="Node options"
+		<ContextMenu.Root>
+			<ContextMenu.Trigger
+				className="flex items-center gap-2 min-w-0 flex-1"
+				style={{ viewTransitionName }}
 			>
-				<DotsThreeIcon size={16} weight="bold" />
-			</Menu.Trigger>
-			<Menu.Portal>
-				<Menu.Positioner side="bottom" align="end" sideOffset={4}>
-					<Menu.Popup className="bg-white border border-gray-200 rounded shadow-md py-1 min-w-32 z-50">
-						<Menu.Item
-							className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+				{children}
+			</ContextMenu.Trigger>
+			<ContextMenu.Portal>
+				<ContextMenu.Positioner className="z-50 outline-none">
+					<ContextMenu.Popup className="origin-[var(--transform-origin)] min-w-40 rounded-lg border border-dark-grey/10 bg-white p-1 text-dark-grey shadow-lg shadow-dark-grey/15 transition-[transform,opacity] duration-150 ease-out data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0">
+						<ContextMenu.Item
+							className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm text-redleather outline-none data-[highlighted]:bg-ginger/70"
 							onClick={onDelete}
 						>
-							<TrashIcon size={14} />
+							<TrashIcon size={14} weight="bold" />
 							Delete
-						</Menu.Item>
-					</Menu.Popup>
-				</Menu.Positioner>
-			</Menu.Portal>
-		</Menu.Root>
+						</ContextMenu.Item>
+					</ContextMenu.Popup>
+				</ContextMenu.Positioner>
+			</ContextMenu.Portal>
+		</ContextMenu.Root>
 	);
 }
