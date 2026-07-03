@@ -61,7 +61,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					className="flex items-center gap-2 min-w-0 flex-1"
 					style={{ viewTransitionName: `node-${row.id}` }}
 				>
-					<div className="block">
+					<div className="block w-full">
 						<NodeEditor
 							id={row.id}
 							content={row.content}

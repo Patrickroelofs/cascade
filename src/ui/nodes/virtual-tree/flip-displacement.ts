@@ -1,46 +1,52 @@
+import { defaultScheduler, notifyManager } from "@tanstack/react-query";
 import { gsap } from "gsap";
+import { Flip } from "gsap/Flip";
+import { flushSync } from "react-dom";
 import { dragAnimationConfig } from "@/ui/nodes/drag-animation/config";
-import { NODE_ROW_ATTRIBUTE } from "@/ui/nodes/drag-animation/node-rows";
+import { FLIP_ID_ATTRIBUTE } from "@/ui/nodes/drag-animation/node-rows";
 
-/**
- * One-shot FLIP for drop displacement. The optimistic cache splice makes the
- * reflow synchronous, so: capture rendered row positions before the splice,
- * then after the React commit tween each surviving row from its old position
- * back to zero. No rAF loop, no settle detection.
- */
+gsap.registerPlugin(Flip);
 
-export function captureRowPositions(
-	container: HTMLElement,
-): Map<string, number> {
-	const positions = new Map<string, number>();
-	for (const el of container.querySelectorAll<HTMLElement>(
-		`[${NODE_ROW_ATTRIBUTE}]`,
-	)) {
-		const id = el.getAttribute(NODE_ROW_ATTRIBUTE);
-		if (id) positions.set(id, el.getBoundingClientRect().top);
+function commitSync(mutate: () => void): void {
+	notifyManager.setScheduler((cb) => cb());
+	try {
+		flushSync(() => notifyManager.batch(mutate));
+	} finally {
+		notifyManager.setScheduler(defaultScheduler);
 	}
-	return positions;
 }
 
-export function playDisplacement(
+export function animateTreeChange(
 	container: HTMLElement,
-	before: Map<string, number>,
-	ignoredId: string,
+	mutate: () => void,
+	options: { ignoredId?: string; animateEnter?: boolean } = {},
 ): void {
-	const { displacement } = dragAnimationConfig;
-	for (const el of container.querySelectorAll<HTMLElement>(
-		`[${NODE_ROW_ATTRIBUTE}]`,
-	)) {
-		const id = el.getAttribute(NODE_ROW_ATTRIBUTE);
-		if (!id || id === ignoredId) continue;
-		const previousTop = before.get(id);
-		if (previousTop === undefined) continue;
-		const delta = previousTop - el.getBoundingClientRect().top;
-		if (Math.abs(delta) < 1) continue;
-		gsap.fromTo(
-			el,
-			{ y: delta },
-			{ y: 0, duration: displacement.duration, ease: displacement.ease },
-		);
-	}
+	const { displacement, enter } = dragAnimationConfig;
+	const state = Flip.getState(rowElements(container, options.ignoredId), {
+		simple: true,
+	});
+	commitSync(mutate);
+	Flip.from(state, {
+		targets: rowElements(container, options.ignoredId),
+		duration: displacement.duration,
+		ease: displacement.ease,
+		onEnter: options.animateEnter
+			? (elements) =>
+					gsap.fromTo(
+						elements,
+						{ opacity: 0, y: enter.offsetY },
+						{ opacity: 1, y: 0, duration: enter.duration, ease: enter.ease },
+					)
+			: undefined,
+	});
+}
+
+function rowElements(
+	container: HTMLElement,
+	ignoredId?: string,
+): HTMLElement[] {
+	const selector = ignoredId
+		? `[${FLIP_ID_ATTRIBUTE}]:not([${FLIP_ID_ATTRIBUTE}="${CSS.escape(ignoredId)}"])`
+		: `[${FLIP_ID_ATTRIBUTE}]`;
+	return Array.from(container.querySelectorAll<HTMLElement>(selector));
 }

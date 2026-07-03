@@ -1,5 +1,36 @@
+interface Tween {
+	duration: number;
+	ease: string;
+}
+
+interface DragAnimationConfig {
+	preview: {
+		opacity: number;
+		scale: number;
+		rotationDeg: number;
+		intro: Tween;
+		follow: Tween;
+		maxVisibleRows: number;
+		overflowMask: string;
+		zIndex: number;
+		background: string;
+		borderRadius: string;
+		boxShadow: string;
+	};
+	sourceDimOpacity: number;
+	settle: {
+		flight: Tween & { scaleX: number; scaleY: number };
+		spring: Tween;
+		fade: Tween & { overlapSeconds: number };
+	};
+	cancel: Tween & { scale: number };
+	displacement: Tween;
+	enter: Tween & { offsetY: number };
+}
+
 /**
- * Central configuration for all node drag-and-drop motion.
+ * Central configuration for all node tree motion (drag-and-drop and
+ * expand/collapse).
  */
 export const dragAnimationConfig = {
 	preview: {
@@ -27,4 +58,6 @@ export const dragAnimationConfig = {
 	cancel: { duration: 0.15, ease: "power2.in", scale: 0.96 },
 
 	displacement: { duration: 0.45, ease: "power3.out" },
-} as const;
+
+	enter: { duration: 0.25, ease: "power2.out", offsetY: -8 },
+} as const satisfies DragAnimationConfig;

@@ -66,7 +66,7 @@ export function EditableContent({
 		<RichTextPlugin
 			contentEditable={
 				<ContentEditable
-					className="flex-1 outline-none"
+					className="flex-1 outline-none w-full"
 					onBlur={() => {
 						save();
 						onExit?.();

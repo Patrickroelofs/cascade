@@ -104,15 +104,11 @@ export function RowDragAndDrop({
 					const { clientX, clientY } = location.current.input;
 					previewRef.current?.preview.follow({ x: clientX, y: clientY });
 				},
-				onDrop: ({ location }) => {
-					// The drop target's onDrop owns the settle animation; the source
-					// only cancels when the drop landed nowhere valid.
-					const target = location.current.dropTargets[0];
-					const inst = target ? extractInstruction(target.data) : null;
-					if (!target || !inst || inst.type === "instruction-blocked") {
+				onDrop: () => {
+					queueMicrotask(() => {
 						previewRef.current?.preview.cancel();
 						previewRef.current = null;
-					}
+					});
 				},
 			}),
 			dropTargetForElements({

@@ -2,7 +2,7 @@ import { gsap } from "gsap";
 import { dragAnimationConfig } from "@/ui/nodes/drag-animation/config";
 import {
 	findNodeRow,
-	NODE_ROW_ATTRIBUTE,
+	stripNodeRowAttributes,
 } from "@/ui/nodes/drag-animation/node-rows";
 
 export interface Point {
@@ -48,7 +48,7 @@ export function createDragPreview(
 	});
 
 	const el = sourceRow.cloneNode(true) as HTMLElement;
-	el.removeAttribute(NODE_ROW_ATTRIBUTE);
+	stripNodeRowAttributes(el);
 	el.style.margin = "0";
 	wrapper.appendChild(el);
 
@@ -57,7 +57,7 @@ export function createDragPreview(
 		const row = findNodeRow(document.body, id);
 		if (!row) continue;
 		const clone = row.cloneNode(true) as HTMLElement;
-		clone.removeAttribute(NODE_ROW_ATTRIBUTE);
+		stripNodeRowAttributes(clone);
 		clone.style.margin = "0";
 		wrapper.appendChild(clone);
 	}

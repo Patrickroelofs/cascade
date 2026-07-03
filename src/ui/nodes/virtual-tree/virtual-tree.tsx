@@ -7,10 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DragPreviewHandle } from "@/ui/nodes/drag-animation/drag-preview";
 import { findNodeRow } from "@/ui/nodes/drag-animation/node-rows";
 import type { FocusPoint } from "@/ui/nodes/node-editor";
-import {
-	captureRowPositions,
-	playDisplacement,
-} from "@/ui/nodes/virtual-tree/flip-displacement";
+import { animateTreeChange } from "@/ui/nodes/virtual-tree/flip-displacement";
 import { useVisibleTree } from "@/ui/nodes/virtual-tree/use-visible-tree";
 import { VirtualTreeRow } from "@/ui/nodes/virtual-tree/virtual-tree-row";
 import type { MoveTarget } from "@/ui/nodes/virtual-tree/visible-rows";
@@ -61,39 +58,35 @@ export function VirtualTree({
 		}
 	}, [lastIndex, tree.hasMore, tree.rows.length, tree.loadMore]);
 
-	/**
-	 * Drop orchestration: capture rendered row positions, splice the cache
-	 * optimistically, then after the React commit FLIP the displaced rows and
-	 * fly the drag preview into its new position. Dropping into a collapsed
-	 * node never expands it — the preview just flies to the parent row instead
-	 * of the (still hidden) dragged row.
-	 */
 	const handleMoveDrop = (draggedId: string, target: MoveTarget) => {
 		const container = scrollRef.current;
 		if (!container) return;
 
-		const before = captureRowPositions(container);
-		tree.move(draggedId, target);
+		animateTreeChange(container, () => tree.move(draggedId, target), {
+			ignoredId: draggedId,
+		});
 
-		// Double rAF: the cache splice schedules a React render; wait for commit.
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				playDisplacement(container, before, draggedId);
-				const active = previewRef.current;
-				previewRef.current = null;
-				if (!active) return;
-				const rowElement =
-					findNodeRow(container, draggedId) ??
-					(target.position === "append" && target.parentId
-						? findNodeRow(container, target.parentId)
-						: null);
-				if (rowElement) {
-					active.preview.settleInto(rowElement.getBoundingClientRect());
-				} else {
-					// Neither the row nor its parent is in the rendered window.
-					active.preview.cancel();
-				}
-			});
+		const active = previewRef.current;
+		previewRef.current = null;
+		if (!active) return;
+		const rowElement =
+			findNodeRow(container, draggedId) ??
+			(target.position === "append" && target.parentId
+				? findNodeRow(container, target.parentId)
+				: null);
+		if (rowElement) {
+			active.preview.settleInto(rowElement.getBoundingClientRect());
+		} else {
+			// Neither the row nor its parent is in the rendered window.
+			active.preview.cancel();
+		}
+	};
+
+	const handleToggle = (nodeId: string, expanded: boolean) => {
+		tree.toggle(nodeId, expanded, (splice) => {
+			const container = scrollRef.current;
+			if (!container) return splice();
+			animateTreeChange(container, splice, { animateEnter: expanded });
 		});
 	};
 
@@ -125,7 +118,7 @@ export function VirtualTree({
 									setFocusPoint(point ?? null);
 								}}
 								onExitEdit={() => setEditingNodeId(null)}
-								onToggle={(expanded) => tree.toggle(row.id, expanded)}
+								onToggle={(expanded) => handleToggle(row.id, expanded)}
 								onDelete={() => tree.remove(row.id)}
 								onSaveContent={(content) => tree.updateContent(row.id, content)}
 								onMoveDrop={handleMoveDrop}
@@ -136,6 +129,7 @@ export function VirtualTree({
 				</div>
 				<button
 					type="button"
+					data-flip-id="add-node"
 					onClick={async () => {
 						const id = await tree.add();
 						setFocusPoint(null);

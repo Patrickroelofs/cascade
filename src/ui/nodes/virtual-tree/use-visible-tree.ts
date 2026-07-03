@@ -43,18 +43,22 @@ export function useVisibleTree(rootId: string | null) {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: options.queryKey });
 
-	const toggle = async (id: string, expanded: boolean) => {
+	const toggle = async (
+		id: string,
+		expanded: boolean,
+		commit: (splice: () => void) => void = (splice) => splice(),
+	) => {
 		if (expanded) {
 			setRows((rows) => patchRow(rows, id, { expanded: true }));
 			try {
 				const subtree = await client.nodes.visibleTree({ rootId: id });
-				setRows((rows) => expandNode(rows, id, subtree.rows));
+				commit(() => setRows((rows) => expandNode(rows, id, subtree.rows)));
 				await client.nodes.toggleExpanded({ id, expanded: true });
 			} catch {
 				invalidate();
 			}
 		} else {
-			setRows((rows) => collapseNode(rows, id));
+			commit(() => setRows((rows) => collapseNode(rows, id)));
 			try {
 				await client.nodes.toggleExpanded({ id, expanded: false });
 			} catch {
