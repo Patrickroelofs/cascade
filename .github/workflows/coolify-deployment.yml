@@ -19,16 +19,22 @@ jobs:
             
             echo "Raw API Response: $RESPONSE"
             
-            # Grab the most recent deployment UUID from the global list
-            # Note: If you have multiple heavily active apps, you may need to filter this 
-            # by your specific APP_UUID using jq 'select()' logic.
-            DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r '.data[0]?.deployment_uuid // empty')
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            
+            # Safely parse the array and find the deployment matching this exact PR
+            DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r --arg pr "$PR_NUMBER" '.[] | select(.pull_request_id == ($pr | tonumber)) | .deployment_uuid' | head -n 1)
+            
+            # Fallback: If for some reason the PR filter fails, just grab the most recent one
+            if [ -z "$DEPLOYMENT_UUID" ] || [ "$DEPLOYMENT_UUID" = "null" ]; then
+              DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r '.[0].deployment_uuid // empty')
+            fi
             
             if [ -z "$DEPLOYMENT_UUID" ] || [ "$DEPLOYMENT_UUID" = "null" ]; then
               echo "No active deployments found."
               exit 1
             fi
             
+            echo "Found deployment UUID: $DEPLOYMENT_UUID"
             echo "deployment_uuid=$DEPLOYMENT_UUID" >> "$GITHUB_OUTPUT"
 
       - name: Poll deployment status
