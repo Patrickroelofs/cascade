@@ -1,7 +1,8 @@
 import { Dialog, Menu, Switch } from "@base-ui/react";
 import { GearIcon, UserCircleIcon, XIcon } from "@phosphor-icons/react/ssr";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { cva } from "@/integrations/cva/cva.config";
+import { useSettings } from "@/ui/settings-context";
 
 const popup = cva({
 	base: [
@@ -22,17 +23,7 @@ const item = cva({
 
 export function UserMenu() {
 	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [dark, setDark] = useState(false);
-
-	useEffect(() => {
-		setDark(document.documentElement.classList.contains("dark"));
-	}, []);
-
-	function toggleDark(next: boolean) {
-		setDark(next);
-		document.documentElement.classList.toggle("dark", next);
-		localStorage.theme = next ? "dark" : "light";
-	}
+	const { settings, setSetting } = useSettings();
 
 	return (
 		<div className="fixed top-4 right-4 z-50">
@@ -81,8 +72,8 @@ export function UserMenu() {
 							Dark mode
 							<Switch.Root
 								aria-label="Dark mode"
-								checked={dark}
-								onCheckedChange={toggleDark}
+								checked={settings.dark}
+								onCheckedChange={(next) => setSetting("dark", next)}
 								className="h-5 w-9 cursor-pointer rounded-full bg-dark-grey/20 p-0.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-redleather/50 data-checked:bg-redleather dark:bg-ginger/20"
 							>
 								<Switch.Thumb className="block size-4 rounded-full bg-white transition-transform data-checked:translate-x-4" />
