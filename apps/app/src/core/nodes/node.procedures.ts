@@ -307,7 +307,18 @@ export const moveNode = base
 export const deleteNode = base
 	.input(z.object({ id: z.string() }))
 	.handler(async ({ input }) => {
+		const [{ count }] = (await db.execute(sql`
+			WITH RECURSIVE descendants AS (
+				SELECT id FROM nodes WHERE parent_id = ${input.id}
+				UNION ALL
+				SELECT c.id FROM nodes c JOIN descendants d ON c.parent_id = d.id
+			)
+			SELECT count(*)::int AS count FROM descendants
+		`)) as unknown as [{ count: number }];
+
 		await db.delete(nodes).where(eq(nodes.id, input.id));
+
+		return { childrenDeleted: count };
 	});
 
 const lexicalTextNodeSchema = z

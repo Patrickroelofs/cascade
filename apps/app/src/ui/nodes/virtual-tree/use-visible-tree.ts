@@ -1,3 +1,4 @@
+import { toast } from "@cascade/ui/toast";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import type { VisibleNodeRow } from "@/core/nodes/node.types";
@@ -110,7 +111,12 @@ export function useVisibleTree(rootId: string | null) {
 	) => {
 		commit(() => setRows((rows) => removeSubtree(rows, id)));
 		try {
-			await client.nodes.delete({ id });
+			const { childrenDeleted } = await client.nodes.delete({ id });
+			toast.success(
+				childrenDeleted > 0
+					? `Node deleted along with ${childrenDeleted} child node${childrenDeleted === 1 ? "" : "s"}`
+					: "Node deleted",
+			);
 		} catch {
 			invalidate();
 		}
