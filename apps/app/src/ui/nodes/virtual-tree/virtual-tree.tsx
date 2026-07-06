@@ -128,7 +128,11 @@ export function VirtualTree({
 									setEditingNodeId(row.id);
 									setFocusPoint(point ?? null);
 								}}
-								onExitEdit={() => setEditingNodeId(null)}
+								onExitEdit={() =>
+									setEditingNodeId((current) =>
+										current === row.id ? null : current,
+									)
+								}
 								onToggle={(expanded) => handleToggle(row.id, expanded)}
 								onConvert={(type) =>
 									tree.setType(row.id, {

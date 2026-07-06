@@ -2,7 +2,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { COMMAND_PRIORITY_HIGH, KEY_ENTER_COMMAND } from "lexical";
+import { $getRoot, COMMAND_PRIORITY_HIGH, KEY_ENTER_COMMAND } from "lexical";
 import { useEffect, useRef } from "react";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
 import type { FocusPoint } from "@/ui/nodes/node-editor";
@@ -75,8 +75,11 @@ export function EditableContent({
 			selection?.removeAllRanges();
 			selection?.addRange(range);
 			rootElement.focus({ preventScroll: true });
-		} else {
-			editor.focus();
+		} else if (rootElement) {
+			editor.update(() => {
+				$getRoot().selectEnd();
+			});
+			rootElement.focus({ preventScroll: true });
 		}
 
 		return () => saveRef.current();
