@@ -6,6 +6,7 @@ export const MAX_INDENT_SIZE = 64;
 interface Settings {
 	dark: boolean;
 	indentSize: number;
+	lastSeenChangelogId: string | null;
 }
 
 function defaults(): Settings {
@@ -14,6 +15,7 @@ function defaults(): Settings {
 			typeof matchMedia !== "undefined" &&
 			matchMedia("(prefers-color-scheme: dark)").matches,
 		indentSize: 16,
+		lastSeenChangelogId: null,
 	};
 }
 

@@ -1,4 +1,4 @@
-import { Dialog, Menu, NumberField, Switch } from "@base-ui/react";
+import { Dialog, Menu, NumberField, Switch, Tabs } from "@base-ui/react";
 import { cva } from "@cascade/ui/cva.config";
 import {
 	GearIcon,
@@ -8,6 +8,7 @@ import {
 	XIcon,
 } from "@phosphor-icons/react/ssr";
 import { useState } from "react";
+import { changelogEntries, latestChangelogId } from "@/changelog";
 import {
 	MAX_INDENT_SIZE,
 	MIN_INDENT_SIZE,
@@ -39,9 +40,18 @@ const item = cva({
 	],
 });
 
+const tabTrigger = cva({
+	base: [
+		"cursor-pointer border-b-2 border-transparent px-1 pb-2 text-sm text-dark-grey/60 outline-none",
+		"hover:text-dark-grey data-active:border-redleather data-active:text-dark-grey",
+		"dark:text-ginger/60 dark:hover:text-ginger dark:data-active:text-ginger",
+	],
+});
+
 export function UserMenu() {
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const { settings, setSetting } = useSettings();
+	const hasUnseenChangelog = settings.lastSeenChangelogId !== latestChangelogId;
 
 	return (
 		<div className="fixed top-4 right-4 z-50">
@@ -65,6 +75,12 @@ export function UserMenu() {
 							>
 								<GearIcon size={14} weight="bold" />
 								Settings
+								{hasUnseenChangelog && (
+									<span
+										aria-hidden="true"
+										className="ml-auto size-1.5 rounded-full bg-redleather"
+									/>
+								)}
 							</Menu.Item>
 						</Menu.Popup>
 					</Menu.Positioner>
@@ -86,51 +102,93 @@ export function UserMenu() {
 								<XIcon size={16} weight="bold" />
 							</Dialog.Close>
 						</div>
-						<div className="flex items-center justify-between text-sm">
-							Dark mode
-							<Switch.Root
-								aria-label="Dark mode"
-								checked={settings.dark}
-								onCheckedChange={(next) => setSetting("dark", next)}
-								className="h-5 w-9 cursor-pointer rounded-full bg-dark-grey/20 p-0.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-redleather/50 data-checked:bg-redleather dark:bg-ginger/20"
+						<Tabs.Root
+							defaultValue="general"
+							onValueChange={(value) => {
+								if (value === "changelog") {
+									setSetting("lastSeenChangelogId", latestChangelogId);
+								}
+							}}
+						>
+							<Tabs.List className="mb-4 flex gap-4 border-b border-dark-grey/10 dark:border-ginger/15">
+								<Tabs.Tab value="general" className={tabTrigger()}>
+									General
+								</Tabs.Tab>
+								<Tabs.Tab value="changelog" className={tabTrigger()}>
+									Changelog
+									{hasUnseenChangelog && (
+										<span
+											aria-hidden="true"
+											className="ml-1.5 inline-block size-1.5 rounded-full bg-redleather"
+										/>
+									)}
+								</Tabs.Tab>
+							</Tabs.List>
+							<Tabs.Panel value="general">
+								<div className="flex items-center justify-between text-sm">
+									Dark mode
+									<Switch.Root
+										aria-label="Dark mode"
+										checked={settings.dark}
+										onCheckedChange={(next) => setSetting("dark", next)}
+										className="h-5 w-9 cursor-pointer rounded-full bg-dark-grey/20 p-0.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-redleather/50 data-checked:bg-redleather dark:bg-ginger/20"
+									>
+										<Switch.Thumb className="block size-4 rounded-full bg-white transition-transform data-checked:translate-x-4" />
+									</Switch.Root>
+								</div>
+								<div className="mt-3 flex items-center justify-between text-sm">
+									Indent size
+									<NumberField.Root
+										aria-label="Indent size"
+										value={settings.indentSize}
+										min={MIN_INDENT_SIZE}
+										max={MAX_INDENT_SIZE}
+										step={2}
+										snapOnStep
+										onValueChange={(value) => {
+											if (value == null) return;
+											const snapped =
+												MIN_INDENT_SIZE +
+												Math.round((value - MIN_INDENT_SIZE) / 2) * 2;
+											setSetting(
+												"indentSize",
+												Math.min(
+													Math.max(snapped, MIN_INDENT_SIZE),
+													MAX_INDENT_SIZE,
+												),
+											);
+										}}
+									>
+										<NumberField.Group className="flex items-center gap-1">
+											<NumberField.Decrement className={stepperButton()}>
+												<MinusIcon size={12} weight="bold" />
+											</NumberField.Decrement>
+											<NumberField.Input className="w-8 rounded-md bg-dark-grey/10 py-0.5 text-center outline-none focus-visible:ring-2 focus-visible:ring-redleather/50 dark:bg-ginger/10" />
+											<NumberField.Increment className={stepperButton()}>
+												<PlusIcon size={12} weight="bold" />
+											</NumberField.Increment>
+										</NumberField.Group>
+									</NumberField.Root>
+								</div>
+							</Tabs.Panel>
+							<Tabs.Panel
+								value="changelog"
+								className="max-h-80 overflow-y-auto"
 							>
-								<Switch.Thumb className="block size-4 rounded-full bg-white transition-transform data-checked:translate-x-4" />
-							</Switch.Root>
-						</div>
-						<div className="mt-3 flex items-center justify-between text-sm">
-							Indent size
-							<NumberField.Root
-								aria-label="Indent size"
-								value={settings.indentSize}
-								min={MIN_INDENT_SIZE}
-								max={MAX_INDENT_SIZE}
-								step={2}
-								snapOnStep
-								onValueChange={(value) => {
-									if (value == null) return;
-									const snapped =
-										MIN_INDENT_SIZE +
-										Math.round((value - MIN_INDENT_SIZE) / 2) * 2;
-									setSetting(
-										"indentSize",
-										Math.min(
-											Math.max(snapped, MIN_INDENT_SIZE),
-											MAX_INDENT_SIZE,
-										),
-									);
-								}}
-							>
-								<NumberField.Group className="flex items-center gap-1">
-									<NumberField.Decrement className={stepperButton()}>
-										<MinusIcon size={12} weight="bold" />
-									</NumberField.Decrement>
-									<NumberField.Input className="w-8 rounded-md bg-dark-grey/10 py-0.5 text-center outline-none focus-visible:ring-2 focus-visible:ring-redleather/50 dark:bg-ginger/10" />
-									<NumberField.Increment className={stepperButton()}>
-										<PlusIcon size={12} weight="bold" />
-									</NumberField.Increment>
-								</NumberField.Group>
-							</NumberField.Root>
-						</div>
+								{changelogEntries.map((entry) => (
+									<div key={entry.id} className="mb-4 last:mb-0">
+										<h3 className="mb-1 text-xs font-semibold text-dark-grey/60 dark:text-ginger/60">
+											{entry.id}
+										</h3>
+										<div
+											className="prose prose-sm dark:prose-invert max-w-none"
+											// biome-ignore lint/security/noDangerouslySetInnerHtml: content is authored by the repo (CHANGELOG.md), not user input
+											dangerouslySetInnerHTML={{ __html: entry.html }}
+										/>
+									</div>
+								))}
+							</Tabs.Panel>
+						</Tabs.Root>
 					</Dialog.Popup>
 				</Dialog.Portal>
 			</Dialog.Root>
