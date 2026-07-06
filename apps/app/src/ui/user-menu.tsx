@@ -1,4 +1,5 @@
 import { Dialog, Menu, NumberField, Switch } from "@base-ui/react";
+import { cva } from "@cascade/ui/cva.config";
 import {
 	GearIcon,
 	MinusIcon,
@@ -7,7 +8,6 @@ import {
 	XIcon,
 } from "@phosphor-icons/react/ssr";
 import { useState } from "react";
-import { cva } from "@/integrations/cva/cva.config";
 import {
 	MAX_INDENT_SIZE,
 	MIN_INDENT_SIZE,

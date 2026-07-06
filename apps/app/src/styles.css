@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@import "@cascade/theme";
+@plugin "@tailwindcss/typography";
+
+@source "../src/**/*.{ts,tsx}";
+@source "../../../packages/ui/src";
+
+:root {
+	--drag-preview-bg: var(--color-ginger);
+}
+.dark {
+	--drag-preview-bg: var(--color-dark-grey);
+}
