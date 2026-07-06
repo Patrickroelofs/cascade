@@ -7,7 +7,6 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { AppContextMenu } from "@/ui/app-context-menu";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
 import { SettingsProvider } from "@/ui/settings-context";
 import { UserMenu } from "@/ui/user-menu";
@@ -74,7 +73,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body className="bg-ginger text-dark-grey dark:bg-dark-grey dark:text-ginger">
 				<SettingsProvider>
 					<Toaster>
-						<AppContextMenu>{children}</AppContextMenu>
+						{children}
 						<UserMenu />
 					</Toaster>
 				</SettingsProvider>
