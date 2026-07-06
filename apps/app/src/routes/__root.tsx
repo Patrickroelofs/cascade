@@ -1,3 +1,4 @@
+import { Toaster } from "@cascade/ui/toast";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -72,13 +73,15 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className="bg-ginger text-dark-grey dark:bg-dark-grey dark:text-ginger">
 				<SettingsProvider>
-					<AppContextMenu>{children}</AppContextMenu>
-					<UserMenu />
+					<Toaster>
+						<AppContextMenu>{children}</AppContextMenu>
+						<UserMenu />
+					</Toaster>
 				</SettingsProvider>
 				{import.meta.env.DEV && (
 					<TanStackDevtools
 						config={{
-							position: "bottom-right",
+							position: "bottom-left",
 						}}
 						plugins={[
 							{
