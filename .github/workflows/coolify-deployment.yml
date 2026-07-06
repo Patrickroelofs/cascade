@@ -11,21 +11,21 @@ jobs:
       - name: Get active deployment UUID for PR
         id: get-deployment
         run: |
-            # Fetch the application's ongoing deployments
+            # Fetch the latest deployments globally across your Coolify instance
             RESPONSE=$(curl -s -X GET \
-              "${{ secrets.COOLIFY_URL }}/api/v1/applications/${{ secrets.COOLIFY_APP_UUID }}/deployments" \
+              "${{ secrets.COOLIFY_URL }}/api/v1/deployments" \
               -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
               -H "Content-Type: application/json")
             
-            # Print the raw response to the logs for debugging
             echo "Raw API Response: $RESPONSE"
             
-            # Safely extract the UUID, checking if it's wrapped in '.data' or if it's a direct array
-            # The '?' prevents jq from throwing an error if the path doesn't exist
-            DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r '.data[0]?.deployment_uuid? // .[0]?.deployment_uuid? // empty')
+            # Grab the most recent deployment UUID from the global list
+            # Note: If you have multiple heavily active apps, you may need to filter this 
+            # by your specific APP_UUID using jq 'select()' logic.
+            DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r '.data[0]?.deployment_uuid // empty')
             
             if [ -z "$DEPLOYMENT_UUID" ] || [ "$DEPLOYMENT_UUID" = "null" ]; then
-              echo "No active deployments found for this application."
+              echo "No active deployments found."
               exit 1
             fi
             
