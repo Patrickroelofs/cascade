@@ -160,6 +160,21 @@ export const deleteTag = base
 		return { childTagsDeleted: count };
 	});
 
+export const getTag = base
+	.errors({
+		NOT_FOUND: { status: 404, message: "Tag not found" },
+	})
+	.input(z.object({ id: z.string() }))
+	.handler(async ({ input, errors }) => {
+		const [tag] = await db
+			.select(tagColumns)
+			.from(tags)
+			.where(eq(tags.id, input.id))
+			.limit(1);
+		if (!tag) throw errors.NOT_FOUND();
+		return tag;
+	});
+
 export const listTags = base
 	.input(z.object({ q: z.string().trim().optional() }).default({}))
 	.handler(async ({ input }) => {

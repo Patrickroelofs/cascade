@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TagTagIdRouteImport } from './routes/tag/$tagId'
 import { Route as NodeNodeIdRouteImport } from './routes/node/$nodeId'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
@@ -17,6 +18,11 @@ import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TagTagIdRoute = TagTagIdRouteImport.update({
+  id: '/tag/$tagId',
+  path: '/tag/$tagId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NodeNodeIdRoute = NodeNodeIdRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/$': typeof ApiSplatRoute
   '/node/$nodeId': typeof NodeNodeIdRoute
+  '/tag/$tagId': typeof TagTagIdRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/$': typeof ApiSplatRoute
   '/node/$nodeId': typeof NodeNodeIdRoute
+  '/tag/$tagId': typeof TagTagIdRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api/$': typeof ApiSplatRoute
   '/node/$nodeId': typeof NodeNodeIdRoute
+  '/tag/$tagId': typeof TagTagIdRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/$' | '/node/$nodeId' | '/api/rpc/$'
+  fullPaths: '/' | '/api/$' | '/node/$nodeId' | '/tag/$tagId' | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/$' | '/node/$nodeId' | '/api/rpc/$'
-  id: '__root__' | '/' | '/api/$' | '/node/$nodeId' | '/api/rpc/$'
+  to: '/' | '/api/$' | '/node/$nodeId' | '/tag/$tagId' | '/api/rpc/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/$'
+    | '/node/$nodeId'
+    | '/tag/$tagId'
+    | '/api/rpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiSplatRoute: typeof ApiSplatRoute
   NodeNodeIdRoute: typeof NodeNodeIdRoute
+  TagTagIdRoute: typeof TagTagIdRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
@@ -76,6 +92,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tag/$tagId': {
+      id: '/tag/$tagId'
+      path: '/tag/$tagId'
+      fullPath: '/tag/$tagId'
+      preLoaderRoute: typeof TagTagIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/node/$nodeId': {
@@ -106,6 +129,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiSplatRoute: ApiSplatRoute,
   NodeNodeIdRoute: NodeNodeIdRoute,
+  TagTagIdRoute: TagTagIdRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport

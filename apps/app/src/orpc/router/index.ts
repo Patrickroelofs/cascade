@@ -16,6 +16,7 @@ import {
 	deleteTag,
 	detachTag,
 	getNodesForTag,
+	getTag,
 	getTagsForNode,
 	listTags,
 	moveTag,
@@ -38,6 +39,7 @@ export default {
 	},
 	tags: {
 		list: listTags,
+		get: getTag,
 		create: createTag,
 		rename: renameTag,
 		setColor: setTagColor,
