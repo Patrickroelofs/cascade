@@ -7,6 +7,12 @@ settings:
 importers:
 
   .:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 2.4.5
+        version: 2.4.5
+
+  apps/app:
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop':
         specifier: ^2.0.1
@@ -126,9 +132,6 @@ importers:
         specifier: ^4.3.6
         version: 4.4.3
     devDependencies:
-      '@biomejs/biome':
-        specifier: 2.4.5
-        version: 2.4.5
       '@faker-js/faker':
         specifier: ^10.5.0
         version: 10.5.0
