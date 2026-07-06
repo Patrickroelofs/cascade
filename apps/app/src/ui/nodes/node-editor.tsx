@@ -16,6 +16,8 @@ interface NodeEditorProps {
 	onStartEdit: (point?: FocusPoint) => void;
 	onExit: () => void;
 	onSave: (content: { root: LexicalElementNode }) => void;
+	onCreateBelow?: () => void;
+	onDeleteEmpty?: () => void;
 }
 
 export function NodeEditor({
@@ -26,6 +28,8 @@ export function NodeEditor({
 	onStartEdit,
 	onExit,
 	onSave,
+	onCreateBelow,
+	onDeleteEmpty,
 }: NodeEditorProps) {
 	if (editing) {
 		return (
@@ -35,6 +39,8 @@ export function NodeEditor({
 				focusPoint={focusPoint}
 				onSave={onSave}
 				onExit={onExit}
+				onCreateBelow={onCreateBelow}
+				onDeleteEmpty={onDeleteEmpty}
 			/>
 		);
 	}

@@ -83,6 +83,30 @@ export function VirtualTree({
 		}
 	};
 
+	const handleCreateBelow = async (id: string) => {
+		const container = scrollRef.current;
+		const newId = await tree.addAfter(id, (splice) => {
+			if (!container) return splice();
+			animateTreeChange(container, splice, { animateEnter: true });
+		});
+		setFocusPoint(null);
+		setEditingNodeId(newId);
+	};
+
+	const handleDeleteEmpty = (id: string) => {
+		const index = tree.rows.findIndex((row) => row.id === id);
+		const previous = index > 0 ? tree.rows[index - 1] : null;
+		if (!previous) return;
+
+		const container = scrollRef.current;
+		tree.remove(id, (splice) => {
+			if (!container) return splice();
+			animateNodeRemoval(container, id, splice);
+		});
+		setFocusPoint(null);
+		setEditingNodeId(previous.id);
+	};
+
 	const handleToggle = (nodeId: string, expanded: boolean) => {
 		tree.toggle(nodeId, expanded, (splice) => {
 			const container = scrollRef.current;
@@ -118,7 +142,11 @@ export function VirtualTree({
 									setEditingNodeId(row.id);
 									setFocusPoint(point ?? null);
 								}}
-								onExitEdit={() => setEditingNodeId(null)}
+								onExitEdit={() =>
+									setEditingNodeId((current) =>
+										current === row.id ? null : current,
+									)
+								}
 								onToggle={(expanded) => handleToggle(row.id, expanded)}
 								onConvert={(type) =>
 									tree.setType(row.id, {
@@ -140,6 +168,8 @@ export function VirtualTree({
 									});
 								}}
 								onSaveContent={(content) => tree.updateContent(row.id, content)}
+								onCreateBelow={() => handleCreateBelow(row.id)}
+								onDeleteEmpty={() => handleDeleteEmpty(row.id)}
 								onMoveDrop={handleMoveDrop}
 								previewRef={previewRef}
 							/>

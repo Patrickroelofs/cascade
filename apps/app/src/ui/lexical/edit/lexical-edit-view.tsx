@@ -9,6 +9,8 @@ export interface LexicalEditViewProps {
 	focusPoint: FocusPoint | null;
 	onSave: (content: { root: LexicalElementNode }) => void;
 	onExit?: () => void;
+	onCreateBelow?: () => void;
+	onDeleteEmpty?: () => void;
 }
 
 export function LexicalEditView({
@@ -17,6 +19,8 @@ export function LexicalEditView({
 	focusPoint,
 	onSave,
 	onExit,
+	onCreateBelow,
+	onDeleteEmpty,
 }: LexicalEditViewProps) {
 	return (
 		<LexicalComposer
@@ -30,6 +34,8 @@ export function LexicalEditView({
 				focusPoint={focusPoint}
 				onSave={onSave}
 				onExit={onExit}
+				onCreateBelow={onCreateBelow}
+				onDeleteEmpty={onDeleteEmpty}
 			/>
 		</LexicalComposer>
 	);
