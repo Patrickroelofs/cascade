@@ -26,6 +26,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@cascade/theme':
+        specifier: workspace:*
+        version: link:../../packages/theme
       '@lexical/history':
         specifier: ^0.46.0
         version: 0.46.0(typescript@6.0.3)
@@ -195,6 +198,8 @@ importers:
       vitest:
         specifier: ^4.1.5
         version: 4.1.9(@types/node@22.20.0)(@vitest/browser-playwright@4.1.9)(@vitest/coverage-v8@4.1.9)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@8.1.0(@types/node@22.20.0)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4))
+
+  packages/theme: {}
 
 packages:
 

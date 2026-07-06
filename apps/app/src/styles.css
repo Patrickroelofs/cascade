@@ -1,21 +1,12 @@
 @import "tailwindcss";
+@import "@cascade/theme";
 @plugin "@tailwindcss/typography";
 
 @source "../src/**/*.{ts,tsx}";
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
 	--drag-preview-bg: var(--color-ginger);
 }
 .dark {
 	--drag-preview-bg: var(--color-dark-grey);
-}
-
-@theme {
-	--color-ginger: #f9e4d6;
-	--color-redleather: #ad4c4e;
-	--color-graphite: #62646b;
-	--color-peach: #e38b75;
-	--color-dark-grey: #2b2d33;
 }
