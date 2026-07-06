@@ -1,21 +1,60 @@
-name: Coolify Deployment Waiter
+name: Coolify Preview Deploy
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
-  wait-for-deploy:
+  deploy-preview:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait on Coolify Check
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-name: 'patrickroelofs'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 15
-          allowed-conclusions: success
+      - name: Trigger Coolify deployment
+        id: trigger
+        run: |
+          RESPONSE=$(curl -s -X GET \
+            "${{ secrets.COOLIFY_URL }}/api/v1/deploy?uuid=${{ secrets.COOLIFY_APP_UUID }}&pr=${{ github.event.pull_request.number }}" \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            -H "Content-Type: application/json")
 
-      - name: Proceed with Next Steps
-        run: echo "Coolify deployment is complete! Proceeding..."
+          echo "Response: $RESPONSE"
+          DEPLOYMENT_UUID=$(echo "$RESPONSE" | jq -r '.deployments[0].deployment_uuid // .deployment_uuid')
+
+          if [ -z "$DEPLOYMENT_UUID" ] || [ "$DEPLOYMENT_UUID" = "null" ]; then
+            echo "Failed to get deployment UUID"
+            exit 1
+          fi
+
+          echo "deployment_uuid=$DEPLOYMENT_UUID" >> "$GITHUB_OUTPUT"
+
+      - name: Poll deployment status
+        run: |
+          UUID="${{ steps.trigger.outputs.deployment_uuid }}"
+          MAX_ATTEMPTS=60
+          SLEEP_SECONDS=10
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            STATUS_RESPONSE=$(curl -s -X GET \
+              "${{ secrets.COOLIFY_URL }}/api/v1/deployments/$UUID" \
+              -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}")
+
+            STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.status')
+            echo "Attempt $i/$MAX_ATTEMPTS - Status: $STATUS"
+
+            case "$STATUS" in
+              finished)
+                echo "✅ Deployment succeeded"
+                exit 0
+                ;;
+              failed|cancelled)
+                echo "❌ Deployment $STATUS"
+                echo "$STATUS_RESPONSE" | jq .
+                exit 1
+                ;;
+              *)
+                sleep $SLEEP_SECONDS
+                ;;
+            esac
+          done
+
+          echo "⏱️ Timed out waiting for deployment"
+          exit 1
