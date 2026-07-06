@@ -29,6 +29,7 @@ export interface VirtualTreeRowProps {
 	onDelete: () => void;
 	onSaveContent: (content: { root: LexicalElementNode }) => void;
 	onCreateBelow: () => void;
+	onDeleteEmpty: () => void;
 	onMoveDrop: (draggedId: string, target: MoveTarget) => void;
 	previewRef: RefObject<ActiveDragPreview | null>;
 }
@@ -84,6 +85,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							onExit={props.onExitEdit}
 							onSave={props.onSaveContent}
 							onCreateBelow={props.onCreateBelow}
+							onDeleteEmpty={props.onDeleteEmpty}
 						/>
 					</div>
 				</NodeActions>

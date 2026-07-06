@@ -93,6 +93,20 @@ export function VirtualTree({
 		setEditingNodeId(newId);
 	};
 
+	const handleDeleteEmpty = (id: string) => {
+		const index = tree.rows.findIndex((row) => row.id === id);
+		const previous = index > 0 ? tree.rows[index - 1] : null;
+		if (!previous) return;
+
+		const container = scrollRef.current;
+		tree.remove(id, (splice) => {
+			if (!container) return splice();
+			animateNodeRemoval(container, id, splice);
+		});
+		setFocusPoint(null);
+		setEditingNodeId(previous.id);
+	};
+
 	const handleToggle = (nodeId: string, expanded: boolean) => {
 		tree.toggle(nodeId, expanded, (splice) => {
 			const container = scrollRef.current;
@@ -155,6 +169,7 @@ export function VirtualTree({
 								}}
 								onSaveContent={(content) => tree.updateContent(row.id, content)}
 								onCreateBelow={() => handleCreateBelow(row.id)}
+								onDeleteEmpty={() => handleDeleteEmpty(row.id)}
 								onMoveDrop={handleMoveDrop}
 								previewRef={previewRef}
 							/>

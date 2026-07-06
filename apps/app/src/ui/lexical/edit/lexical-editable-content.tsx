@@ -2,7 +2,12 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { $getRoot, COMMAND_PRIORITY_HIGH, KEY_ENTER_COMMAND } from "lexical";
+import {
+	$getRoot,
+	COMMAND_PRIORITY_HIGH,
+	KEY_BACKSPACE_COMMAND,
+	KEY_ENTER_COMMAND,
+} from "lexical";
 import { useEffect, useRef } from "react";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
 import type { FocusPoint } from "@/ui/nodes/node-editor";
@@ -12,6 +17,7 @@ interface EditableContentProps {
 	onSave: (content: { root: LexicalElementNode }) => void;
 	onExit?: () => void;
 	onCreateBelow?: () => void;
+	onDeleteEmpty?: () => void;
 }
 
 /** Cross-browser caret lookup for a screen point (Firefox lacks caretRangeFromPoint). */
@@ -30,6 +36,7 @@ export function EditableContent({
 	onSave,
 	onExit,
 	onCreateBelow,
+	onDeleteEmpty,
 }: EditableContentProps) {
 	const [editor] = useLexicalComposerContext();
 	const lastSavedRef = useRef<string | null>(null);
@@ -48,6 +55,9 @@ export function EditableContent({
 	const onCreateBelowRef = useRef(onCreateBelow);
 	onCreateBelowRef.current = onCreateBelow;
 
+	const onDeleteEmptyRef = useRef(onDeleteEmpty);
+	onDeleteEmptyRef.current = onDeleteEmpty;
+
 	useEffect(() => {
 		return editor.registerCommand(
 			KEY_ENTER_COMMAND,
@@ -56,6 +66,20 @@ export function EditableContent({
 				event?.preventDefault();
 				saveRef.current();
 				onCreateBelowRef.current?.();
+				return true;
+			},
+			COMMAND_PRIORITY_HIGH,
+		);
+	}, [editor]);
+
+	useEffect(() => {
+		return editor.registerCommand(
+			KEY_BACKSPACE_COMMAND,
+			(event) => {
+				if (!onDeleteEmptyRef.current) return false;
+				if ($getRoot().getTextContent() !== "") return false;
+				event?.preventDefault();
+				onDeleteEmptyRef.current();
 				return true;
 			},
 			COMMAND_PRIORITY_HIGH,

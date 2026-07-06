@@ -10,6 +10,7 @@ export interface LexicalEditViewProps {
 	onSave: (content: { root: LexicalElementNode }) => void;
 	onExit?: () => void;
 	onCreateBelow?: () => void;
+	onDeleteEmpty?: () => void;
 }
 
 export function LexicalEditView({
@@ -19,6 +20,7 @@ export function LexicalEditView({
 	onSave,
 	onExit,
 	onCreateBelow,
+	onDeleteEmpty,
 }: LexicalEditViewProps) {
 	return (
 		<LexicalComposer
@@ -33,6 +35,7 @@ export function LexicalEditView({
 				onSave={onSave}
 				onExit={onExit}
 				onCreateBelow={onCreateBelow}
+				onDeleteEmpty={onDeleteEmpty}
 			/>
 		</LexicalComposer>
 	);

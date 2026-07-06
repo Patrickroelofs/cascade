@@ -17,6 +17,7 @@ interface NodeEditorProps {
 	onExit: () => void;
 	onSave: (content: { root: LexicalElementNode }) => void;
 	onCreateBelow?: () => void;
+	onDeleteEmpty?: () => void;
 }
 
 export function NodeEditor({
@@ -28,6 +29,7 @@ export function NodeEditor({
 	onExit,
 	onSave,
 	onCreateBelow,
+	onDeleteEmpty,
 }: NodeEditorProps) {
 	if (editing) {
 		return (
@@ -38,6 +40,7 @@ export function NodeEditor({
 				onSave={onSave}
 				onExit={onExit}
 				onCreateBelow={onCreateBelow}
+				onDeleteEmpty={onDeleteEmpty}
 			/>
 		);
 	}
