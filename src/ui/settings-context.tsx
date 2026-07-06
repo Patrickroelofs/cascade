@@ -1,7 +1,11 @@
 import { createContext, use, useState } from "react";
 
+export const MIN_INDENT_SIZE = 2;
+export const MAX_INDENT_SIZE = 64;
+
 interface Settings {
 	dark: boolean;
+	indentSize: number;
 }
 
 function defaults(): Settings {
@@ -9,6 +13,7 @@ function defaults(): Settings {
 		dark:
 			typeof matchMedia !== "undefined" &&
 			matchMedia("(prefers-color-scheme: dark)").matches,
+		indentSize: 16,
 	};
 }
 
