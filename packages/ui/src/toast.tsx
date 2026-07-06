@@ -39,13 +39,24 @@ const icons: Record<ToastType, React.ReactNode> = {
 	info: <InfoIcon size={24} weight="fill" />,
 };
 
+// Stacking geometry per base-ui's docs: toasts sit absolutely positioned in
+// the viewport, peeking out behind the frontmost one until the viewport is
+// hovered/focused (`data-expanded`), then they fan out to full height.
 const root = cva({
 	base: [
-		"relative flex w-80 items-start gap-3 rounded-lg border border-dark-grey/10 bg-white p-3 text-dark-grey shadow-lg shadow-dark-grey/15",
-		"transition-[transform,opacity] duration-200 ease-out",
-		"data-starting-style:translate-y-1 data-starting-style:opacity-0",
-		"data-ending-style:opacity-0 data-[swipe-direction]:transition-none",
-		"items-center",
+		"[--gap:0.5rem] [--peek:0.75rem] [--scale:calc(max(0,1-(var(--toast-index)*0.1)))] [--shrink:calc(1-var(--scale))]",
+		"[--height:var(--toast-frontmost-height,var(--toast-height))]",
+		"[--offset-y:calc(var(--toast-offset-y)*-1+calc(var(--toast-index)*var(--gap)*-1)+var(--toast-swipe-movement-y))]",
+		"absolute right-0 bottom-0 left-auto mr-0 w-80 origin-bottom",
+		"[transform:translateX(var(--toast-swipe-movement-x))_translateY(calc(var(--toast-swipe-movement-y)-(var(--toast-index)*var(--peek))-(var(--shrink)*var(--height))))_scale(var(--scale))]",
+		"z-[calc(1000-var(--toast-index))] h-[var(--height)]",
+		"rounded-lg border border-dark-grey/10 bg-white text-dark-grey shadow-lg shadow-dark-grey/15",
+		"select-none [transition:transform_0.4s_cubic-bezier(0.22,1,0.36,1),opacity_0.4s,height_0.15s]",
+		"data-expanded:h-[var(--toast-height)]",
+		"data-expanded:[transform:translateX(var(--toast-swipe-movement-x))_translateY(var(--offset-y))]",
+		"data-starting-style:[transform:translateY(150%)]",
+		"data-ending-style:opacity-0 data-limited:opacity-0",
+		"[&[data-ending-style]:not([data-limited]):not([data-swipe-direction])]:[transform:translateY(150%)]",
 	],
 	variants: {
 		type: {
@@ -60,6 +71,13 @@ const root = cva({
 	},
 });
 
+const content = cva({
+	base: [
+		"flex h-full items-center gap-3 overflow-hidden p-3 transition-opacity duration-200 ease-out",
+		"data-behind:opacity-0 data-expanded:opacity-100",
+	],
+});
+
 function ToastList() {
 	const { toasts } = Toast.useToastManager();
 
@@ -69,19 +87,21 @@ function ToastList() {
 			toast={item}
 			className={root({ type: item.type as ToastType })}
 		>
-			<div className="toast-icon mt-0.5 shrink-0">
-				{icons[item.type as ToastType]}
-			</div>
-			<div className="flex-1 space-y-0.5">
-				<Toast.Title className="font-semibold text-sm" />
-				<Toast.Description className="text-sm text-dark-grey" />
-			</div>
-			<Toast.Close
-				aria-label="Dismiss"
-				className="shrink-0 cursor-pointer rounded p-1 text-dark-grey outline-none hover:bg-dark-grey/5 "
-			>
-				<XIcon size={16} className="text-dark-grey" />
-			</Toast.Close>
+			<Toast.Content className={content()}>
+				<div className="toast-icon mt-0.5 shrink-0">
+					{icons[item.type as ToastType]}
+				</div>
+				<div className="flex-1 space-y-0.5">
+					<Toast.Title className="font-semibold text-sm" />
+					<Toast.Description className="text-sm text-dark-grey" />
+				</div>
+				<Toast.Close
+					aria-label="Dismiss"
+					className="shrink-0 cursor-pointer rounded p-1 text-dark-grey outline-none hover:bg-dark-grey/5 "
+				>
+					<XIcon size={16} className="text-dark-grey" />
+				</Toast.Close>
+			</Toast.Content>
 		</Toast.Root>
 	));
 }
@@ -91,7 +111,7 @@ export function Toaster({ children }: { children: React.ReactNode }) {
 		<Toast.Provider toastManager={toastManager}>
 			{children}
 			<Toast.Portal>
-				<Toast.Viewport className="fixed right-4 bottom-4 z-50 flex flex-col gap-2 outline-none">
+				<Toast.Viewport className="fixed right-4 bottom-4 z-50 h-16 w-80 outline-none">
 					<ToastList />
 				</Toast.Viewport>
 			</Toast.Portal>
