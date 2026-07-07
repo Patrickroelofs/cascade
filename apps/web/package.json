@@ -17,6 +17,7 @@
   "dependencies": {
     "@cascade/theme": "workspace:*",
     "@cascade/ui": "workspace:*",
+    "@fontsource-variable/bitter": "^5.2.10",
     "@phosphor-icons/react": "^2.1.10",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
@@ -25,7 +26,6 @@
     "@tanstack/react-router-ssr-query": "latest",
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "^1.132.0",
-    "lucide-react": "^0.545.0",
     "nitro": "3.0.260610-beta",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

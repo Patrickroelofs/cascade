@@ -5,40 +5,5 @@
 @source "../../../packages/ui/src";
 
 @theme {
-  --font-serif: "Newsreader", Georgia, serif;
+	--font-serif: 'Bitter Variable', serif;
 }
-
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#app {
-  min-height: 100%;
-}
-
-body {
-  margin: 0;
-  background: #fcf5ee;
-  color: var(--color-dark-grey);
-  font-family: Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-::selection {
-  background: var(--color-ginger);
-}
-
-input::placeholder {
-  color: #b9bbc1;
-}
-
-details > summary {
-  list-style: none;
-}
-
-details > summary::-webkit-details-marker {
-  display: none;
-}
-

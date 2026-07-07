@@ -2,6 +2,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import "@fontsource-variable/bitter/wght-italic.css";
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -20,7 +21,7 @@ export const Route = createRootRoute({
 			{
 				name: "description",
 				content:
-					"Cascade is an infinitely nested outliner. One outline for everything — notes, plans, someday-maybes. Free, and it runs in your browser.",
+					"Cascade is an infinitely nested outliner. One outline for everything.",
 			},
 		],
 		scripts: [
@@ -36,19 +37,6 @@ export const Route = createRootRoute({
 		],
 		links: [
 			{
-				rel: "preconnect",
-				href: "https://fonts.googleapis.com",
-			},
-			{
-				rel: "preconnect",
-				href: "https://fonts.gstatic.com",
-				crossOrigin: "anonymous",
-			},
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&display=swap",
-			},
-			{
 				rel: "stylesheet",
 				href: appCss,
 			},
@@ -63,7 +51,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
+			<body className="bg-super-ginger text-dark-grey">
 				{children}
 				<TanStackDevtools
 					config={{
