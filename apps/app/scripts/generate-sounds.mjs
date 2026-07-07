@@ -5,21 +5,21 @@ import { fileURLToPath } from "node:url";
 const SAMPLE_RATE = 44100;
 
 /**
- * A bright, bouncy "cartoon" tone: exponential pitch glide (not linear —
- * that's what makes a sweep sound like a springy hop instead of a synth
- * sweep) under an exponential-decay envelope, with a sub-octave layer for
- * body, a bright upper-harmonic layer for toy-like sparkle, and optional
- * vibrato for a "boing" wobble.
+ * A warm, bouncy "cartoon" tone: exponential pitch glide (not linear — that's
+ * what makes a sweep sound like a springy hop instead of a synth sweep)
+ * under an exponential-decay envelope, with a sub-octave layer for body, a
+ * touch of upper-harmonic warmth (kept low so it stays mellow, not bright),
+ * and optional vibrato for a gentle "boing" wobble.
  */
 function blob({
 	duration,
 	freqStart,
 	freqEnd = freqStart,
 	amp = 0.5,
-	attack = 0.003,
+	attack = 0.007,
 	decay = 20,
-	sub = 0.3,
-	bright = 0.28,
+	sub = 0.38,
+	bright = 0.16,
 	brightRatio = 2,
 	vibratoRate = 0,
 	vibratoDepth = 0,
@@ -107,88 +107,81 @@ const outDir = process.argv[2] ?? defaultOutDir;
 fs.mkdirSync(outDir, { recursive: true });
 
 const sounds = {
-	// Bright, quick upward chirp — a snappy "blip" instead of a flat beep.
-	click: blob({ duration: 0.06, freqStart: 650, freqEnd: 950, decay: 30, bright: 0.32 }),
+	// Gentle downward tap — gentle and rounded, not a bright chirp.
+	click: blob({ duration: 0.07, freqStart: 460, freqEnd: 380, decay: 26 }),
 
-	// Springy upward boing — "picking something up".
+	// Warm rising boing — "picking something up".
 	pickup: blob({
 		duration: 0.13,
-		freqStart: 380,
-		freqEnd: 700,
+		freqStart: 220,
+		freqEnd: 340,
 		decay: 14,
-		bright: 0.3,
-		vibratoRate: 32,
-		vibratoDepth: 0.06,
+		vibratoRate: 20,
+		vibratoDepth: 0.05,
 	}),
 
-	// Springy downward boing — a bouncy little landing.
+	// Warm falling boing — a soft, unhurried landing.
 	drop: blob({
-		duration: 0.15,
-		freqStart: 700,
-		freqEnd: 360,
-		decay: 12,
-		sub: 0.35,
-		bright: 0.28,
-		vibratoRate: 28,
-		vibratoDepth: 0.06,
+		duration: 0.16,
+		freqStart: 340,
+		freqEnd: 210,
+		decay: 11,
+		sub: 0.42,
+		vibratoRate: 18,
+		vibratoDepth: 0.05,
 	}),
 
-	// Playful descending "womp womp" with a wobble, not a harsh buzz.
-	error: mixAt(0.3, [
+	// Playful low descending "womp womp" with a gentle wobble.
+	error: mixAt(0.32, [
 		{
 			samples: blob({
 				duration: 0.14,
-				freqStart: 480,
-				freqEnd: 380,
+				freqStart: 300,
+				freqEnd: 240,
 				decay: 12,
-				sub: 0.35,
-				bright: 0.2,
-				vibratoRate: 20,
-				vibratoDepth: 0.08,
+				sub: 0.42,
+				vibratoRate: 16,
+				vibratoDepth: 0.06,
 			}),
 			offset: 0,
 		},
 		{
 			samples: blob({
-				duration: 0.18,
-				freqStart: 360,
-				freqEnd: 260,
+				duration: 0.19,
+				freqStart: 230,
+				freqEnd: 170,
 				decay: 9,
-				sub: 0.4,
-				bright: 0.2,
-				vibratoRate: 16,
-				vibratoDepth: 0.08,
+				sub: 0.46,
+				vibratoRate: 14,
+				vibratoDepth: 0.06,
 			}),
-			offset: 0.12,
+			offset: 0.13,
 		},
 	]),
 
-	// Bright staccato 3-note ascending arpeggio — a snappy "coin get".
-	success: mixAt(0.26, [
-		{ samples: blob({ duration: 0.08, freqStart: 600, freqEnd: 650, decay: 22 }), offset: 0 },
-		{ samples: blob({ duration: 0.08, freqStart: 800, freqEnd: 850, decay: 22 }), offset: 0.06 },
-		{
-			samples: blob({ duration: 0.12, freqStart: 1050, freqEnd: 1100, decay: 16, bright: 0.32 }),
-			offset: 0.12,
-		},
+	// Gentle staccato 3-note ascending run — bouncy, but mellow and low.
+	success: mixAt(0.28, [
+		{ samples: blob({ duration: 0.09, freqStart: 300, freqEnd: 310, decay: 20 }), offset: 0 },
+		{ samples: blob({ duration: 0.09, freqStart: 360, freqEnd: 370, decay: 19 }), offset: 0.07 },
+		{ samples: blob({ duration: 0.13, freqStart: 430, freqEnd: 440, decay: 15 }), offset: 0.14 },
 	]),
 
-	// Fuller staccato 4-note ascending run with a shimmering flourish on the last note.
-	complete: mixAt(0.34, [
-		{ samples: blob({ duration: 0.07, freqStart: 500, freqEnd: 520, decay: 24 }), offset: 0 },
-		{ samples: blob({ duration: 0.07, freqStart: 650, freqEnd: 670, decay: 24 }), offset: 0.06 },
-		{ samples: blob({ duration: 0.07, freqStart: 820, freqEnd: 840, decay: 22, bright: 0.32 }), offset: 0.12 },
+	// Fuller staccato 4-note ascending run with a soft flourish on the last note.
+	complete: mixAt(0.38, [
+		{ samples: blob({ duration: 0.08, freqStart: 270, freqEnd: 280, decay: 22 }), offset: 0 },
+		{ samples: blob({ duration: 0.08, freqStart: 320, freqEnd: 330, decay: 21 }), offset: 0.07 },
+		{ samples: blob({ duration: 0.08, freqStart: 380, freqEnd: 390, decay: 19 }), offset: 0.14 },
 		{
 			samples: blob({
-				duration: 0.16,
-				freqStart: 1040,
-				freqEnd: 1080,
+				duration: 0.18,
+				freqStart: 450,
+				freqEnd: 470,
 				decay: 11,
-				bright: 0.35,
-				vibratoRate: 24,
-				vibratoDepth: 0.04,
+				bright: 0.2,
+				vibratoRate: 16,
+				vibratoDepth: 0.03,
 			}),
-			offset: 0.18,
+			offset: 0.21,
 		},
 	]),
 };
