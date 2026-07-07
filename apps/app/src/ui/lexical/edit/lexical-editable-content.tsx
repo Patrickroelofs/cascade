@@ -69,6 +69,9 @@ export function EditableContent({
 	const onOutdentRef = useRef(onOutdent);
 	onOutdentRef.current = onOutdent;
 
+	// Tab/Enter/Backspace stay on Lexical's command system rather than TanStack Hotkeys:
+	// Lexical owns the contenteditable's native keydown handling internally, so an
+	// external DOM-level listener can't preempt its default rich-text behavior here.
 	useEffect(() => {
 		return editor.registerCommand(
 			KEY_TAB_COMMAND,

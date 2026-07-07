@@ -1,3 +1,5 @@
+import { useHotkeys } from "@tanstack/react-hotkeys";
+import { useRef } from "react";
 import { LexicalEditView } from "@/ui/lexical/edit/lexical-edit-view";
 import { toLexicalContent } from "@/ui/lexical/lexical-content";
 import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
@@ -35,6 +37,28 @@ export function NodeEditor({
 	onIndent,
 	onOutdent,
 }: NodeEditorProps) {
+	const readViewRef = useRef<HTMLDivElement>(null);
+
+	useHotkeys(
+		[
+			{
+				hotkey: "Enter",
+				callback: (event) => {
+					event.preventDefault();
+					onStartEdit();
+				},
+			},
+			{
+				hotkey: "Space",
+				callback: (event) => {
+					event.preventDefault();
+					onStartEdit();
+				},
+			},
+		],
+		{ target: readViewRef, enabled: !editing },
+	);
+
 	if (editing) {
 		return (
 			<LexicalEditView
@@ -53,18 +77,14 @@ export function NodeEditor({
 
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: the read view renders block elements (<p>), which are invalid inside <button>; keyboard/focus semantics are provided explicitly
+		// biome-ignore lint/a11y/useKeyWithClickEvents: Enter/Space are handled via useHotkeys above, not a JSX onKeyDown prop
 		<div
+			ref={readViewRef}
 			role="button"
 			tabIndex={0}
 			aria-label="Edit node text"
 			className="cursor-text text-left flex-1 min-w-0"
 			onClick={(event) => onStartEdit({ x: event.clientX, y: event.clientY })}
-			onKeyDown={(event) => {
-				if (event.key === "Enter" || event.key === " ") {
-					event.preventDefault();
-					onStartEdit();
-				}
-			}}
 		>
 			<LexicalReadView content={toLexicalContent(content)} />
 		</div>
