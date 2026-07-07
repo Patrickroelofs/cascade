@@ -2,7 +2,7 @@ import { authClient } from "@cascade/auth/client";
 import { Button } from "@cascade/ui/button";
 import { Input } from "@cascade/ui/input";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { GithubLogoIcon } from "@phosphor-icons/react/ssr";
+import { GithubLogoIcon, GoogleLogoIcon } from "@phosphor-icons/react/ssr";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Footer } from "#/components/marketing/footer";
@@ -48,6 +48,10 @@ function Register() {
 		await authClient.signIn.social({ provider: "github", callbackURL: appUrl });
 	}
 
+	async function handleGoogle() {
+		await authClient.signIn.social({ provider: "google", callbackURL: appUrl });
+	}
+
 	return (
 		<>
 			<Nav />
@@ -58,10 +62,18 @@ function Register() {
 				<button
 					type="button"
 					onClick={handleGithub}
-					className="cursor-pointer mb-6 flex w-full items-center justify-center gap-2 rounded-full bg-dark-grey py-3 text-sm font-bold text-white"
+					className="cursor-pointer mb-4 flex w-full items-center justify-center gap-2 rounded-full bg-dark-grey py-3 text-sm font-bold text-white"
 				>
 					<GithubLogoIcon className="size-4" weight="bold" />
 					Continue with GitHub
+				</button>
+				<button
+					type="button"
+					onClick={handleGoogle}
+					className="cursor-pointer mb-6 flex w-full items-center justify-center gap-2 rounded-full border border-graphite/30 py-3 text-sm font-bold"
+				>
+					<GoogleLogoIcon className="size-4" weight="bold" />
+					Continue with Google
 				</button>
 				<div className="mb-6 flex items-center gap-3 text-xs text-graphite">
 					<hr className="grow border-graphite/30" />
