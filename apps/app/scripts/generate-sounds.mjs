@@ -5,29 +5,33 @@ import { fileURLToPath } from "node:url";
 const SAMPLE_RATE = 44100;
 
 /**
- * A warm, bouncy "cartoon" tone: exponential pitch glide (not linear — that's
+ * A warm, soft "cartoon" tone: exponential pitch glide (not linear — that's
  * what makes a sweep sound like a springy hop instead of a synth sweep)
  * under an exponential-decay envelope, with a sub-octave layer for body, a
- * touch of upper-harmonic warmth (kept low so it stays mellow, not bright),
- * and optional vibrato for a gentle "boing" wobble.
+ * touch of upper-harmonic warmth, and optional vibrato for a gentle "boing"
+ * wobble. Soft `tanh` saturation rounds off the peaks for an analog warmth
+ * instead of a clean, cold digital sine — this is most of what separates
+ * "blob" from "beep".
  */
 function blob({
 	duration,
 	freqStart,
 	freqEnd = freqStart,
 	amp = 0.5,
-	attack = 0.007,
+	attack = 0.008,
 	decay = 20,
-	sub = 0.38,
-	bright = 0.16,
+	sub = 0.4,
+	bright = 0.1,
 	brightRatio = 2,
 	vibratoRate = 0,
 	vibratoDepth = 0,
+	drive = 1.6,
 }) {
 	const n = Math.max(1, Math.floor(duration * SAMPLE_RATE));
 	const samples = new Float32Array(n);
 	const attackSamples = Math.max(1, attack * SAMPLE_RATE);
 	const freqRatio = freqEnd / freqStart;
+	const driveNorm = Math.tanh(drive);
 	let phase = 0;
 	let subPhase = 0;
 	let brightPhase = 0;
@@ -45,10 +49,22 @@ function blob({
 		brightPhase += (2 * Math.PI * freq * brightRatio) / SAMPLE_RATE;
 		const attackEnv = i < attackSamples ? i / attackSamples : 1;
 		const env = attackEnv * Math.exp(-decay * t);
-		samples[i] =
-			(Math.sin(phase) + sub * Math.sin(subPhase) + bright * Math.sin(brightPhase)) *
-			amp *
-			env;
+		const raw = Math.sin(phase) + sub * Math.sin(subPhase) + bright * Math.sin(brightPhase);
+		samples[i] = (Math.tanh(raw * drive) / driveNorm) * amp * env;
+	}
+	return samples;
+}
+
+/** A soft, filtered noise burst — a tactile "thud" of contact, not a hiss. */
+function thud({ duration, amp = 0.22, decay = 60, cutoff = 0.2 }) {
+	const n = Math.max(1, Math.floor(duration * SAMPLE_RATE));
+	const samples = new Float32Array(n);
+	let filtered = 0;
+	for (let i = 0; i < n; i++) {
+		const t = i / SAMPLE_RATE;
+		const white = Math.random() * 2 - 1;
+		filtered += cutoff * (white - filtered);
+		samples[i] = filtered * amp * Math.exp(-decay * t);
 	}
 	return samples;
 }
@@ -64,6 +80,54 @@ function mixAt(totalDuration, layers) {
 		}
 	}
 	return out;
+}
+
+/**
+ * A physical bounce sequence: each hop is quieter, quicker, and settles
+ * toward `settleFreq` than the last, the way a dropped object loses energy
+ * bounce by bounce. `freqRatio > 1` makes it hop upward (pickup); `< 1`
+ * makes it settle downward (drop landing).
+ */
+function bounceTrain({
+	hops,
+	freqStart,
+	freqRatio = 0.82,
+	ampStart = 0.55,
+	ampDecay = 0.55,
+	gapStart = 0.1,
+	gapDecay = 0.6,
+	decay = 15,
+	sub = 0.42,
+	bright = 0.1,
+	withThud = true,
+}) {
+	const layers = [];
+	let t = 0;
+	let amp = ampStart;
+	let gap = gapStart;
+	let freq = freqStart;
+	for (let i = 0; i < hops; i++) {
+		const hopDuration = Math.max(0.03, gap * 0.9);
+		layers.push({
+			samples: blob({
+				duration: hopDuration,
+				freqStart: freq,
+				freqEnd: freq * freqRatio,
+				amp,
+				decay: decay / Math.max(0.3, gap / gapStart),
+				sub,
+				bright,
+			}),
+			offset: t,
+		});
+		if (withThud && i === 0) {
+			layers.push({ samples: thud({ duration: 0.035, amp: 0.2, decay: 75 }), offset: t });
+		}
+		t += gap;
+		amp *= ampDecay;
+		gap *= gapDecay;
+	}
+	return mixAt(t + 0.05, layers);
 }
 
 /** Scales a buffer so its peak sample hits `target`, for consistent loudness. */
@@ -107,59 +171,51 @@ const outDir = process.argv[2] ?? defaultOutDir;
 fs.mkdirSync(outDir, { recursive: true });
 
 const sounds = {
-	// Gentle downward tap — gentle and rounded, not a bright chirp.
-	click: blob({ duration: 0.07, freqStart: 460, freqEnd: 380, decay: 26 }),
+	// A soft single tap, with a whisper of a thud underneath for tactile warmth.
+	click: mixAt(0.08, [
+		{ samples: blob({ duration: 0.07, freqStart: 440, freqEnd: 370, decay: 26 }), offset: 0 },
+		{ samples: thud({ duration: 0.02, amp: 0.12, decay: 90 }), offset: 0 },
+	]),
 
-	// Warm rising boing — "picking something up".
-	pickup: blob({
-		duration: 0.13,
-		freqStart: 220,
-		freqEnd: 340,
-		decay: 14,
-		vibratoRate: 20,
-		vibratoDepth: 0.05,
+	// A light upward hop-hop — like plucking something up and it settling in your hand.
+	pickup: bounceTrain({
+		hops: 2,
+		freqStart: 240,
+		freqRatio: 1.35,
+		ampStart: 0.5,
+		ampDecay: 0.5,
+		gapStart: 0.07,
+		gapDecay: 0.65,
+		decay: 16,
+		withThud: false,
 	}),
 
-	// Warm falling boing — a soft, unhurried landing.
-	drop: blob({
-		duration: 0.16,
+	// The star: a dropped object landing and bouncing softly to rest.
+	drop: bounceTrain({
+		hops: 4,
 		freqStart: 340,
-		freqEnd: 210,
-		decay: 11,
-		sub: 0.42,
-		vibratoRate: 18,
-		vibratoDepth: 0.05,
+		freqRatio: 0.8,
+		ampStart: 0.6,
+		ampDecay: 0.52,
+		gapStart: 0.11,
+		gapDecay: 0.58,
+		decay: 13,
+		sub: 0.45,
 	}),
 
-	// Playful low descending "womp womp" with a gentle wobble.
-	error: mixAt(0.32, [
+	// Playful low descending "womp womp" that plops to a soft stop.
+	error: mixAt(0.34, [
 		{
-			samples: blob({
-				duration: 0.14,
-				freqStart: 300,
-				freqEnd: 240,
-				decay: 12,
-				sub: 0.42,
-				vibratoRate: 16,
-				vibratoDepth: 0.06,
-			}),
+			samples: blob({ duration: 0.14, freqStart: 300, freqEnd: 240, decay: 12, sub: 0.42, vibratoRate: 16, vibratoDepth: 0.06 }),
 			offset: 0,
 		},
 		{
-			samples: blob({
-				duration: 0.19,
-				freqStart: 230,
-				freqEnd: 170,
-				decay: 9,
-				sub: 0.46,
-				vibratoRate: 14,
-				vibratoDepth: 0.06,
-			}),
+			samples: blob({ duration: 0.19, freqStart: 230, freqEnd: 170, decay: 9, sub: 0.46, vibratoRate: 14, vibratoDepth: 0.06 }),
 			offset: 0.13,
 		},
 	]),
 
-	// Gentle staccato 3-note ascending run — bouncy, but mellow and low.
+	// Gentle staccato 3-note ascending run — bouncy, warm, and low.
 	success: mixAt(0.28, [
 		{ samples: blob({ duration: 0.09, freqStart: 300, freqEnd: 310, decay: 20 }), offset: 0 },
 		{ samples: blob({ duration: 0.09, freqStart: 360, freqEnd: 370, decay: 19 }), offset: 0.07 },
@@ -172,15 +228,7 @@ const sounds = {
 		{ samples: blob({ duration: 0.08, freqStart: 320, freqEnd: 330, decay: 21 }), offset: 0.07 },
 		{ samples: blob({ duration: 0.08, freqStart: 380, freqEnd: 390, decay: 19 }), offset: 0.14 },
 		{
-			samples: blob({
-				duration: 0.18,
-				freqStart: 450,
-				freqEnd: 470,
-				decay: 11,
-				bright: 0.2,
-				vibratoRate: 16,
-				vibratoDepth: 0.03,
-			}),
+			samples: blob({ duration: 0.18, freqStart: 450, freqEnd: 470, decay: 11, bright: 0.16, vibratoRate: 16, vibratoDepth: 0.03 }),
 			offset: 0.21,
 		},
 	]),
