@@ -63,14 +63,14 @@ export function Button({
 				style={{ filter: `url(#${filterId})` }}
 			>
 				<span
-					className={`absolute inset-y-0 left-0 right-11 origin-left rounded-full ${bg} ${grow}`}
+					className={`absolute inset-y-0 left-0 right-11 origin-right rounded-full ${bg} ${grow}`}
 				/>
 				<span
 					className={`absolute inset-y-0 right-0 w-11 rounded-full ${bg} ${slide}`}
 				/>
 			</span>
 			<span className="relative z-10 flex h-11 items-center">
-				<span className={`origin-left px-6 font-semibold text-ginger ${grow}`}>
+				<span className={`origin-right px-6 font-semibold text-ginger ${grow}`}>
 					{children}
 				</span>
 				<span
