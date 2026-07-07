@@ -33,8 +33,8 @@ export function Faq() {
 						<summary className="cursor-pointer list-none px-1 py-6 text-base font-bold [&::-webkit-details-marker]:hidden">
 							{faq.question}
 						</summary>
-						<div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out group-open:grid-rows-[1fr]">
-							<p className="m-0 overflow-hidden px-1 pb-6 text-pretty text-base opacity-0 transition-opacity duration-200 ease-in-out group-open:opacity-100">
+						<div className="grid grid-rows-[0fr] transition-[grid-template-rows]">
+							<p className="m-0 px-1 pb-6 text-pretty text-base">
 								{faq.answer}
 							</p>
 						</div>
