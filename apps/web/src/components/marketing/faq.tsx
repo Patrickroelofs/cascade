@@ -7,12 +7,12 @@ const faqs = [
 	{
 		question: "How is it different from other outliners?",
 		answer:
-			"Cascade keeps the idea simple: one infinitely nested list, fast keyboard control, and nothing else in your way.",
+			"Right now, we're focusing on perfecting the basics, so it feels very similar to existing tools. We're in active development, though, and have some exciting, unique features on the horizon!",
 	},
 	{
 		question: "Does it work on my phone?",
 		answer:
-			"Cascade runs in the browser, so it works anywhere a browser does including your phone.",
+			"Cascade runs in the browser, so it works anywhere a browser does including your phone. An independent app is possible in the future.",
 	},
 ];
 
@@ -26,14 +26,18 @@ export function Faq() {
 				{faqs.map((faq, i) => (
 					<details
 						key={faq.question}
-						className={`border-t border-dark-grey/10 py-1 ${
+						className={`group border-t border-dark-grey/10 py-1 ${
 							i === faqs.length - 1 ? "border-b" : ""
 						}`}
 					>
 						<summary className="cursor-pointer list-none px-1 py-6 text-base font-bold [&::-webkit-details-marker]:hidden">
 							{faq.question}
 						</summary>
-						<p className="m-0 text-pretty px-1 pb-6 text-base">{faq.answer}</p>
+						<div className="grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 ease-in-out group-open:grid-rows-[1fr]">
+							<p className="m-0 overflow-hidden px-1 pb-6 text-pretty text-base opacity-0 transition-opacity duration-200 ease-in-out group-open:opacity-100">
+								{faq.answer}
+							</p>
+						</div>
 					</details>
 				))}
 			</div>

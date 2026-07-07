@@ -16,7 +16,7 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Cascade — a quieter place to think in lists",
+				title: "Cascade - a quieter place to think in lists",
 			},
 			{
 				name: "description",
