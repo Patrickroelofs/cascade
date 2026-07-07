@@ -17,7 +17,8 @@
     "db:seed": "node --env-file=.env.local --import tsx/esm ./src/db/seed.ts",
     "db:seed:prod": "node --import tsx/esm ./src/db/seed.ts",
     "start:seeded": "pnpm db:seed:prod && pnpm start",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "generate-sounds": "node scripts/generate-sounds.mjs"
   },
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
