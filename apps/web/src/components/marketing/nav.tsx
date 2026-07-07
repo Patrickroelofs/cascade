@@ -7,13 +7,13 @@ function NavLinks() {
 	return (
 		<>
 			<Link to="/changelog">Changelog</Link>
-			<Link to="/login">Log in</Link>
-			<a
+			<Link
+				to="/login"
 				href={appUrl}
 				className="font-bold text-redleather inline-flex items-center gap-2"
 			>
-				Open app <ArrowUpRightIcon size={24} />
-			</a>
+				Go to app <ArrowUpRightIcon size={24} />
+			</Link>
 		</>
 	);
 }
