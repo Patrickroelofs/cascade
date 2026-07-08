@@ -1,7 +1,6 @@
-import { toast } from "@cascade/ui/toast";
-import { lexicalToPlainText } from "@cascade/ui/tree/lexical-content";
-import type { VisibleNodeRow } from "@cascade/ui/tree/node-types";
-import type { VisibleTree } from "@cascade/ui/tree/tree-types";
+import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
+import type { VisibleNodeRow } from "@cascade/outliner/node-types";
+import type { VisibleTree } from "@cascade/outliner/tree-types";
 import {
 	appendRow,
 	insertRowAfter,
@@ -9,7 +8,8 @@ import {
 	patchRow,
 	removeSubtree,
 	subtreeRange,
-} from "@cascade/ui/tree/visible-rows";
+} from "@cascade/outliner/visible-rows";
+import { toast } from "@cascade/ui/toast";
 import { useMemo, useState } from "react";
 import { demoAllNodes } from "./demo-seed";
 

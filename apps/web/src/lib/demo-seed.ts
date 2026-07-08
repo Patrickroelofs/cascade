@@ -1,4 +1,7 @@
-import type { NodeTypeName, VisibleNodeRow } from "@cascade/ui/tree/node-types";
+import type {
+	NodeTypeName,
+	VisibleNodeRow,
+} from "@cascade/outliner/node-types";
 
 interface SeedNode {
 	id: string;

@@ -1,5 +1,5 @@
+import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { Button } from "@cascade/ui/button";
-import { VirtualTree } from "@cascade/ui/tree/virtual-tree";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { HouseIcon } from "@phosphor-icons/react/ssr";
 import { useState } from "react";

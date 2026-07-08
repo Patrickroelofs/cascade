@@ -1,4 +1,4 @@
-import { Checkbox } from "../checkbox";
+import { Checkbox } from "@cascade/ui/checkbox";
 import type { NodeMetadataOf } from "./node-types";
 
 interface NodeCheckboxProps {

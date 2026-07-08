@@ -1,12 +1,12 @@
 "use no memo";
 
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
+import { Button } from "@cascade/ui/button";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { Button } from "../../button";
 import type { DragPreviewHandle } from "../drag-animation/drag-preview";
 import { findNodeRow } from "../drag-animation/node-rows";
 import type { FocusPoint } from "../node-editor";

@@ -1,5 +1,5 @@
 import { Menu } from "@base-ui/react";
-import { lexicalToPlainText } from "@cascade/ui/tree/lexical-content";
+import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
 import { DotsThreeIcon, HouseIcon } from "@phosphor-icons/react/ssr";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";

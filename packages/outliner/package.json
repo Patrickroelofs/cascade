@@ -1,0 +1,38 @@
+{
+  "name": "@cascade/outliner",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./virtual-tree": "./src/virtual-tree/virtual-tree.tsx",
+    "./node-types": "./src/node-types.ts",
+    "./tree-types": "./src/tree-types.ts",
+    "./visible-rows": "./src/virtual-tree/visible-rows.ts",
+    "./lexical-content": "./src/lexical/lexical-content.ts",
+    "./*": "./src/*.tsx"
+  },
+  "peerDependencies": {
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "dependencies": {
+    "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
+    "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.0",
+    "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.0.0",
+    "@cascade/ui": "workspace:*",
+    "@lexical/history": "^0.46.0",
+    "@lexical/react": "^0.46.0",
+    "@lexical/rich-text": "^0.46.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tanstack/react-query": "^5.101.2",
+    "@tanstack/react-virtual": "^3.14.5",
+    "gsap": "^3.15.0",
+    "lexical": "^0.46.0",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3"
+  }
+}

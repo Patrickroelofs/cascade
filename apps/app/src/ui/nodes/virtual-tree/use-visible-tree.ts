@@ -1,9 +1,8 @@
-import { toast } from "@cascade/ui/toast";
 import type {
 	TypedMetadata,
 	VisibleNodeRow,
-} from "@cascade/ui/tree/node-types";
-import type { VisibleTree } from "@cascade/ui/tree/tree-types";
+} from "@cascade/outliner/node-types";
+import type { VisibleTree } from "@cascade/outliner/tree-types";
 import {
 	appendRow,
 	collapseNode,
@@ -13,7 +12,8 @@ import {
 	moveSubtree,
 	patchRow,
 	removeSubtree,
-} from "@cascade/ui/tree/visible-rows";
+} from "@cascade/outliner/visible-rows";
+import { toast } from "@cascade/ui/toast";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { client, orpc } from "@/orpc/client";

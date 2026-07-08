@@ -20,6 +20,9 @@ importers:
       '@cascade/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@cascade/outliner':
+        specifier: workspace:*
+        version: link:../../packages/outliner
       '@cascade/theme':
         specifier: workspace:*
         version: link:../../packages/theme
@@ -192,6 +195,9 @@ importers:
       '@cascade/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@cascade/outliner':
+        specifier: workspace:*
+        version: link:../../packages/outliner
       '@cascade/theme':
         specifier: workspace:*
         version: link:../../packages/theme
@@ -302,9 +308,7 @@ importers:
         specifier: ^19.2.7
         version: 19.2.7
 
-  packages/theme: {}
-
-  packages/ui:
+  packages/outliner:
     dependencies:
       '@atlaskit/pragmatic-drag-and-drop':
         specifier: ^2.0.1
@@ -315,9 +319,9 @@ importers:
       '@atlaskit/pragmatic-drag-and-drop-hitbox':
         specifier: ^2.0.0
         version: 2.0.0
-      '@base-ui/react':
-        specifier: ^1.6.0
-        version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@cascade/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@lexical/history':
         specifier: ^0.46.0
         version: 0.46.0(typescript@7.0.2)
@@ -336,9 +340,6 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.14.5
         version: 3.14.5(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      cva:
-        specifier: 1.0.0-beta.4
-        version: 1.0.0-beta.4(typescript@7.0.2)
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -357,6 +358,36 @@ importers:
       zod:
         specifier: ^4.4.3
         version: 4.4.3
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.17
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.17)
+
+  packages/theme: {}
+
+  packages/ui:
+    dependencies:
+      '@base-ui/react':
+        specifier: ^1.6.0
+        version: 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      '@phosphor-icons/react':
+        specifier: ^2.1.10
+        version: 2.1.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      cva:
+        specifier: 1.0.0-beta.4
+        version: 1.0.0-beta.4(typescript@7.0.2)
+      react:
+        specifier: ^19.2.7
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.2.7
+        version: 19.2.7(react@19.2.7)
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
     devDependencies:
       '@types/react':
         specifier: ^19.2.17

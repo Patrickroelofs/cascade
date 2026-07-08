@@ -4,3 +4,4 @@
 
 @source "../src/**/*.{ts,tsx}";
 @source "../../../packages/ui/src";
+@source "../../../packages/outliner/src";

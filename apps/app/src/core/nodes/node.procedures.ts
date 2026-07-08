@@ -1,8 +1,8 @@
-import type { VisibleNodeRow } from "@cascade/ui/tree/node-types";
+import type { VisibleNodeRow } from "@cascade/outliner/node-types";
 import {
 	type NodeTypeName,
 	typedMetadataSchema,
-} from "@cascade/ui/tree/node-types";
+} from "@cascade/outliner/node-types";
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";

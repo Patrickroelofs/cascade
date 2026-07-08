@@ -1,5 +1,5 @@
+import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
-import { VirtualTree } from "@cascade/ui/tree/virtual-tree";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
