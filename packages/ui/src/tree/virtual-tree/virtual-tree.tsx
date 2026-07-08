@@ -5,6 +5,7 @@ import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
+import { twMerge } from "tailwind-merge";
 import { Button } from "../../button";
 import type { DragPreviewHandle } from "../drag-animation/drag-preview";
 import { findNodeRow } from "../drag-animation/node-rows";
@@ -31,11 +32,17 @@ export function VirtualTree({
 	indentSize = 16,
 	renderNodeLink,
 	header,
+	className,
+	contentClassName,
 }: {
 	tree: VisibleTree;
 	indentSize?: number;
 	renderNodeLink?: (id: string) => ReactNode;
 	header?: ReactNode;
+	/** Overrides the scroll container's default full-viewport-height sizing. */
+	className?: string;
+	/** Overrides the inner content wrapper's default max-width/padding. */
+	contentClassName?: string;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<ActiveDragPreview | null>(null);
@@ -141,8 +148,13 @@ export function VirtualTree({
 	};
 
 	return (
-		<div ref={scrollRef} className="h-dvh overflow-auto">
-			<div className="max-w-6xl mx-auto px-4 py-12 sm:py-32">
+		<div ref={scrollRef} className={twMerge("h-dvh overflow-auto", className)}>
+			<div
+				className={twMerge(
+					"max-w-6xl mx-auto px-4 py-12 sm:py-32",
+					contentClassName,
+				)}
+			>
 				{header}
 				{tree.rows.length === 0 ? (
 					<p className="text-sm py-4">
