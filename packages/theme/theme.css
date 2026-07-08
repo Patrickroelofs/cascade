@@ -8,3 +8,11 @@
 	--color-peach: #e38b75;
 	--color-dark-grey: #2b2d33;
 }
+
+/* Used by @cascade/ui's tree drag preview (packages/ui/src/tree/drag-animation). */
+:root {
+	--drag-preview-bg: var(--color-super-ginger);
+}
+.dark {
+	--drag-preview-bg: var(--color-dark-grey);
+}
