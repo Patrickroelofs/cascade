@@ -5,9 +5,11 @@ import { ArrowRightIcon } from "@phosphor-icons/react";
 import { GithubLogoIcon, GoogleLogoIcon } from "@phosphor-icons/react/ssr";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
 import { Footer } from "#/components/marketing/footer";
 import { Nav } from "#/components/marketing/nav";
 import { appUrl } from "#/lib/app-url";
+import { oauthErrorMessage } from "#/lib/oauth-error";
 import { seoHead } from "#/lib/seo";
 
 export const Route = createFileRoute("/login")({
@@ -17,11 +19,15 @@ export const Route = createFileRoute("/login")({
 			"Log in to Cascade, the infinitely nested outliner.",
 			"/login",
 		),
+	validateSearch: z.object({ error: z.string().optional() }),
 	component: Login,
 });
 
 function Login() {
-	const [error, setError] = useState<string | null>(null);
+	const { error: oauthError } = Route.useSearch();
+	const [error, setError] = useState<string | null>(
+		oauthErrorMessage(oauthError),
+	);
 	const [submitting, setSubmitting] = useState(false);
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -44,11 +50,19 @@ function Login() {
 	}
 
 	async function handleGithub() {
-		await authClient.signIn.social({ provider: "github", callbackURL: appUrl });
+		await authClient.signIn.social({
+			provider: "github",
+			callbackURL: appUrl,
+			errorCallbackURL: window.location.origin + Route.fullPath,
+		});
 	}
 
 	async function handleGoogle() {
-		await authClient.signIn.social({ provider: "google", callbackURL: appUrl });
+		await authClient.signIn.social({
+			provider: "google",
+			callbackURL: appUrl,
+			errorCallbackURL: window.location.origin + Route.fullPath,
+		});
 	}
 
 	return (
