@@ -1,26 +1,28 @@
 "use no memo";
 
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
+import type { LexicalElementNode } from "../lexical/read/lexical-read-view";
+import { NodeActions } from "../node-actions";
+import { NodeCheckbox } from "../node-checkbox";
+import { type FocusPoint, NodeEditor } from "../node-editor";
+import { DefaultNodeLink } from "../node-link-slot";
+import { NodeToggle } from "../node-toggle";
 import type {
 	NodeMetadataOf,
 	NodeTypeName,
 	VisibleNodeRow,
-} from "@/core/nodes/node-types";
-import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
-import { NodeActions } from "@/ui/nodes/node-actions";
-import { NodeCheckbox } from "@/ui/nodes/node-checkbox";
-import { type FocusPoint, NodeEditor } from "@/ui/nodes/node-editor";
-import { NodeLink } from "@/ui/nodes/node-link";
-import { NodeToggle } from "@/ui/nodes/node-toggle";
-import { RowDragAndDrop } from "@/ui/nodes/virtual-tree/row-drag-drop";
-import type { ActiveDragPreview } from "@/ui/nodes/virtual-tree/virtual-tree";
-import type { MoveTarget } from "@/ui/nodes/virtual-tree/visible-rows";
+} from "../node-types";
+import { RowDragAndDrop } from "./row-drag-drop";
+import type { ActiveDragPreview } from "./virtual-tree";
+import type { MoveTarget } from "./visible-rows";
 
 export interface VirtualTreeRowProps {
 	row: VisibleNodeRow;
 	rows: VisibleNodeRow[];
 	start: number;
 	index: number;
+	indentSize: number;
+	renderNodeLink?: (id: string) => ReactNode;
 	measureElement: (element: HTMLElement | null) => void;
 	editing: boolean;
 	focusPoint: FocusPoint | null;
@@ -59,6 +61,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 			<RowDragAndDrop
 				row={row}
 				rows={props.rows}
+				indentSize={props.indentSize}
 				onMoveDrop={props.onMoveDrop}
 				previewRef={props.previewRef}
 			>
@@ -73,7 +76,11 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 						expanded={row.expanded}
 						onToggle={props.onToggle}
 					/>
-					<NodeLink id={row.id} />
+					{props.renderNodeLink ? (
+						props.renderNodeLink(row.id)
+					) : (
+						<DefaultNodeLink />
+					)}
 					{row.type === "task" && (
 						<NodeCheckbox
 							metadata={row.metadata}

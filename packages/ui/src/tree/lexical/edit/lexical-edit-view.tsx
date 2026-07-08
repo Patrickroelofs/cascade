@@ -1,7 +1,7 @@
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { EditableContent } from "@/ui/lexical/edit/lexical-editable-content";
-import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
-import type { FocusPoint } from "@/ui/nodes/node-editor";
+import type { FocusPoint } from "../../node-editor";
+import type { LexicalElementNode } from "../read/lexical-read-view";
+import { EditableContent } from "./lexical-editable-content";
 
 export interface LexicalEditViewProps {
 	id: string;

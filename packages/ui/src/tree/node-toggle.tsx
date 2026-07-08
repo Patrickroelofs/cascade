@@ -1,5 +1,5 @@
-import { cva } from "@cascade/ui/cva.config";
 import { CaretRightIcon } from "@phosphor-icons/react";
+import { cva } from "../cva.config";
 
 interface NodeToggleProps {
 	hasChildren: boolean;

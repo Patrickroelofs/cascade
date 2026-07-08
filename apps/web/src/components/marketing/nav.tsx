@@ -6,6 +6,7 @@ import { appUrl } from "#/lib/app-url";
 function NavLinks() {
 	return (
 		<>
+			<Link to="/demo">Try the demo</Link>
 			<Link to="/changelog">Changelog</Link>
 			<Link
 				to="/login"

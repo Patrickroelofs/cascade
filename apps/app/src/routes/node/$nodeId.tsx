@@ -1,15 +1,21 @@
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
+import { LexicalReadView } from "@cascade/ui/tree/lexical/read/lexical-read-view";
+import { toLexicalContent } from "@cascade/ui/tree/lexical-content";
+import { NodeCheckbox } from "@cascade/ui/tree/node-checkbox";
+import { VirtualTree } from "@cascade/ui/tree/virtual-tree";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { client, orpc } from "#/orpc/client";
 import { GenericErrorComponent } from "#/ui/error/generic-error";
-import { toLexicalContent } from "#/ui/lexical/lexical-content";
-import { LexicalReadView } from "#/ui/lexical/read/lexical-read-view";
 import { Breadcrumbs } from "#/ui/nodes/breadcrumbs";
-import { NodeCheckbox } from "#/ui/nodes/node-checkbox";
-import { visibleTreeOptions } from "#/ui/nodes/virtual-tree/use-visible-tree";
-import { VirtualTree } from "#/ui/nodes/virtual-tree/virtual-tree";
+import { NodeLink } from "#/ui/nodes/node-link";
+import {
+	useVisibleTree,
+	visibleTreeOptions,
+} from "#/ui/nodes/virtual-tree/use-visible-tree";
+import { useSettings } from "#/ui/settings-context";
 
 export const Route = createFileRoute("/node/$nodeId")({
 	loader: ({ context: { queryClient }, params: { nodeId } }) => {
@@ -52,8 +58,8 @@ function NodeDetailPage() {
 
 	return (
 		<Suspense fallback={<CascadeLoader />}>
-			<VirtualTree
-				rootId={nodeId}
+			<NodeTree
+				nodeId={nodeId}
 				header={
 					<>
 						<Breadcrumbs nodeId={nodeId} />
@@ -70,5 +76,18 @@ function NodeDetailPage() {
 				}
 			/>
 		</Suspense>
+	);
+}
+
+function NodeTree({ nodeId, header }: { nodeId: string; header: ReactNode }) {
+	const tree = useVisibleTree(nodeId);
+	const { settings } = useSettings();
+	return (
+		<VirtualTree
+			tree={tree}
+			indentSize={settings.indentSize}
+			renderNodeLink={(id) => <NodeLink id={id} />}
+			header={header}
+		/>
 	);
 }

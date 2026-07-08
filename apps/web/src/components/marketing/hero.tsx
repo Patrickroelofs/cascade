@@ -1,5 +1,6 @@
 import { Button } from "@cascade/ui/button";
 import { ArrowRightIcon } from "@phosphor-icons/react";
+import { Link } from "@tanstack/react-router";
 
 export function Hero() {
 	return (
@@ -21,6 +22,12 @@ export function Hero() {
 				>
 					Try Cascade; it&rsquo;s free
 				</Button>
+				<Link
+					to="/demo"
+					className="text-sm text-graphite hover:text-redleather transition-colors"
+				>
+					Or try an interactive demo &rarr;
+				</Link>
 			</div>
 		</header>
 	);
