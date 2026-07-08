@@ -101,6 +101,9 @@ export function Hero() {
 				className="mt-10 h-[420px] overflow-auto rounded-2xl border border-dark-grey/10 bg-white text-left shadow-lg shadow-dark-grey/10"
 				contentClassName="max-w-none mx-0 px-6 py-6"
 			/>
+			<p className="mt-3 text-xs text-graphite">
+				This is just a taste — the real app goes much further.
+			</p>
 		</header>
 	);
 }
