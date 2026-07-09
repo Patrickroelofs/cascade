@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-09
+- Keyboard commands `Shift+Arrow, up or down` will move focus to the element above or below. [#71](https://github.com/Patrickroelofs/cascade/issues/71)
+
 ## 2026-07-08
 - Users are now able to delete their account [#133](https://github.com/Patrickroelofs/cascade/issues/133)
 - Added several oauth providers
