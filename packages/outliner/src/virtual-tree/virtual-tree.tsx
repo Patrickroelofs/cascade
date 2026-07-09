@@ -3,6 +3,7 @@
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { Button } from "@cascade/ui/button";
 import { PlusIcon } from "@phosphor-icons/react";
+import { Debouncer } from "@tanstack/pacer/debouncer";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -77,8 +78,8 @@ export function VirtualTree({
 		return initial;
 	});
 	const hiddenIdsRef = useRef(hiddenIds);
-	const pendingHideTimers = useRef(
-		new Map<string, ReturnType<typeof setTimeout>>(),
+	const pendingHideDebouncers = useRef(
+		new Map<string, Debouncer<() => void>>(),
 	);
 
 	useEffect(() => {
@@ -88,14 +89,14 @@ export function VirtualTree({
 	// Schedule/cancel the delayed auto-hide for completed task rows, and drop
 	// hidden/pending state for rows that got unchecked or deleted.
 	useEffect(() => {
-		const timers = pendingHideTimers.current;
+		const debouncers = pendingHideDebouncers.current;
 		const rowIds = new Set(tree.rows.map((row) => row.id));
 		const toReveal: string[] = [];
 
-		for (const [id, timer] of timers) {
+		for (const [id, debouncer] of debouncers) {
 			if (!rowIds.has(id)) {
-				clearTimeout(timer);
-				timers.delete(id);
+				debouncer.cancel();
+				debouncers.delete(id);
 			}
 		}
 
@@ -103,25 +104,29 @@ export function VirtualTree({
 			const shouldHide = isCompletedTask(row) && hideCompletedTasks;
 
 			if (shouldHide) {
-				if (!hiddenIdsRef.current.has(row.id) && !timers.has(row.id)) {
-					const timer = setTimeout(() => {
-						timers.delete(row.id);
-						const reveal = () =>
-							setHiddenIds((prev) => new Set(prev).add(row.id));
-						const container = scrollRef.current;
-						if (container) {
-							animateNodeRemoval(container, row.id, reveal);
-						} else {
-							reveal();
-						}
-					}, dragAnimationConfig.completedHide.delayMs);
-					timers.set(row.id, timer);
+				if (!hiddenIdsRef.current.has(row.id) && !debouncers.has(row.id)) {
+					const debouncer = new Debouncer(
+						() => {
+							debouncers.delete(row.id);
+							const reveal = () =>
+								setHiddenIds((prev) => new Set(prev).add(row.id));
+							const container = scrollRef.current;
+							if (container) {
+								animateNodeRemoval(container, row.id, reveal);
+							} else {
+								reveal();
+							}
+						},
+						{ wait: dragAnimationConfig.completedHide.delayMs },
+					);
+					debouncers.set(row.id, debouncer);
+					debouncer.maybeExecute();
 				}
 			} else {
-				const timer = timers.get(row.id);
-				if (timer) {
-					clearTimeout(timer);
-					timers.delete(row.id);
+				const debouncer = debouncers.get(row.id);
+				if (debouncer) {
+					debouncer.cancel();
+					debouncers.delete(row.id);
 				}
 				if (hiddenIdsRef.current.has(row.id)) toReveal.push(row.id);
 			}
@@ -141,10 +146,10 @@ export function VirtualTree({
 	}, [tree.rows, hideCompletedTasks]);
 
 	useEffect(() => {
-		const timers = pendingHideTimers.current;
+		const debouncers = pendingHideDebouncers.current;
 		return () => {
-			for (const timer of timers.values()) clearTimeout(timer);
-			timers.clear();
+			for (const debouncer of debouncers.values()) debouncer.cancel();
+			debouncers.clear();
 		};
 	}, []);
 
