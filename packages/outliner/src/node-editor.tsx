@@ -1,7 +1,7 @@
-import { LexicalEditView } from "@/ui/lexical/edit/lexical-edit-view";
-import { toLexicalContent } from "@/ui/lexical/lexical-content";
-import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
-import { LexicalReadView } from "@/ui/lexical/read/lexical-read-view";
+import { LexicalEditView } from "./lexical/edit/lexical-edit-view";
+import { toLexicalContent } from "./lexical/lexical-content";
+import type { LexicalElementNode } from "./lexical/read/lexical-read-view";
+import { LexicalReadView } from "./lexical/read/lexical-read-view";
 
 export interface FocusPoint {
 	x: number;

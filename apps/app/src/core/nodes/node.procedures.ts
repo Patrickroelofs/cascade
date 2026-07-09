@@ -1,13 +1,13 @@
+import type { VisibleNodeRow } from "@cascade/outliner/node-types";
+import {
+	type NodeTypeName,
+	typedMetadataSchema,
+} from "@cascade/outliner/node-types";
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
 import { nodeColumns } from "@/core/nodes/node.queries";
 import { nodes } from "@/core/nodes/node.schema";
-import type { VisibleNodeRow } from "@/core/nodes/node-types";
-import {
-	type NodeTypeName,
-	typedMetadataSchema,
-} from "@/core/nodes/node-types";
 import { db } from "@/db";
 import { authed } from "@/orpc/context";
 

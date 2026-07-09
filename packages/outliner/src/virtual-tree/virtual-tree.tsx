@@ -4,22 +4,21 @@ import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-sc
 import { Button } from "@cascade/ui/button";
 import { PlusIcon } from "@phosphor-icons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
-import { nodeTypeDefs, type TypedMetadata } from "@/core/nodes/node-types";
-import type { DragPreviewHandle } from "@/ui/nodes/drag-animation/drag-preview";
-import { findNodeRow } from "@/ui/nodes/drag-animation/node-rows";
-import type { FocusPoint } from "@/ui/nodes/node-editor";
-import {
-	animateNodeRemoval,
-	animateTreeChange,
-} from "@/ui/nodes/virtual-tree/flip-displacement";
-import { useVisibleTree } from "@/ui/nodes/virtual-tree/use-visible-tree";
-import { VirtualTreeRow } from "@/ui/nodes/virtual-tree/virtual-tree-row";
+import { twMerge } from "tailwind-merge";
+import type { DragPreviewHandle } from "../drag-animation/drag-preview";
+import { findNodeRow } from "../drag-animation/node-rows";
+import type { FocusPoint } from "../node-editor";
+import { nodeTypeDefs, type TypedMetadata } from "../node-types";
+import type { VisibleTree } from "../tree-types";
+import { animateNodeRemoval, animateTreeChange } from "./flip-displacement";
+import { VirtualTreeRow } from "./virtual-tree-row";
 import {
 	findIndentTarget,
 	findOutdentTarget,
 	type MoveTarget,
-} from "@/ui/nodes/virtual-tree/visible-rows";
+} from "./visible-rows";
 
 export interface ActiveDragPreview {
 	nodeId: string;
@@ -29,17 +28,26 @@ export interface ActiveDragPreview {
 const LOAD_MORE_THRESHOLD = 50;
 
 export function VirtualTree({
-	rootId,
+	tree,
+	indentSize = 16,
+	renderNodeLink,
 	header,
+	className,
+	contentClassName,
 }: {
-	rootId: string | null;
-	header?: React.ReactNode;
+	tree: VisibleTree;
+	indentSize?: number;
+	renderNodeLink?: (id: string) => ReactNode;
+	header?: ReactNode;
+	/** Overrides the scroll container's default full-viewport-height sizing. */
+	className?: string;
+	/** Overrides the inner content wrapper's default max-width/padding. */
+	contentClassName?: string;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<ActiveDragPreview | null>(null);
 	const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
 	const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null);
-	const tree = useVisibleTree(rootId);
 
 	const virtualizer = useVirtualizer({
 		count: tree.rows.length,
@@ -140,8 +148,10 @@ export function VirtualTree({
 	};
 
 	return (
-		<div ref={scrollRef} className="h-dvh overflow-auto">
-			<div className="max-w-6xl mx-auto px-4 py-12 sm:py-32">
+		<div ref={scrollRef} className={twMerge("h-dvh overflow-auto", className)}>
+			<div
+				className={twMerge("max-w-6xl mx-auto px-4 py-12", contentClassName)}
+			>
 				{header}
 				{tree.rows.length === 0 ? (
 					<p className="text-sm py-4">
@@ -164,6 +174,8 @@ export function VirtualTree({
 									rows={tree.rows}
 									start={virtualItem.start}
 									index={virtualItem.index}
+									indentSize={indentSize}
+									renderNodeLink={renderNodeLink}
 									measureElement={virtualizer.measureElement}
 									editing={editingNodeId === row.id}
 									focusPoint={editingNodeId === row.id ? focusPoint : null}

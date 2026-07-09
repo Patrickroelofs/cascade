@@ -18,21 +18,18 @@ import {
 	useRef,
 	useState,
 } from "react";
-import type { VisibleNodeRow } from "@/core/nodes/node-types";
-import { createDragPreview } from "@/ui/nodes/drag-animation/drag-preview";
-import { nodeRowDomAttributes } from "@/ui/nodes/drag-animation/node-rows";
-import { NodeDragHandle } from "@/ui/nodes/node-drag-handle";
-import { NodeDropIndicator } from "@/ui/nodes/node-drop-indicator";
-import type { ActiveDragPreview } from "@/ui/nodes/virtual-tree/virtual-tree";
-import {
-	type MoveTarget,
-	subtreeRange,
-} from "@/ui/nodes/virtual-tree/visible-rows";
-import { useSettings } from "@/ui/settings-context";
+import { createDragPreview } from "../drag-animation/drag-preview";
+import { nodeRowDomAttributes } from "../drag-animation/node-rows";
+import { NodeDragHandle } from "../node-drag-handle";
+import { NodeDropIndicator } from "../node-drop-indicator";
+import type { VisibleNodeRow } from "../node-types";
+import type { ActiveDragPreview } from "./virtual-tree";
+import { type MoveTarget, subtreeRange } from "./visible-rows";
 
 interface RowDragAndDropProps {
 	row: VisibleNodeRow;
 	rows: VisibleNodeRow[];
+	indentSize: number;
 	onMoveDrop: (draggedId: string, target: MoveTarget) => void;
 	previewRef: RefObject<ActiveDragPreview | null>;
 	children: ReactNode;
@@ -56,6 +53,7 @@ function isInSubtree(rows: VisibleNodeRow[], sourceId: string, id: string) {
 export function RowDragAndDrop({
 	row,
 	rows,
+	indentSize,
 	onMoveDrop,
 	previewRef,
 	children,
@@ -63,15 +61,9 @@ export function RowDragAndDrop({
 	const rowRef = useRef<HTMLDivElement>(null);
 	const handleRef = useRef<HTMLButtonElement>(null);
 	const [instruction, setInstruction] = useState<Instruction | null>(null);
-	const { settings } = useSettings();
 
-	const latest = useRef({
-		row,
-		rows,
-		onMoveDrop,
-		indentSize: settings.indentSize,
-	});
-	latest.current = { row, rows, onMoveDrop, indentSize: settings.indentSize };
+	const latest = useRef({ row, rows, onMoveDrop, indentSize });
+	latest.current = { row, rows, onMoveDrop, indentSize };
 
 	useEffect(() => {
 		const rowElement = rowRef.current;
@@ -195,7 +187,7 @@ export function RowDragAndDrop({
 			{...nodeRowDomAttributes(row.id)}
 			className="group/node py-1 flex items-center gap-2 relative rounded-md transition-colors duration-150 has-data-popup-open:bg-peach/25 has-data-popup-open:ring-1 has-data-popup-open:ring-inset has-data-popup-open:ring-peach/60"
 		>
-			<div style={{ paddingLeft: row.depth * settings.indentSize }} />
+			<div style={{ paddingLeft: row.depth * indentSize }} />
 			<NodeDropIndicator instruction={instruction} />
 			<NodeDragHandle ref={handleRef} />
 			{children}

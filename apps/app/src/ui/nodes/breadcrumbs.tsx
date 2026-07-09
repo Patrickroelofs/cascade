@@ -1,9 +1,9 @@
 import { Menu } from "@base-ui/react";
+import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
 import { DotsThreeIcon, HouseIcon } from "@phosphor-icons/react/ssr";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { orpc } from "#/orpc/client";
-import { lexicalToPlainText } from "#/ui/lexical/lexical-content";
 
 interface BreadcrumbsProps {
 	nodeId: string;

@@ -10,8 +10,8 @@ import {
 	KEY_TAB_COMMAND,
 } from "lexical";
 import { useEffect, useRef } from "react";
-import type { LexicalElementNode } from "@/ui/lexical/read/lexical-read-view";
-import type { FocusPoint } from "@/ui/nodes/node-editor";
+import type { FocusPoint } from "../../node-editor";
+import type { LexicalElementNode } from "../read/lexical-read-view";
 
 interface EditableContentProps {
 	focusPoint: FocusPoint | null;

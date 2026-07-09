@@ -1,8 +1,8 @@
-import { toast } from "@cascade/ui/toast";
-import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useRef } from "react";
-import type { TypedMetadata, VisibleNodeRow } from "@/core/nodes/node-types";
-import { client, orpc } from "@/orpc/client";
+import type {
+	TypedMetadata,
+	VisibleNodeRow,
+} from "@cascade/outliner/node-types";
+import type { VisibleTree } from "@cascade/outliner/tree-types";
 import {
 	appendRow,
 	collapseNode,
@@ -12,7 +12,11 @@ import {
 	moveSubtree,
 	patchRow,
 	removeSubtree,
-} from "./visible-rows";
+} from "@cascade/outliner/visible-rows";
+import { toast } from "@cascade/ui/toast";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useRef } from "react";
+import { client, orpc } from "@/orpc/client";
 
 interface VisibleTreeData {
 	rows: VisibleNodeRow[];
@@ -28,7 +32,7 @@ export function visibleTreeOptions(rootId: string | null) {
  * touches it. All mutations splice the flat array optimistically, then persist
  * and reconcile with the server (whose fractional order is authoritative).
  */
-export function useVisibleTree(rootId: string | null) {
+export function useVisibleTree(rootId: string | null): VisibleTree {
 	const queryClient = useQueryClient();
 	const options = visibleTreeOptions(rootId);
 	const { data } = useSuspenseQuery(options);
@@ -234,5 +238,3 @@ export function useVisibleTree(rootId: string | null) {
 		loadMore,
 	};
 }
-
-export type VisibleTree = ReturnType<typeof useVisibleTree>;

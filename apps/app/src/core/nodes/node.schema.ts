@@ -1,4 +1,5 @@
 import { user } from "@cascade/auth/schema";
+import type { NodeTypeName } from "@cascade/outliner/node-types";
 import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
@@ -9,7 +10,6 @@ import {
 	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
-import type { NodeTypeName } from "@/core/nodes/node-types";
 
 export const nodes = pgTable(
 	"nodes",

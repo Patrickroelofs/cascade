@@ -6,7 +6,7 @@ A self-hosted outliner.
 
 - Tree-based outliner with infinitely nestable nodes, virtualized for large trees
 - Self-hosted on your own infrastructure with a PostgreSQL database
-- Type-safe throughout — RPC, database queries, and routing
+- Type-safe throughout - RPC, database queries, and routing
 
 ## Getting started
 
@@ -38,7 +38,7 @@ pnpm db:seed
 ```
 
 > Note: the `order` column must use `COLLATE "C"` (byte-order comparison for
-> fractional-index keys). `db:push` can't express collation — on a fresh
+> fractional-index keys). `db:push` can't express collation - on a fresh
 > database run once:
 > `ALTER TABLE nodes ALTER COLUMN "order" TYPE text COLLATE "C";`
 

@@ -10,11 +10,7 @@ import {
 } from "@cascade/ui/context-menu";
 import { ArrowsClockwiseIcon, TrashIcon } from "@phosphor-icons/react/ssr";
 import type { ReactNode } from "react";
-import {
-	type NodeTypeName,
-	nodeTypeDefs,
-	nodeTypeNames,
-} from "@/core/nodes/node-types";
+import { type NodeTypeName, nodeTypeDefs, nodeTypeNames } from "./node-types";
 
 interface NodeActionsProps {
 	nodeType: NodeTypeName;

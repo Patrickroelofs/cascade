@@ -2,11 +2,8 @@ import { defaultScheduler, notifyManager } from "@tanstack/react-query";
 import { gsap } from "gsap";
 import { Flip } from "gsap/Flip";
 import { flushSync } from "react-dom";
-import { dragAnimationConfig } from "@/ui/nodes/drag-animation/config";
-import {
-	FLIP_ID_ATTRIBUTE,
-	findNodeRow,
-} from "@/ui/nodes/drag-animation/node-rows";
+import { dragAnimationConfig } from "../drag-animation/config";
+import { FLIP_ID_ATTRIBUTE, findNodeRow } from "../drag-animation/node-rows";
 
 gsap.registerPlugin(Flip);
 
