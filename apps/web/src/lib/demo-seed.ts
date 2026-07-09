@@ -46,7 +46,7 @@ function toRow(
 
 /**
  * Flattens the whole seed tree depth-first, regardless of each node's
- * intended `expanded` state — every node is always in this array so the
+ * intended `expanded` state every node is always in this array so the
  * demo can switch which node is the current "root" without re-fetching.
  * Each row still carries its intended `expanded` flag; view-time filtering
  * (see use-demo-tree.ts's `visibleRowsForRoot`) decides what's shown.
@@ -69,7 +69,7 @@ function collectAll(
 const demoSeedTree: SeedNode[] = [
 	{
 		id: "welcome",
-		text: "Welcome to Cascade — this outline is fully interactive",
+		text: "Welcome to Cascade this outline is fully interactive",
 		children: [
 			{ id: "welcome-1", text: "Click any line to edit it" },
 			{ id: "welcome-2", text: "Press Tab / Shift+Tab to indent and outdent" },
@@ -109,7 +109,7 @@ const demoSeedTree: SeedNode[] = [
 	},
 	{
 		id: "note",
-		text: "Nothing here is saved — it's just a demo. Sign up to keep your own.",
+		text: "Nothing here is saved it's just a demo. Sign up to keep your own.",
 	},
 ];
 

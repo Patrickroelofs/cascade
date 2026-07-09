@@ -76,7 +76,7 @@ export function Hero() {
 					Try Cascade; it&rsquo;s free
 				</Button>
 				<p className="text-sm text-graphite">
-					Or try the outline below — it&rsquo;s live, nothing is saved.
+					Or try the outline below it&rsquo;s live, nothing is saved.
 				</p>
 			</div>
 			<VirtualTree
@@ -102,7 +102,7 @@ export function Hero() {
 				contentClassName="max-w-none mx-0 px-6 py-6"
 			/>
 			<p className="mt-3 text-xs text-graphite">
-				This is just a taste — the real app goes much further.
+				This is just a taste the real app goes much further.
 			</p>
 		</header>
 	);

@@ -10,7 +10,7 @@ export function PreAlphaBanner({ onDismiss }: PreAlphaBannerProps) {
 			<div className="relative mx-auto flex max-w-3xl items-center justify-center gap-2 px-10">
 				<WarningIcon size={16} weight="fill" className="text-redleather" />
 				<span>
-					Cascade is in <strong className="font-semibold">pre-alpha</strong> —
+					Cascade is in <strong className="font-semibold">pre-alpha</strong> -
 					expect bugs and breaking changes.
 				</span>
 				{onDismiss && (
