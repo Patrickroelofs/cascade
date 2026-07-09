@@ -122,13 +122,13 @@ export function UserMenu() {
 	}
 
 	return (
-		<div className="fixed top-4 right-4 z-50">
+		<div className="fixed top-4 right-8 z-50">
 			<Menu.Root>
 				<Menu.Trigger
 					aria-label="User menu"
-					className="flex size-10 cursor-pointer items-center justify-center rounded-full border border-dark-grey/10 bg-white text-dark-grey shadow-md shadow-dark-grey/15 outline-none select-none hover:bg-ginger/70 focus-visible:ring-2 focus-visible:ring-redleather/50 data-popup-open:bg-ginger/70 dark:border-ginger/15 dark:bg-dark-grey dark:text-ginger dark:hover:bg-dark-grey dark:data-popup-open:bg-dark-grey"
+					className="flex size-12 cursor-pointer items-center justify-center rounded-full border border-dark-grey/10 bg-white text-dark-grey shadow-md shadow-dark-grey/15 outline-none select-none hover:bg-ginger/70 focus-visible:ring-2 focus-visible:ring-redleather/50 data-popup-open:bg-ginger/70 dark:border-ginger/15 dark:bg-dark-grey dark:text-ginger dark:hover:bg-dark-grey dark:data-popup-open:bg-dark-grey"
 				>
-					<Avatar user={user} className="size-8" />
+					<Avatar user={user} className="size-10" />
 				</Menu.Trigger>
 				<Menu.Portal>
 					<Menu.Positioner
