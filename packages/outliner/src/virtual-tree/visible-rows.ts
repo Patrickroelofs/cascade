@@ -1,4 +1,4 @@
-import type { VisibleNodeRow } from "../node-types";
+import type { NodeMetadataOf, VisibleNodeRow } from "../node-types";
 
 /**
  * Pure splice helpers for the flat visible-rows array. Every function returns
@@ -21,6 +21,41 @@ export function subtreeRange(
 	let end = start + 1;
 	while (end < rows.length && rows[end].depth > depth) end++;
 	return { start, end };
+}
+
+export function isCompletedTask(row: VisibleNodeRow): boolean {
+	return (
+		row.type === "task" &&
+		((row.metadata as NodeMetadataOf<"task"> | null)?.completed ?? false)
+	);
+}
+
+/**
+ * Ids that should hide when "hide completed tasks" is on: every completed
+ * task hides itself, and additionally hides its whole (visible) subtree only
+ * when that subtree has no open task left — otherwise in-progress children
+ * are left alone so unfinished work stays visible.
+ */
+export function hiddenTaskIds(rows: VisibleNodeRow[]): Set<string> {
+	const hidden = new Set<string>();
+	let i = 0;
+	while (i < rows.length) {
+		const row = rows[i];
+		if (isCompletedTask(row)) {
+			hidden.add(row.id);
+			const end = subtreeRange(rows, row.id)?.end ?? i + 1;
+			const hasOpenTask = rows
+				.slice(i + 1, end)
+				.some((r) => r.type === "task" && !isCompletedTask(r));
+			if (!hasOpenTask) {
+				for (let j = i + 1; j < end; j++) hidden.add(rows[j].id);
+				i = end;
+				continue;
+			}
+		}
+		i++;
+	}
+	return hidden;
 }
 
 /**

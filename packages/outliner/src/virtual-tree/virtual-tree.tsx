@@ -12,18 +12,14 @@ import { dragAnimationConfig } from "../drag-animation/config";
 import type { DragPreviewHandle } from "../drag-animation/drag-preview";
 import { findNodeRow } from "../drag-animation/node-rows";
 import type { FocusPoint } from "../node-editor";
-import {
-	type NodeMetadataOf,
-	nodeTypeDefs,
-	type TypedMetadata,
-	type VisibleNodeRow,
-} from "../node-types";
+import { nodeTypeDefs, type TypedMetadata } from "../node-types";
 import type { VisibleTree } from "../tree-types";
 import { animateNodeRemoval, animateTreeChange } from "./flip-displacement";
 import { VirtualTreeRow } from "./virtual-tree-row";
 import {
 	findIndentTarget,
 	findOutdentTarget,
+	hiddenTaskIds,
 	type MoveTarget,
 } from "./visible-rows";
 
@@ -33,13 +29,6 @@ export interface ActiveDragPreview {
 }
 
 const LOAD_MORE_THRESHOLD = 50;
-
-function isCompletedTask(row: VisibleNodeRow): boolean {
-	return (
-		row.type === "task" &&
-		((row.metadata as NodeMetadataOf<"task"> | null)?.completed ?? false)
-	);
-}
 
 export function VirtualTree({
 	tree,
@@ -69,14 +58,9 @@ export function VirtualTree({
 	// Seeded from the initial data so rows that were already completed before
 	// this component mounted (e.g. on page load/refresh) start hidden right
 	// away — only tasks completed live during this session get the delay+fade.
-	const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => {
-		if (!hideCompletedTasks) return new Set();
-		const initial = new Set<string>();
-		for (const row of tree.rows) {
-			if (isCompletedTask(row)) initial.add(row.id);
-		}
-		return initial;
-	});
+	const [hiddenIds, setHiddenIds] = useState<Set<string>>(() =>
+		hideCompletedTasks ? hiddenTaskIds(tree.rows) : new Set(),
+	);
 	const hiddenIdsRef = useRef(hiddenIds);
 	const pendingHideDebouncers = useRef(
 		new Map<string, Debouncer<() => void>>(),
@@ -86,11 +70,15 @@ export function VirtualTree({
 		hiddenIdsRef.current = hiddenIds;
 	}, [hiddenIds]);
 
-	// Schedule/cancel the delayed auto-hide for completed task rows, and drop
-	// hidden/pending state for rows that got unchecked or deleted.
+	// Schedule/cancel the delayed auto-hide for completed task rows (and their
+	// fully-done subtrees), and drop hidden/pending state for rows that got
+	// unchecked, gained an open child, or were deleted.
 	useEffect(() => {
 		const debouncers = pendingHideDebouncers.current;
 		const rowIds = new Set(tree.rows.map((row) => row.id));
+		const targetHidden = hideCompletedTasks
+			? hiddenTaskIds(tree.rows)
+			: new Set<string>();
 		const toReveal: string[] = [];
 
 		for (const [id, debouncer] of debouncers) {
@@ -101,7 +89,7 @@ export function VirtualTree({
 		}
 
 		for (const row of tree.rows) {
-			const shouldHide = isCompletedTask(row) && hideCompletedTasks;
+			const shouldHide = targetHidden.has(row.id);
 
 			if (shouldHide) {
 				if (!hiddenIdsRef.current.has(row.id) && !debouncers.has(row.id)) {
