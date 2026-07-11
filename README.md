@@ -68,6 +68,23 @@ pnpm db:push      # Apply schema changes to the database
 pnpm db:studio    # Open Drizzle Studio
 ```
 
+### End-to-end tests
+
+`apps/app` has a Playwright suite under `apps/app/e2e`. It needs a running
+database (`docker compose up -d`, `pnpm db:push:app`, plus the `COLLATE "C"`
+fix above on a fresh database) and builds+starts the app itself, so no dev
+server needs to be running first:
+
+```bash
+pnpm test:e2e:app
+```
+
+The suite authenticates once (`e2e/auth.setup.ts`, creating/reusing a
+dedicated `e2e@cascadelist.com` user) and reuses that session across tests.
+Each test gets its own throwaway node via the real API
+(`e2e/support/fixtures.ts`'s `scratchNode` fixture) so tests never touch the
+dev seed data and can run in parallel safely.
+
 ## AI usage
 
 This project is developed with AI assistance as a convenience. The rule is simple: use AI when you already know the solution and want to move faster; use your own brain when you don't. AI is a execution accelerator, not a thinking replacement. Reaching for it to figure out what to build, or to paper over a gap in understanding, produces code nobody truly understands and nobody can confidently maintain. Know the problem, know the solution, then let AI write the boilerplate.
