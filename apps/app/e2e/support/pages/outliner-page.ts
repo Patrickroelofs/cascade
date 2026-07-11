@@ -39,7 +39,9 @@ export class OutlinerPage {
 	/** Clicks the tree's "Add node" button and returns the id of the new (already editing) node. */
 	async addRootNode(): Promise<string> {
 		await this.page.getByRole("button", { name: "Add node" }).click();
-		return this.editingNodeId();
+		const id = await this.editingNodeId();
+		await this.waitForRowEntranceAnimation();
+		return id;
 	}
 
 	/** Enters edit mode for a node that isn't currently being edited. */
@@ -56,6 +58,7 @@ export class OutlinerPage {
 	/** Saves the current content and creates a new sibling below, focused for editing. */
 	async pressEnter(nodeId: string): Promise<void> {
 		await this.editableContent(nodeId).press("Enter");
+		await this.waitForRowEntranceAnimation();
 	}
 
 	async indent(nodeId: string): Promise<void> {
@@ -69,5 +72,15 @@ export class OutlinerPage {
 	/** Blurs out of edit mode, saving content (the outliner has no explicit "save" action). */
 	async commit(nodeId: string): Promise<void> {
 		await this.editableContent(nodeId).blur();
+	}
+
+	/**
+	 * New/inserted rows animate in via GSAP (packages/outliner's
+	 * `dragAnimationConfig.enter`: ~250ms tween + 50ms stagger). Interacting
+	 * with a row while it's still translating makes Playwright's
+	 * actionability checks unreliable, so give it a beat to settle.
+	 */
+	private async waitForRowEntranceAnimation(): Promise<void> {
+		await this.page.waitForTimeout(400);
 	}
 }
