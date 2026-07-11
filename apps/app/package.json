@@ -8,7 +8,7 @@
     "generate-routes": "tsr generate",
     "build": "vite build && tsc --noEmit",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "start": "node ./src/db/migrate.ts && node ./.output/server/index.mjs",
     "db:generate": "drizzle-kit generate",
@@ -18,7 +18,8 @@
     "db:seed": "node --env-file=.env.local --import tsx/esm ./src/db/seed.ts",
     "db:seed:prod": "node --import tsx/esm ./src/db/seed.ts",
     "start:seeded": "pnpm db:seed:prod && pnpm start",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

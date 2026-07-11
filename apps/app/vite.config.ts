@@ -12,7 +12,8 @@ export default defineConfig({
 		tsconfigPaths: true,
 	},
 	test: {
-		exclude: ["**/node_modules/**", "**/e2e/**"],
+		// Integration tests need a database; they run via vitest.integration.config.ts.
+		exclude: ["**/node_modules/**", "**/e2e/**", "**/*.integration.test.ts"],
 	},
 	plugins: [
 		devtools(),
