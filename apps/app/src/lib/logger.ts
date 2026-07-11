@@ -2,7 +2,21 @@ type Level = "debug" | "info" | "warn" | "error";
 
 const isProd = process.env.NODE_ENV === "production";
 
+const levelOrder: Record<Level, number> = {
+	debug: 0,
+	info: 1,
+	warn: 2,
+	error: 3,
+};
+
+function minLevel(): Level {
+	const configured = process.env.LOG_LEVEL;
+	if (configured && configured in levelOrder) return configured as Level;
+	return isProd ? "info" : "debug";
+}
+
 function log(level: Level, message: string, meta?: Record<string, unknown>) {
+	if (levelOrder[level] < levelOrder[minLevel()]) return;
 	if (isProd) {
 		// JSON lines for log aggregation
 		console[level === "debug" ? "log" : level](

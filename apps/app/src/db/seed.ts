@@ -8,9 +8,20 @@ import { generateNKeysBetween } from "fractional-indexing";
 import { nodes } from "@/core/nodes/node.schema";
 import { db } from "@/db";
 
+const isProd = process.env.NODE_ENV === "production";
+
+// In production the well-known dev password would be an open door; require
+// an explicit one via SEED_DEV_PASSWORD instead.
+if (isProd && !process.env.SEED_DEV_PASSWORD) {
+	console.error(
+		"Refusing to seed in production without SEED_DEV_PASSWORD set.",
+	);
+	process.exit(1);
+}
+
 const DEV_USER = {
 	email: "dev@cascadelist.com",
-	password: "password1234",
+	password: process.env.SEED_DEV_PASSWORD ?? "password1234",
 	name: "Dev User",
 };
 
@@ -216,7 +227,11 @@ async function main() {
 	}
 
 	console.log(`Seeded ${done} nodes.`);
-	console.log(`Sign in as ${DEV_USER.email} / ${DEV_USER.password}`);
+	console.log(
+		isProd
+			? `Sign in as ${DEV_USER.email}`
+			: `Sign in as ${DEV_USER.email} / ${DEV_USER.password}`,
+	);
 	process.exit(0);
 }
 
