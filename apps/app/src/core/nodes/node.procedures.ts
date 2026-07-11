@@ -6,13 +6,18 @@ import {
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
-import { nodeColumns } from "@/core/nodes/node.queries";
+import { acquireTreeLock, nodeColumns } from "@/core/nodes/node.queries";
 import { nodes } from "@/core/nodes/node.schema";
-import { db } from "@/db";
+import { db, executeRows } from "@/db";
 import { authed } from "@/orpc/context";
 
+// Node ids are gen_random_uuid(); rejecting malformed ids up front keeps
+// garbage out of the recursive queries. (User ids are better-auth ids, not
+// UUIDs - never validate those with this.)
+const nodeId = z.uuid();
+
 export const listNodes = authed
-	.input(z.object({ parentId: z.string().nullable() }))
+	.input(z.object({ parentId: nodeId.nullable() }))
 	.handler(async ({ input, context }) => {
 		return db
 			.select(nodeColumns)
@@ -51,8 +56,8 @@ interface VisibleTreeSqlRow {
 export const visibleTree = authed
 	.input(
 		z.object({
-			rootId: z.string().nullable(),
-			cursor: z.array(z.string()).nullable().default(null),
+			rootId: nodeId.nullable(),
+			cursor: z.array(z.string()).min(1).nullable().default(null),
 			limit: z.number().int().min(1).max(2000).default(500),
 		}),
 	)
@@ -60,7 +65,7 @@ export const visibleTree = authed
 		const { rootId, cursor, limit } = input;
 		const userId = context.user.id;
 
-		const result = (await db.execute(sql`
+		const result = await executeRows<VisibleTreeSqlRow>(sql`
 			WITH RECURSIVE visible AS (
 				SELECT n.id, n.parent_id, n.content, n.type, n.metadata, n.expanded, n."order",
 					0 AS depth,
@@ -80,10 +85,19 @@ export const visibleTree = authed
 				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id AND ch.user_id = ${userId}) AS has_children,
 				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
 			FROM visible v
-			${cursor ? sql`WHERE v.path > ${cursor}::text[]` : sql``}
+			${
+				// Built element-wise: binding a JS array directly produces a
+				// malformed text[] literal parameter.
+				cursor
+					? sql`WHERE v.path > ARRAY[${sql.join(
+							cursor.map((key) => sql`${key}`),
+							sql`, `,
+						)}]::text[]`
+					: sql``
+			}
 			ORDER BY v.path
 			LIMIT ${limit + 1}
-		`)) as unknown as VisibleTreeSqlRow[];
+		`);
 
 		const page = result.slice(0, limit);
 		const rows: VisibleNodeRow[] = page.map((r) => ({
@@ -113,8 +127,8 @@ export const createNode = authed
 	})
 	.input(
 		z.object({
-			parentId: z.string().nullable(),
-			afterId: z.string().nullable().optional(),
+			parentId: nodeId.nullable(),
+			afterId: nodeId.nullable().optional(),
 		}),
 	)
 	.handler(async ({ input, context, errors }) => {
@@ -126,43 +140,50 @@ export const createNode = authed
 				: eq(nodes.parentId, input.parentId),
 		);
 
-		let order: string;
-		if (input.afterId) {
-			const [after] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(and(eq(nodes.id, input.afterId), eq(nodes.userId, userId)))
-				.limit(1);
-			if (!after) throw errors.NOT_FOUND();
-			const [next] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(and(parentFilter, gt(nodes.order, after.order)))
-				.orderBy(asc(nodes.order))
-				.limit(1);
-			order = generateKeyBetween(after.order, next?.order ?? null);
-		} else {
-			const [last] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(parentFilter)
-				.orderBy(desc(nodes.order))
-				.limit(1);
-			order = generateKeyBetween(last?.order ?? null, null);
-		}
+		// Transaction + per-user lock: concurrent creates against the same
+		// anchor would otherwise read the same neighbors and generate the
+		// same fractional key.
+		return db.transaction(async (tx) => {
+			await acquireTreeLock(tx, userId);
 
-		const [created] = await db
-			.insert(nodes)
-			.values({ parentId: input.parentId, order, userId })
-			.returning(nodeColumns);
-		return created;
+			let order: string;
+			if (input.afterId) {
+				const [after] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(and(eq(nodes.id, input.afterId), eq(nodes.userId, userId)))
+					.limit(1);
+				if (!after) throw errors.NOT_FOUND();
+				const [next] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(and(parentFilter, gt(nodes.order, after.order)))
+					.orderBy(asc(nodes.order))
+					.limit(1);
+				order = generateKeyBetween(after.order, next?.order ?? null);
+			} else {
+				const [last] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(parentFilter)
+					.orderBy(desc(nodes.order))
+					.limit(1);
+				order = generateKeyBetween(last?.order ?? null, null);
+			}
+
+			const [created] = await tx
+				.insert(nodes)
+				.values({ parentId: input.parentId, order, userId })
+				.returning(nodeColumns);
+			return created;
+		});
 	});
 
 export const getNode = authed
 	.errors({
 		NOT_FOUND: { status: 404, message: "Node not found" },
 	})
-	.input(z.object({ id: z.string() }))
+	.input(z.object({ id: nodeId }))
 	.handler(async ({ input, context, errors }) => {
 		const [node] = await db
 			.select(nodeColumns)
@@ -174,10 +195,10 @@ export const getNode = authed
 	});
 
 export const getNodeAncestors = authed
-	.input(z.object({ id: z.string() }))
+	.input(z.object({ id: nodeId }))
 	.handler(async ({ input, context }) => {
 		const userId = context.user.id;
-		const result = (await db.execute(sql`
+		return executeRows<{ id: string; content: unknown }>(sql`
 			WITH RECURSIVE chain AS (
 				SELECT id, parent_id, content, 0 AS depth FROM nodes
 				WHERE id = ${input.id} AND user_id = ${userId}
@@ -187,43 +208,52 @@ export const getNodeAncestors = authed
 				WHERE n.user_id = ${userId} AND c.depth < 64
 			)
 			SELECT id, content FROM chain ORDER BY depth DESC
-		`)) as unknown as { id: string; content: unknown }[];
-		return result;
+		`);
 	});
 
 export const toggleNodeExpanded = authed
-	.input(z.object({ id: z.string(), expanded: z.boolean() }))
-	.handler(async ({ input, context }) => {
-		await db
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
+	.input(z.object({ id: nodeId, expanded: z.boolean() }))
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ expanded: input.expanded })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
 
 export const setNodeType = authed
-	.input(z.object({ id: z.string() }).and(typedMetadataSchema))
-	.handler(async ({ input, context }) => {
-		await db
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
+	.input(z.object({ id: nodeId }).and(typedMetadataSchema))
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ type: input.type, metadata: input.metadata })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
 
 const moveNodeBase = {
-	id: z.string(),
-	parentId: z.string().nullable(),
+	id: nodeId,
+	parentId: nodeId.nullable(),
 };
 
 const moveNodeInput = z.discriminatedUnion("position", [
 	z.object({
 		...moveNodeBase,
 		position: z.literal("before"),
-		targetId: z.string(),
+		targetId: nodeId,
 	}),
 	z.object({
 		...moveNodeBase,
 		position: z.literal("after"),
-		targetId: z.string(),
+		targetId: nodeId,
 	}),
 	z.object({ ...moveNodeBase, position: z.literal("append") }),
 ]);
@@ -237,6 +267,10 @@ export const moveNode = authed
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
 		await db.transaction(async (tx) => {
+			// Serializes with other moves/creates so the ancestor check below
+			// can't race a concurrent reciprocal move into creating a cycle.
+			await acquireTreeLock(tx, userId);
+
 			const [moved] = await tx
 				.select({ id: nodes.id })
 				.from(nodes)
@@ -247,7 +281,8 @@ export const moveNode = authed
 			if (input.parentId) {
 				// The anchor also verifies the target parent exists and belongs to
 				// this user; an empty result means it doesn't.
-				const ancestors = (await tx.execute(sql`
+				const ancestors = await executeRows<{ id: string }>(
+					sql`
 					WITH RECURSIVE ancestors AS (
 						SELECT id, parent_id FROM nodes
 						WHERE id = ${input.parentId} AND user_id = ${userId}
@@ -257,7 +292,9 @@ export const moveNode = authed
 						WHERE n.user_id = ${userId}
 					)
 					SELECT id FROM ancestors
-				`)) as unknown as { id: string }[];
+				`,
+					tx,
+				);
 				if (ancestors.length === 0) throw errors.NOT_FOUND();
 				if (ancestors.some((a) => a.id === input.id)) {
 					throw errors.INVALID_MOVE({
@@ -324,25 +361,33 @@ export const moveNode = authed
 	});
 
 export const deleteNode = authed
-	.input(z.object({ id: z.string() }))
-	.handler(async ({ input, context }) => {
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
+	.input(z.object({ id: nodeId }))
+	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
-		const [{ count }] = (await db.execute(sql`
+		// Count and delete in one statement: all CTEs share a snapshot, so the
+		// reported count exactly matches what the FK cascade removes.
+		const [row] = await executeRows<{ count: number; deleted: number }>(sql`
 			WITH RECURSIVE descendants AS (
 				SELECT id FROM nodes WHERE parent_id = ${input.id} AND user_id = ${userId}
 				UNION ALL
 				SELECT c.id FROM nodes c
 				JOIN descendants d ON c.parent_id = d.id
 				WHERE c.user_id = ${userId}
+			), deleted AS (
+				DELETE FROM nodes
+				WHERE id = ${input.id} AND user_id = ${userId}
+				RETURNING id
 			)
-			SELECT count(*)::int AS count FROM descendants
-		`)) as unknown as [{ count: number }];
+			SELECT
+				(SELECT count(*)::int FROM descendants) AS count,
+				(SELECT count(*)::int FROM deleted) AS deleted
+		`);
 
-		await db
-			.delete(nodes)
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)));
-
-		return { childrenDeleted: count };
+		if (row.deleted === 0) throw errors.NOT_FOUND();
+		return { childrenDeleted: row.count };
 	});
 
 const lexicalTextNodeSchema = z
@@ -364,16 +409,45 @@ const lexicalElementNodeSchema: z.ZodType<unknown> = z.lazy(() =>
 		.passthrough(),
 );
 
+const MAX_CONTENT_BYTES = 256 * 1024;
+const MAX_CONTENT_DEPTH = 100;
+
+function contentDepth(value: unknown, depth = 0): number {
+	if (depth > MAX_CONTENT_DEPTH || value === null || typeof value !== "object")
+		return depth;
+	let max = depth;
+	for (const child of Object.values(value)) {
+		max = Math.max(max, contentDepth(child, depth + 1));
+		if (max > MAX_CONTENT_DEPTH) return max;
+	}
+	return max;
+}
+
 export const updateNodeContent = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
 	.input(
 		z.object({
-			id: z.string(),
-			content: z.object({ root: lexicalElementNodeSchema }),
+			id: nodeId,
+			content: z
+				.object({ root: lexicalElementNodeSchema })
+				.superRefine((content, ctx) => {
+					// The schema is recursive and passthrough, so cap payloads here:
+					// unbounded jsonb writes are a storage/DoS vector.
+					if (JSON.stringify(content).length > MAX_CONTENT_BYTES) {
+						ctx.addIssue({ code: "custom", message: "Content too large" });
+					} else if (contentDepth(content) > MAX_CONTENT_DEPTH) {
+						ctx.addIssue({ code: "custom", message: "Content too deep" });
+					}
+				}),
 		}),
 	)
-	.handler(async ({ input, context }) => {
-		await db
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ content: input.content })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});

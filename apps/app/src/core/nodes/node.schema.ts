@@ -9,6 +9,7 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	unique,
 } from "drizzle-orm/pg-core";
 
 export const nodes = pgTable(
@@ -38,5 +39,11 @@ export const nodes = pgTable(
 		index("nodes_parent_id_idx").on(t.parentId),
 		index("nodes_parent_order_idx").on(t.parentId, t.order),
 		index("nodes_user_id_idx").on(t.userId),
+		// Backstop for the fractional-order invariant: sibling orders must be
+		// unique. NULLS NOT DISTINCT so root nodes (parent_id IS NULL) are
+		// covered too; requires Postgres 15+.
+		unique("nodes_user_parent_order_uq")
+			.on(t.userId, t.parentId, t.order)
+			.nullsNotDistinct(),
 	],
 );
