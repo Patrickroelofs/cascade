@@ -12,6 +12,7 @@ export async function ensureTestUser(
 	request: APIRequestContext,
 ): Promise<void> {
 	const response = await request.post(`${env.appUrl}/api/auth/sign-up/email`, {
+		headers: { origin: env.appUrl },
 		data: {
 			email: env.testUserEmail,
 			password: env.testUserPassword,
@@ -35,6 +36,7 @@ export async function signInTestUser(
 	request: APIRequestContext,
 ): Promise<void> {
 	const response = await request.post(`${env.appUrl}/api/auth/sign-in/email`, {
+		headers: { origin: env.appUrl },
 		data: {
 			email: env.testUserEmail,
 			password: env.testUserPassword,
