@@ -3,6 +3,7 @@
 ## 2026-07-12
 - Set up i18n, laying the groundwork for future language support.
 - Added Dutch translations.
+- Added a language switcher to the marketing site's footer and the app's settings.
 
 ## 2026-07-09
 - Keyboard commands `Shift+Arrow, up or down` will move focus to the element above or below. [#71](https://github.com/Patrickroelofs/cascade/issues/71)

@@ -1,7 +1,14 @@
 import { Button } from "@cascade/ui/button";
+import { LanguageSwitcher } from "@cascade/ui/language-switcher";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { HeartIcon } from "@phosphor-icons/react/ssr";
 import { m } from "#/paraglide/messages.js";
+import {
+	getLocale,
+	type Locale,
+	locales,
+	setLocale,
+} from "#/paraglide/runtime.js";
 
 export function Footer() {
 	return (
@@ -28,6 +35,11 @@ export function Footer() {
 					<a href="/terms" className="hover:underline focus:underline">
 						{m.footer_terms()}
 					</a>
+					<LanguageSwitcher
+						locales={locales}
+						currentLocale={getLocale()}
+						onSelect={(locale) => setLocale(locale as Locale)}
+					/>
 					<div className="inline-flex items-center gap-0.75">
 						<span>{m.footer_with()}</span>
 						<HeartIcon className="fill-redleather" weight="fill" />

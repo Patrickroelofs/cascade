@@ -8,6 +8,7 @@ import {
 } from "@base-ui/react";
 import { authClient } from "@cascade/auth/client";
 import { cva } from "@cascade/ui/cva.config";
+import { LanguageSwitcher } from "@cascade/ui/language-switcher";
 import { toast } from "@cascade/ui/toast";
 import {
 	GearIcon,
@@ -20,6 +21,12 @@ import {
 import { useRouteContext } from "@tanstack/react-router";
 import { useState } from "react";
 import { m } from "#/paraglide/messages.js";
+import {
+	getLocale,
+	type Locale,
+	locales,
+	setLocale,
+} from "#/paraglide/runtime.js";
 import { changelogEntries, latestChangelogId } from "@/changelog";
 import {
 	MAX_INDENT_SIZE,
@@ -245,6 +252,14 @@ export function UserMenu() {
 											</NumberField.Increment>
 										</NumberField.Group>
 									</NumberField.Root>
+								</div>
+								<div className="mt-3 flex items-center justify-between text-sm">
+									{m.user_menu_language()}
+									<LanguageSwitcher
+										locales={locales}
+										currentLocale={getLocale()}
+										onSelect={(locale) => setLocale(locale as Locale)}
+									/>
 								</div>
 							</Tabs.Panel>
 							<Tabs.Panel value="user">
