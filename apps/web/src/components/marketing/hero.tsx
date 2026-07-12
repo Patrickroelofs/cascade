@@ -2,6 +2,7 @@ import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { Button } from "@cascade/ui/button";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { HouseIcon } from "@phosphor-icons/react/ssr";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useDemoTree } from "#/lib/use-demo-tree";
 import { m } from "#/paraglide/messages.js";
@@ -71,7 +72,7 @@ export function Hero() {
 				<Button
 					nativeButton={false}
 					// biome-ignore lint/a11y/useAnchorContent: content is supplied as Button's children and composed onto the anchor by Base UI's render prop
-					render={<a href="/register" />}
+					render={<Link to="/register" />}
 					icon={<ArrowRightIcon className="size-4" weight="bold" />}
 				>
 					{m.hero_cta()}

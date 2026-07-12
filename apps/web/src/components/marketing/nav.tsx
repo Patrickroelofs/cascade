@@ -22,13 +22,13 @@ function NavLinks() {
 export function Nav() {
 	return (
 		<nav className="mx-auto flex max-w-6xl items-center justify-between p-8">
-			<a
-				href="/"
+			<Link
+				to="/"
 				className="font-serif text-2xl italic flex items-center gap-4"
 			>
 				<img width={48} height={48} alt={m.nav_logo_alt()} src="/logo192.png" />
 				cascade
-			</a>
+			</Link>
 			<div className="hidden md:flex items-baseline gap-8 text-sm">
 				<NavLinks />
 			</div>

@@ -2,6 +2,7 @@ import { Button } from "@cascade/ui/button";
 import { LanguageSwitcher } from "@cascade/ui/language-switcher";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { HeartIcon } from "@phosphor-icons/react/ssr";
+import { Link } from "@tanstack/react-router";
 import { m } from "#/paraglide/messages.js";
 import {
 	getLocale,
@@ -20,7 +21,7 @@ export function Footer() {
 				<Button
 					nativeButton={false}
 					// biome-ignore lint/a11y/useAnchorContent: content is supplied as Button's children and composed onto the anchor by Base UI's render prop
-					render={<a href="/register" />}
+					render={<Link to="/register" />}
 					icon={<ArrowRightIcon className="size-4" weight="bold" />}
 				>
 					{m.footer_cta()}
@@ -29,12 +30,12 @@ export function Footer() {
 			<div className="mt-18 flex flex-col-reverse items-center gap-4 border-t border-dark-grey/8 pt-6 text-base md:flex-row md:justify-between">
 				<span className="font-serif text-base italic">cascade</span>
 				<div className="inline-flex items-center gap-4">
-					<a href="/privacy" className="hover:underline focus:underline">
+					<Link to="/privacy" className="hover:underline focus:underline">
 						{m.footer_privacy()}
-					</a>
-					<a href="/terms" className="hover:underline focus:underline">
+					</Link>
+					<Link to="/terms" className="hover:underline focus:underline">
 						{m.footer_terms()}
-					</a>
+					</Link>
 					<LanguageSwitcher
 						locales={locales}
 						currentLocale={getLocale()}
