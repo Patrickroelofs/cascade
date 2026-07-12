@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-12
+- Set up i18n infrastructure with Paraglide JS; all UI text now flows through translation messages, laying the groundwork for future language support.
+
 ## 2026-07-09
 - Keyboard commands `Shift+Arrow, up or down` will move focus to the element above or below. [#71](https://github.com/Patrickroelofs/cascade/issues/71)
 
