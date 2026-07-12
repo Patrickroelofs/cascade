@@ -16,6 +16,7 @@ const config = defineConfig({
 			outdir: "./src/paraglide",
 			strategy: ["url", "cookie", "preferredLanguage", "baseLocale"],
 			cookieName: "PARAGLIDE_LOCALE",
+			emitTsDeclarations: true,
 		}),
 		devtools(),
 		nitro(),

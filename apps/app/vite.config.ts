@@ -21,6 +21,7 @@ export default defineConfig({
 			outdir: "./src/paraglide",
 			strategy: ["cookie", "preferredLanguage", "baseLocale"],
 			cookieName: "PARAGLIDE_LOCALE",
+			emitTsDeclarations: true,
 		}),
 		devtools(),
 		nitro(),
