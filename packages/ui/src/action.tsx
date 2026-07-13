@@ -35,16 +35,8 @@ const springWidth =
 const springWidthOpacity =
 	"transition-[width,opacity] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 const grow = `${springTransform} group-hover:scale-[1.05] group-active:scale-[1.05] group-focus-within:scale-[1.05]`;
-
-// A real flex gap (not a transform) so the space between peeled-off icons
-// stays inside the group's hoverable box — crossing it can't drop hover.
 const gapOpen = `gap-0 ${springGap} group-hover:gap-3.5 group-active:gap-3.5 group-focus-within:gap-3.5`;
-
-// hideUntilHover: icons collapse to zero width at rest instead of just
-// staying flush against the text, so the resting pill is text-only.
 const widthOpen = `w-0 overflow-hidden ${springWidth} group-hover:w-11 group-active:w-11 group-focus-within:w-11`;
-
-// hideUntilHover: the resting icon shrinks away as the real actions open up.
 const widthClose = `w-4 opacity-100 overflow-hidden ${springWidthOpacity} group-hover:w-0 group-hover:opacity-0 group-active:w-0 group-active:opacity-0 group-focus-within:w-0 group-focus-within:opacity-0`;
 
 export interface ActionItem {
