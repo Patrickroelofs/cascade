@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Page Object over `VirtualTree` (packages/outliner). Wraps the existing
@@ -40,7 +40,7 @@ export class OutlinerPage {
 	async addRootNode(): Promise<string> {
 		await this.page.getByRole("button", { name: "Add node" }).click();
 		const id = await this.editingNodeId();
-		await this.waitForRowEntranceAnimation();
+		await this.waitForRowEntranceAnimation(id);
 		return id;
 	}
 
@@ -49,16 +49,23 @@ export class OutlinerPage {
 		await this.row(nodeId).locator("[data-node-focus-target]").click();
 	}
 
+	/**
+	 * The target is always already focused by this point (creation and
+	 * `startEditing` both auto-focus), so this deliberately skips `.click()`:
+	 * `.press()`/`.pressSequentially()` dispatch key events to whatever's
+	 * focused rather than requiring the element to sit still at a hit-test
+	 * point, which a still-animating row (see `waitForRowEntranceAnimation`)
+	 * is not.
+	 */
 	async typeText(nodeId: string, text: string): Promise<void> {
-		const content = this.editableContent(nodeId);
-		await content.click();
-		await content.pressSequentially(text);
+		await this.editableContent(nodeId).pressSequentially(text);
 	}
 
 	/** Saves the current content and creates a new sibling below, focused for editing. */
 	async pressEnter(nodeId: string): Promise<void> {
 		await this.editableContent(nodeId).press("Enter");
-		await this.waitForRowEntranceAnimation();
+		const id = await this.editingNodeId();
+		await this.waitForRowEntranceAnimation(id);
 	}
 
 	async indent(nodeId: string): Promise<void> {
@@ -76,11 +83,15 @@ export class OutlinerPage {
 
 	/**
 	 * New/inserted rows animate in via GSAP (packages/outliner's
-	 * `dragAnimationConfig.enter`: ~250ms tween + 50ms stagger). Interacting
-	 * with a row while it's still translating makes Playwright's
-	 * actionability checks unreliable, so give it a beat to settle.
+	 * `dragAnimationConfig.enter`: opacity 0→1 over ~250ms + 50ms stagger,
+	 * `flip-displacement.ts`). Interacting with a row while it's still
+	 * translating makes Playwright's actionability checks unreliable, so
+	 * wait for the tween to actually finish — polling the real condition
+	 * rather than sleeping a fixed duration, since how long that takes
+	 * varies with how much tracing/recording overhead the run has (e.g.
+	 * `--ui` mode is markedly slower per action than a headless run).
 	 */
-	private async waitForRowEntranceAnimation(): Promise<void> {
-		await this.page.waitForTimeout(400);
+	private async waitForRowEntranceAnimation(nodeId: string): Promise<void> {
+		await expect(this.row(nodeId)).toHaveCSS("opacity", "1");
 	}
 }
