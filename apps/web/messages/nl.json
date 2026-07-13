@@ -120,5 +120,14 @@
 	"outliner_type_task": "Taak",
 	"ui_pre_alpha_prefix": "Cascade bevindt zich in de",
 	"ui_pre_alpha_emphasis": "pre-alpha-fase",
-	"ui_pre_alpha_suffix": "- verwacht bugs en breaking changes."
+	"ui_pre_alpha_suffix": "- verwacht bugs en breaking changes.",
+	"consent_seo_title": "Cascade - toegang autoriseren",
+	"consent_seo_description": "Autoriseer een applicatie voor toegang tot je Cascade-overzicht.",
+	"consent_heading": "Toegang autoriseren",
+	"consent_intro": "wil toegang tot je Cascade-overzicht.",
+	"consent_unknown_client": "Een applicatie",
+	"consent_scopes_heading": "Gevraagde permissies",
+	"consent_allow": "Toestaan",
+	"consent_deny": "Weigeren",
+	"consent_error_fallback": "Er ging iets mis. Probeer het opnieuw."
 }

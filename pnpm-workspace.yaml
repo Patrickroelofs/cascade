@@ -1,6 +1,11 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+overrides:
+  # Pin to one kysely instance: with both 0.28 (via @inlang/sdk) and 0.29
+  # (via better-auth) in the tree, pnpm instantiates drizzle-orm once per
+  # kysely peer, and the two copies' types are incompatible across packages.
+  kysely: 0.28.17
 allowBuilds:
   better-sqlite3: true
   esbuild: true

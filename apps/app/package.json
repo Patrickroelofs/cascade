@@ -22,11 +22,13 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@better-auth/oauth-provider": "^1.6.23",
     "@cascade/auth": "workspace:*",
     "@cascade/outliner": "workspace:*",
     "@cascade/theme": "workspace:*",
     "@cascade/ui": "workspace:*",
     "@inlang/paraglide-js": "2.21.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@orpc/client": "^1.14.7",
     "@orpc/json-schema": "^1.14.7",
     "@orpc/openapi": "^1.14.7",

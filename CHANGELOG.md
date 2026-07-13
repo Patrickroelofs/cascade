@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-13
+- Added an MCP (Model Context Protocol) server at `/api/mcp`, letting AI clients like Claude read and edit your outline. Clients authenticate with OAuth through the regular login plus a new consent screen.
+
 ## 2026-07-12
 - Set up i18n, laying the groundwork for future language support, currently supporting English and Dutch.
 

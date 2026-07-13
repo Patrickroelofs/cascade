@@ -57,6 +57,36 @@ pnpm build
 pnpm start
 ```
 
+## MCP
+
+The app exposes an MCP (Model Context Protocol) server at `/api/mcp`
+(e.g. `https://app.cascadelist.com/api/mcp`), so AI clients such as Claude
+Code, Claude Desktop, or claude.ai connectors can work with your outline —
+the full capability surface is available as tools: `get_outline`,
+`list_nodes`, `get_node`, `get_ancestors`, `create_node`, `update_node_text`,
+`set_node_type`, `move_node`, `set_expanded`, `delete_node`.
+
+Authentication is OAuth 2.1: clients discover the authorization server via
+`/.well-known` metadata, register themselves dynamically, and send you
+through the regular login page plus a consent screen — no tokens to copy.
+
+Connect from Claude Code:
+
+```bash
+claude mcp add --transport http cascade https://app.example.com/api/mcp
+```
+
+Self-hosting notes:
+
+- The web app (`apps/web`) is the OAuth authorization server (it hosts the
+  login and consent pages); the app (`apps/app`) hosts `/api/mcp`. Make sure
+  `VITE_WEB_URL` (in `apps/app`) and `VITE_APP_URL` (in `apps/web`) point at
+  each other's origins.
+- The OAuth tables ship as a migration; apply schema changes with
+  `pnpm db:push` (or `pnpm db:migrate:app`) after updating.
+- Clients must request the outline as an OAuth resource; MCP clients that
+  follow the current spec (2025-06-18) do this automatically.
+
 ## Development
 
 ```bash

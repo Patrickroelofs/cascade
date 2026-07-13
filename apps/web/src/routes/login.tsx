@@ -10,6 +10,7 @@ import { Footer } from "#/components/marketing/footer";
 import { Nav } from "#/components/marketing/nav";
 import { appUrl } from "#/lib/app-url";
 import { oauthErrorMessage } from "#/lib/oauth-error";
+import { postAuthRedirect } from "#/lib/post-auth-redirect";
 import { seoHead } from "#/lib/seo";
 import { m } from "#/paraglide/messages.js";
 
@@ -32,7 +33,7 @@ function Login() {
 		setError(null);
 		setSubmitting(true);
 
-		const { error: signInError } = await authClient.signIn.email({
+		const { data, error: signInError } = await authClient.signIn.email({
 			email: String(form.get("email")),
 			password: String(form.get("password")),
 		});
@@ -42,7 +43,7 @@ function Login() {
 			setError(signInError.message ?? m.login_error_fallback());
 			return;
 		}
-		window.location.href = appUrl;
+		window.location.href = postAuthRedirect(data);
 	}
 
 	async function handleGithub() {

@@ -2,6 +2,10 @@ import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline/promises";
 import { user } from "@cascade/auth/schema";
 import { auth } from "@cascade/auth/server";
+import {
+	type LexicalTextRun,
+	textRunsToLexicalContent,
+} from "@cascade/outliner/lexical-content";
 import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
 import { generateNKeysBetween } from "fractional-indexing";
@@ -46,16 +50,6 @@ async function promptConfig() {
 	rl.close();
 }
 
-type LexicalTextNode = {
-	detail: number;
-	format: number;
-	mode: string;
-	style: string;
-	text: string;
-	type: "text";
-	version: 1;
-};
-
 // format bitmask: 1=bold, 2=italic, 3=bold+italic
 function randomFormat(): number {
 	return faker.helpers.weightedArrayElement([
@@ -66,10 +60,10 @@ function randomFormat(): number {
 	]);
 }
 
-function textToLexicalContent(text: string) {
+function fakeLexicalContent(text: string) {
 	// Split into words and randomly apply bold/italic to some spans
 	const words = text.split(" ");
-	const children: LexicalTextNode[] = [];
+	const runs: LexicalTextRun[] = [];
 	let i = 0;
 	while (i < words.length) {
 		const format = randomFormat();
@@ -79,54 +73,23 @@ function textToLexicalContent(text: string) {
 				? faker.number.int({ min: 3, max: 8 })
 				: faker.number.int({ min: 1, max: 4 });
 		const slice = words.slice(i, i + runLen).join(" ");
-		if (children.length > 0 && format !== 0) {
+		if (runs.length > 0 && format !== 0) {
 			// add a space before formatted runs
-			children.push({
-				detail: 0,
-				format: 0,
-				mode: "normal",
-				style: "",
-				text: " ",
-				type: "text",
-				version: 1,
-			});
+			runs.push({ text: " " });
 		}
-		children.push({
-			detail: 0,
+		runs.push({
 			format,
-			mode: "normal",
-			style: "",
 			text:
-				children.length === 0 || format === 0
-					? children.length === 0
+				runs.length === 0 || format === 0
+					? runs.length === 0
 						? slice
 						: ` ${slice}`
 					: slice,
-			type: "text",
-			version: 1,
 		});
 		i += runLen;
 	}
 
-	return {
-		root: {
-			children: [
-				{
-					children,
-					direction: "ltr",
-					format: "",
-					indent: 0,
-					type: "paragraph",
-					version: 1,
-				},
-			],
-			direction: "ltr",
-			format: "",
-			indent: 0,
-			type: "root",
-			version: 1,
-		},
-	};
+	return textRunsToLexicalContent(runs);
 }
 
 const BATCH_SIZE = 5000; // postgres bind-param limit is ~65535; 5 cols * 5000 = well under it
@@ -135,7 +98,7 @@ type Row = {
 	id: string;
 	parentId: string | null;
 	userId: string;
-	content: ReturnType<typeof textToLexicalContent>;
+	content: ReturnType<typeof textRunsToLexicalContent>;
 	order: string;
 };
 
@@ -145,7 +108,7 @@ function buildRow(parentId: string | null, order: string, userId: string): Row {
 		id: randomUUID(),
 		parentId,
 		userId,
-		content: textToLexicalContent(text),
+		content: fakeLexicalContent(text),
 		order,
 	};
 }

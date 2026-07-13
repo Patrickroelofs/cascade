@@ -120,5 +120,14 @@
 	"outliner_type_task": "Task",
 	"ui_pre_alpha_prefix": "Cascade is in",
 	"ui_pre_alpha_emphasis": "pre-alpha",
-	"ui_pre_alpha_suffix": "- expect bugs and breaking changes."
+	"ui_pre_alpha_suffix": "- expect bugs and breaking changes.",
+	"consent_seo_title": "Cascade - authorize access",
+	"consent_seo_description": "Authorize an application to access your Cascade outline.",
+	"consent_heading": "Authorize access",
+	"consent_intro": "wants to access your Cascade outline.",
+	"consent_unknown_client": "An application",
+	"consent_scopes_heading": "Requested permissions",
+	"consent_allow": "Allow",
+	"consent_deny": "Deny",
+	"consent_error_fallback": "Something went wrong. Try again."
 }

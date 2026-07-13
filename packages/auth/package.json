@@ -6,9 +6,11 @@
 	"exports": {
 		"./schema": "./src/auth.schema.ts",
 		"./server": "./src/server.ts",
-		"./client": "./src/client.ts"
+		"./client": "./src/client.ts",
+		"./discovery": "./src/discovery.ts"
 	},
 	"dependencies": {
+		"@better-auth/oauth-provider": "^1.6.23",
 		"better-auth": "1.6.23",
 		"drizzle-orm": "^0.45.2",
 		"postgres": "^3.4.9"
