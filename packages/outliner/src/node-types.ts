@@ -10,6 +10,7 @@ export interface VisibleNodeRow {
 	metadata: unknown;
 	expanded: boolean;
 	order: string;
+	dueDate: Date | null;
 	depth: number;
 	/** Fractional-index orders from the query root down to this node; DFS sort key. */
 	path: string[];

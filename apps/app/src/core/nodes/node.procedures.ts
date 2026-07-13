@@ -3,7 +3,19 @@ import {
 	type NodeTypeName,
 	typedMetadataSchema,
 } from "@cascade/outliner/node-types";
-import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
+import {
+	and,
+	asc,
+	desc,
+	eq,
+	gt,
+	gte,
+	isNotNull,
+	isNull,
+	lt,
+	lte,
+	sql,
+} from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
 import { nodeColumns } from "@/core/nodes/node.queries";
@@ -36,6 +48,7 @@ interface VisibleTreeSqlRow {
 	metadata: unknown;
 	expanded: boolean;
 	order: string;
+	due_date: Date | null;
 	depth: number;
 	path: string[];
 	has_children: boolean;
@@ -62,21 +75,21 @@ export const visibleTree = authed
 
 		const result = (await db.execute(sql`
 			WITH RECURSIVE visible AS (
-				SELECT n.id, n.parent_id, n.content, n.type, n.metadata, n.expanded, n."order",
+				SELECT n.id, n.parent_id, n.content, n.type, n.metadata, n.expanded, n."order", n.due_date,
 					0 AS depth,
 					ARRAY[n."order"] AS path
 				FROM nodes n
 				WHERE n.user_id = ${userId}
 					AND ${rootId === null ? sql`n.parent_id IS NULL` : sql`n.parent_id = ${rootId}`}
 				UNION ALL
-				SELECT c.id, c.parent_id, c.content, c.type, c.metadata, c.expanded, c."order",
+				SELECT c.id, c.parent_id, c.content, c.type, c.metadata, c.expanded, c."order", c.due_date,
 					v.depth + 1,
 					v.path || c."order"
 				FROM nodes c
 				JOIN visible v ON c.parent_id = v.id
 				WHERE c.user_id = ${userId} AND v.expanded = true AND v.depth < 64
 			)
-			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.depth, v.path,
+			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
 				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id AND ch.user_id = ${userId}) AS has_children,
 				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
 			FROM visible v
@@ -94,6 +107,7 @@ export const visibleTree = authed
 			metadata: r.metadata,
 			expanded: r.expanded,
 			order: r.order,
+			dueDate: r.due_date,
 			depth: Number(r.depth),
 			path: r.path,
 			hasChildren: r.has_children,
@@ -198,6 +212,50 @@ export const toggleNodeExpanded = authed
 			.update(nodes)
 			.set({ expanded: input.expanded })
 			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+	});
+
+export const setNodeDueDate = authed
+	.input(z.object({ id: z.string(), dueDate: z.coerce.date().nullable() }))
+	.handler(async ({ input, context }) => {
+		await db
+			.update(nodes)
+			.set({ dueDate: input.dueDate })
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+	});
+
+/**
+ * Nodes past their due date, excluding completed tasks (a task is no longer
+ * overdue once marked done; other node types have no completion concept).
+ */
+export const listOverdueNodes = authed.handler(async ({ context }) => {
+	return db
+		.select(nodeColumns)
+		.from(nodes)
+		.where(
+			and(
+				eq(nodes.userId, context.user.id),
+				isNotNull(nodes.dueDate),
+				lt(nodes.dueDate, sql`now()`),
+				sql`NOT (${nodes.type} = 'task' AND (${nodes.metadata}->>'completed')::boolean = true)`,
+			),
+		)
+		.orderBy(asc(nodes.dueDate));
+});
+
+export const listNodesDueInRange = authed
+	.input(z.object({ start: z.coerce.date(), end: z.coerce.date() }))
+	.handler(async ({ input, context }) => {
+		return db
+			.select(nodeColumns)
+			.from(nodes)
+			.where(
+				and(
+					eq(nodes.userId, context.user.id),
+					gte(nodes.dueDate, input.start),
+					lte(nodes.dueDate, input.end),
+				),
+			)
+			.orderBy(asc(nodes.dueDate));
 	});
 
 export const setNodeType = authed
