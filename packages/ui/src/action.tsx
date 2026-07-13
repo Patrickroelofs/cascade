@@ -116,7 +116,9 @@ export function Action({
 			<BaseButton
 				className={trigger({
 					variant,
-					className: `px-6 font-semibold text-super-ginger ${grow}`,
+					className: hideUntilHover
+						? `pl-6 pr-3 font-semibold text-super-ginger ${grow}`
+						: `px-6 font-semibold text-super-ginger ${grow}`,
 				})}
 				{...props}
 			>
