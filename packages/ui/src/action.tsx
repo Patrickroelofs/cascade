@@ -30,11 +30,17 @@ const springTransform =
 	"transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 const springGap =
 	"transition-[gap] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
+const springWidth =
+	"transition-[width] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 const grow = `${springTransform} group-hover:scale-[1.05] group-active:scale-[1.05] group-focus-within:scale-[1.05]`;
 
 // A real flex gap (not a transform) so the space between peeled-off icons
 // stays inside the group's hoverable box — crossing it can't drop hover.
 const gapOpen = `gap-0 ${springGap} group-hover:gap-3 group-active:gap-3 group-focus-within:gap-3`;
+
+// hideUntilHover: icons collapse to zero width at rest instead of just
+// staying flush against the text, so the resting pill is text-only.
+const widthOpen = `w-0 overflow-hidden ${springWidth} group-hover:w-11 group-active:w-11 group-focus-within:w-11`;
 
 export interface ActionItem {
 	icon: React.ReactNode;
@@ -47,6 +53,7 @@ export interface ActionItem {
 export interface ActionProps extends React.ComponentProps<typeof BaseButton> {
 	actions: ActionItem[];
 	variant?: "primary" | "dark";
+	hideUntilHover?: boolean;
 }
 
 export function Action({
@@ -54,10 +61,14 @@ export function Action({
 	actions,
 	className,
 	variant = "primary",
+	hideUntilHover = false,
 	...props
 }: ActionProps) {
 	const filterId = useId();
 	const bg = variantBg[variant];
+	const iconSize = hideUntilHover
+		? `h-11 shrink-0 ${widthOpen}`
+		: "size-11 shrink-0";
 
 	return (
 		<div
@@ -82,7 +93,7 @@ export function Action({
 				{actions.map((action) => (
 					<span
 						key={action.label}
-						className={`size-11 shrink-0 rounded-full ${bg}`}
+						className={`rounded-full ${bg} ${iconSize}`}
 					/>
 				))}
 			</span>
@@ -104,7 +115,7 @@ export function Action({
 					render={action.render}
 					className={trigger({
 						variant,
-						className: "size-11 text-super-ginger",
+						className: `text-super-ginger ${iconSize}`,
 					})}
 				>
 					{action.icon}
