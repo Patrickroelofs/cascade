@@ -26,21 +26,15 @@ const trigger = cva({
 	},
 });
 
-const spring =
+const springTransform =
 	"transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
-const grow = `${spring} group-hover:scale-[1.05] group-active:scale-[1.05] group-focus-within:scale-[1.05]`;
-const peel = `${spring} translate-x-0 group-hover:translate-x-(--action-offset) group-active:translate-x-(--action-offset) group-focus-within:translate-x-(--action-offset)`;
+const springGap =
+	"transition-[gap] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
+const grow = `${springTransform} group-hover:scale-[1.05] group-active:scale-[1.05] group-focus-within:scale-[1.05]`;
 
-// Matches Button's single-icon slide distance, so an Action with one item
-// feels identical to Button. Extra icons fan out further, one step apart.
-const OFFSET_BASE_REM = 4.75;
-const OFFSET_STEP_REM = 3.25;
-
-function offsetStyle(index: number): React.CSSProperties {
-	return {
-		"--action-offset": `${OFFSET_BASE_REM + index * OFFSET_STEP_REM}rem`,
-	} as React.CSSProperties;
-}
+// A real flex gap (not a transform) so the space between peeled-off icons
+// stays inside the group's hoverable box — crossing it can't drop hover.
+const gapOpen = `gap-0 ${springGap} group-hover:gap-3 group-active:gap-3 group-focus-within:gap-3`;
 
 export interface ActionItem {
 	icon: React.ReactNode;
@@ -67,7 +61,7 @@ export function Action({
 
 	return (
 		<div
-			className={`group relative inline-flex select-none items-center ${className ?? ""}`}
+			className={`group relative inline-flex select-none items-center gap-0 ${springGap} hover:gap-3 focus-within:gap-3 active:gap-3 ${className ?? ""}`}
 		>
 			<svg aria-hidden role="presentation" className="absolute size-0">
 				<filter id={filterId}>
@@ -81,15 +75,14 @@ export function Action({
 				</filter>
 			</svg>
 			<span
-				className="absolute inset-0 flex"
+				className={`absolute inset-0 flex ${gapOpen}`}
 				style={{ filter: `url(#${filterId})` }}
 			>
 				<span className={`flex-1 origin-right rounded-full ${bg} ${grow}`} />
-				{actions.map((action, index) => (
+				{actions.map((action) => (
 					<span
 						key={action.label}
-						className={`size-11 shrink-0 rounded-full ${bg} ${peel}`}
-						style={offsetStyle(index)}
+						className={`size-11 shrink-0 rounded-full ${bg}`}
 					/>
 				))}
 			</span>
@@ -102,7 +95,7 @@ export function Action({
 			>
 				{children}
 			</BaseButton>
-			{actions.map((action, index) => (
+			{actions.map((action) => (
 				<BaseButton
 					key={action.label}
 					aria-label={action.label}
@@ -111,9 +104,8 @@ export function Action({
 					render={action.render}
 					className={trigger({
 						variant,
-						className: `size-11 text-super-ginger ${peel}`,
+						className: "size-11 text-super-ginger",
 					})}
-					style={offsetStyle(index)}
 				>
 					{action.icon}
 				</BaseButton>
