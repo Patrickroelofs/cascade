@@ -32,15 +32,20 @@ const springGap =
 	"transition-[gap] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 const springWidth =
 	"transition-[width] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
+const springWidthOpacity =
+	"transition-[width,opacity] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]";
 const grow = `${springTransform} group-hover:scale-[1.05] group-active:scale-[1.05] group-focus-within:scale-[1.05]`;
 
 // A real flex gap (not a transform) so the space between peeled-off icons
 // stays inside the group's hoverable box — crossing it can't drop hover.
-const gapOpen = `gap-0 ${springGap} group-hover:gap-3 group-active:gap-3 group-focus-within:gap-3`;
+const gapOpen = `gap-0 ${springGap} group-hover:gap-3.5 group-active:gap-3.5 group-focus-within:gap-3.5`;
 
 // hideUntilHover: icons collapse to zero width at rest instead of just
 // staying flush against the text, so the resting pill is text-only.
 const widthOpen = `w-0 overflow-hidden ${springWidth} group-hover:w-11 group-active:w-11 group-focus-within:w-11`;
+
+// hideUntilHover: the resting icon shrinks away as the real actions open up.
+const widthClose = `w-4 opacity-100 overflow-hidden ${springWidthOpacity} group-hover:w-0 group-hover:opacity-0 group-active:w-0 group-active:opacity-0 group-focus-within:w-0 group-focus-within:opacity-0`;
 
 export interface ActionItem {
 	icon: React.ReactNode;
@@ -50,18 +55,29 @@ export interface ActionItem {
 	disabled?: boolean;
 }
 
-export interface ActionProps extends React.ComponentProps<typeof BaseButton> {
+interface ActionCommonProps extends React.ComponentProps<typeof BaseButton> {
 	actions: ActionItem[];
 	variant?: "primary" | "dark";
-	hideUntilHover?: boolean;
 }
 
+export interface ActionProps extends ActionCommonProps {
+	hideUntilHover?: boolean;
+	icon?: React.ReactNode;
+}
+
+export function Action(
+	props: ActionCommonProps & { hideUntilHover: true; icon: React.ReactNode },
+): React.ReactElement;
+export function Action(
+	props: ActionCommonProps & { hideUntilHover?: false },
+): React.ReactElement;
 export function Action({
 	children,
 	actions,
 	className,
 	variant = "primary",
 	hideUntilHover = false,
+	icon,
 	...props
 }: ActionProps) {
 	const filterId = useId();
@@ -72,7 +88,7 @@ export function Action({
 
 	return (
 		<div
-			className={`group relative inline-flex select-none items-center gap-0 ${springGap} hover:gap-3 focus-within:gap-3 active:gap-3 ${className ?? ""}`}
+			className={`group relative inline-flex select-none items-center gap-0 ${springGap} hover:gap-3.5 focus-within:gap-3.5 active:gap-3.5 ${className ?? ""}`}
 		>
 			<svg aria-hidden role="presentation" className="absolute size-0">
 				<filter id={filterId}>
@@ -105,6 +121,14 @@ export function Action({
 				{...props}
 			>
 				{children}
+				{hideUntilHover && (
+					<span
+						aria-hidden
+						className={`ml-1.5 flex items-center justify-center ${widthClose}`}
+					>
+						{icon}
+					</span>
+				)}
 			</BaseButton>
 			{actions.map((action) => (
 				<BaseButton
