@@ -12,8 +12,6 @@ import { hasActiveFilters, type NodeFilters, noFilters } from "./node-filters";
 interface FiltersBarProps {
 	filters: NodeFilters;
 	onFiltersChange: (filters: NodeFilters) => void;
-	matchCount: number;
-	totalCount: number;
 }
 
 const trigger = cva({
@@ -49,10 +47,6 @@ const menuItem = cva({
 	],
 });
 
-const soonBadge = cva({
-	base: "ml-auto rounded-full border border-dark-grey/15 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-graphite dark:border-ginger/15 dark:text-ginger/60",
-});
-
 const chip = cva({
 	base: [
 		"inline-flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-2.5 pr-1 text-[11.5px] font-medium tabular-nums",
@@ -66,12 +60,7 @@ const chip = cva({
  * active. Only "Due today" is wired up today; the rest of the menu previews
  * where this is headed without shipping half-built filters.
  */
-export function FiltersBar({
-	filters,
-	onFiltersChange,
-	matchCount,
-	totalCount,
-}: FiltersBarProps) {
+export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 	const labels = useOutlinerLabels();
 	const active = hasActiveFilters(filters);
 
@@ -104,30 +93,6 @@ export function FiltersBar({
 											<CheckIcon size={13} weight="bold" />
 										</Menu.CheckboxItemIndicator>
 									</Menu.CheckboxItem>
-									<Menu.Item className={menuItem()} disabled>
-										<CalendarIcon size={13} weight="bold" />
-										{labels.filtersDueThisWeek}
-										<span className={soonBadge()}>{labels.filtersSoon}</span>
-									</Menu.Item>
-									<Menu.Item className={menuItem()} disabled>
-										<CalendarIcon size={13} weight="bold" />
-										{labels.filtersOverdue}
-										<span className={soonBadge()}>{labels.filtersSoon}</span>
-									</Menu.Item>
-								</Menu.Group>
-								<Menu.Separator className="my-1 h-px bg-dark-grey/10 dark:bg-ginger/10" />
-								<Menu.Group>
-									<Menu.GroupLabel className={groupLabel()}>
-										{labels.filtersOtherGroup}
-									</Menu.GroupLabel>
-									<Menu.Item className={menuItem()} disabled>
-										{labels.filtersAssignee}
-										<span className={soonBadge()}>{labels.filtersSoon}</span>
-									</Menu.Item>
-									<Menu.Item className={menuItem()} disabled>
-										{labels.filtersStatus}
-										<span className={soonBadge()}>{labels.filtersSoon}</span>
-									</Menu.Item>
 								</Menu.Group>
 							</Menu.Popup>
 						</Menu.Positioner>
@@ -152,9 +117,6 @@ export function FiltersBar({
 
 			{active && (
 				<div className="flex items-center gap-3">
-					<span className="text-xs text-graphite tabular-nums dark:text-ginger/60">
-						{labels.filtersShowing({ shown: matchCount, total: totalCount })}
-					</span>
 					<button
 						type="button"
 						className="cursor-pointer text-xs font-medium text-graphite underline decoration-dark-grey/25 underline-offset-2 hover:text-dark-grey hover:decoration-dark-grey/50 dark:text-ginger/60 dark:decoration-ginger/25 dark:hover:text-ginger dark:hover:decoration-ginger/50"

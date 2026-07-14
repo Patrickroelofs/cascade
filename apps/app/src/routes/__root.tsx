@@ -135,15 +135,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								filtersTrigger: m.filters_bar_trigger(),
 								filtersDueDateGroup: m.filters_bar_due_date_group(),
 								filtersDueToday: m.filters_bar_due_today(),
-								filtersDueThisWeek: m.filters_bar_due_this_week(),
-								filtersOverdue: m.filters_bar_overdue(),
-								filtersOtherGroup: m.filters_bar_other_group(),
-								filtersAssignee: m.filters_bar_assignee(),
-								filtersStatus: m.filters_bar_status(),
-								filtersSoon: m.filters_bar_soon(),
 								filtersRemoveDueToday: m.filters_bar_remove_due_today(),
 								filtersClear: m.filters_bar_clear(),
-								filtersShowing: (params) => m.filters_bar_showing(params),
 							}}
 						>
 							<SettingsProvider>

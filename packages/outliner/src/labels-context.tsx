@@ -22,15 +22,8 @@ export interface OutlinerLabels {
 	filtersTrigger: string;
 	filtersDueDateGroup: string;
 	filtersDueToday: string;
-	filtersDueThisWeek: string;
-	filtersOverdue: string;
-	filtersOtherGroup: string;
-	filtersAssignee: string;
-	filtersStatus: string;
-	filtersSoon: string;
 	filtersRemoveDueToday: string;
 	filtersClear: string;
-	filtersShowing: (params: { shown: number; total: number }) => string;
 }
 
 export const defaultOutlinerLabels: OutlinerLabels = {
@@ -56,15 +49,8 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	filtersTrigger: "Filter",
 	filtersDueDateGroup: "Due date",
 	filtersDueToday: "Due today",
-	filtersDueThisWeek: "Due this week",
-	filtersOverdue: "Overdue",
-	filtersOtherGroup: "Other",
-	filtersAssignee: "Assignee",
-	filtersStatus: "Status",
-	filtersSoon: "Soon",
 	filtersRemoveDueToday: "Remove Due today filter",
 	filtersClear: "Clear filters",
-	filtersShowing: ({ shown, total }) => `Showing ${shown} of ${total}`,
 };
 
 const OutlinerLabelsContext = createContext<OutlinerLabels | null>(null);
