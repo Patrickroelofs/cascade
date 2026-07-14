@@ -2,7 +2,7 @@ import type {
 	TypedMetadata,
 	VisibleNodeRow,
 } from "@cascade/outliner/node-types";
-import type { VisibleTree } from "@cascade/outliner/tree-types";
+import type { AddNodeOptions, VisibleTree } from "@cascade/outliner/tree-types";
 import {
 	appendRow,
 	collapseNode,
@@ -160,10 +160,11 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 	};
 
 	/** Create and append a new node as the last child of this view's root. */
-	const add = async (
-		commit: (splice: () => void) => void = (splice) => splice(),
-	) => {
-		const created = await client.nodes.create({ parentId: rootId });
+	const add = async ({
+		commit = (splice) => splice(),
+		dueDate = null,
+	}: AddNodeOptions = {}) => {
+		const created = await client.nodes.create({ parentId: rootId, dueDate });
 		commit(() =>
 			setRows((rows) =>
 				appendRow(rows, {
@@ -186,15 +187,14 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 	};
 
 	/** Create a new node as the next sibling right after `afterId`. */
-	const addAfter = async (
-		afterId: string,
-		commit: (splice: () => void) => void = (splice) => splice(),
-	) => {
+	const addAfter = async (afterId: string, options: AddNodeOptions = {}) => {
+		const { commit = (splice) => splice(), dueDate = null } = options;
 		const sibling = data.rows.find((r) => r.id === afterId);
-		if (!sibling) return add(commit);
+		if (!sibling) return add(options);
 		const created = await client.nodes.create({
 			parentId: sibling.parentId,
 			afterId,
+			dueDate,
 		});
 		commit(() =>
 			setRows((rows) =>

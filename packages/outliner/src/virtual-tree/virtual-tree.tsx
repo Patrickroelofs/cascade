@@ -109,11 +109,13 @@ export function VirtualTree({
 
 	const handleCreateBelow = async (id: string) => {
 		const container = scrollRef.current;
-		const newId = await tree.addAfter(id, (splice) => {
-			if (!container) return splice();
-			animateTreeChange(container, splice, { animateEnter: true });
+		const newId = await tree.addAfter(id, {
+			dueDate: newNodeDueDate,
+			commit: (splice) => {
+				if (!container) return splice();
+				animateTreeChange(container, splice, { animateEnter: true });
+			},
 		});
-		if (newNodeDueDate) tree.setDueDate(newId, newNodeDueDate);
 		setFocusPoint(null);
 		setEditingNodeId(newId);
 	};
@@ -269,11 +271,13 @@ export function VirtualTree({
 					icon={<PlusIcon className="size-4" />}
 					onClick={async () => {
 						const container = scrollRef.current;
-						const id = await tree.add((splice) => {
-							if (!container) return splice();
-							animateTreeChange(container, splice, { animateEnter: true });
+						const id = await tree.add({
+							dueDate: newNodeDueDate,
+							commit: (splice) => {
+								if (!container) return splice();
+								animateTreeChange(container, splice, { animateEnter: true });
+							},
 						});
-						if (newNodeDueDate) tree.setDueDate(id, newNodeDueDate);
 						setFocusPoint(null);
 						setEditingNodeId(id);
 					}}

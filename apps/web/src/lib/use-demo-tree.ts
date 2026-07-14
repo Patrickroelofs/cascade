@@ -1,6 +1,6 @@
 import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
 import type { VisibleNodeRow } from "@cascade/outliner/node-types";
-import type { VisibleTree } from "@cascade/outliner/tree-types";
+import type { AddNodeOptions, VisibleTree } from "@cascade/outliner/tree-types";
 import {
 	appendRow,
 	insertRowAfter,
@@ -15,7 +15,8 @@ import { m } from "#/paraglide/messages.js";
 import { demoAllNodes } from "./demo-seed";
 
 function newRow(
-	partial: Pick<VisibleNodeRow, "parentId" | "depth" | "isLastChild">,
+	partial: Pick<VisibleNodeRow, "parentId" | "depth" | "isLastChild"> &
+		Partial<Pick<VisibleNodeRow, "dueDate">>,
 ) {
 	const id = crypto.randomUUID();
 	const row: VisibleNodeRow = {
@@ -137,7 +138,10 @@ export function useDemoTree(rootId: string | null) {
 		setAllNodes((current) => patchRow(current, id, { dueDate }));
 	};
 
-	const add: VisibleTree["add"] = async (commit = (splice) => splice()) => {
+	const add: VisibleTree["add"] = async ({
+		commit = (splice) => splice(),
+		dueDate = null,
+	}: AddNodeOptions = {}) => {
 		const parentDepth =
 			rootId === null
 				? -1
@@ -146,6 +150,7 @@ export function useDemoTree(rootId: string | null) {
 			parentId: rootId,
 			depth: parentDepth + 1,
 			isLastChild: true,
+			dueDate,
 		});
 		commit(() =>
 			setAllNodes((current) =>
@@ -157,16 +162,15 @@ export function useDemoTree(rootId: string | null) {
 		return created.id;
 	};
 
-	const addAfter: VisibleTree["addAfter"] = async (
-		afterId,
-		commit = (splice) => splice(),
-	) => {
+	const addAfter: VisibleTree["addAfter"] = async (afterId, options = {}) => {
+		const { commit = (splice) => splice(), dueDate = null } = options;
 		const sibling = allNodes.find((r) => r.id === afterId);
-		if (!sibling) return add(commit);
+		if (!sibling) return add(options);
 		const created = newRow({
 			parentId: sibling.parentId,
 			depth: sibling.depth,
 			isLastChild: sibling.isLastChild,
+			dueDate,
 		});
 		commit(() =>
 			setAllNodes((current) => insertRowAfter(current, afterId, created)),
