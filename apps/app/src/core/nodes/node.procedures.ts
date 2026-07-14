@@ -4,19 +4,7 @@ import {
 	typedMetadataSchema,
 	type VisibleNodeRow,
 } from "@cascade/outliner/node-types";
-import {
-	and,
-	asc,
-	desc,
-	eq,
-	gt,
-	gte,
-	isNotNull,
-	isNull,
-	lt,
-	lte,
-	sql,
-} from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
 import { nodeColumns } from "@/core/nodes/node.queries";
