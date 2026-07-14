@@ -1,7 +1,8 @@
-import type { VisibleNodeRow } from "@cascade/outliner/node-types";
 import {
+	type NodeMetadata,
 	type NodeTypeName,
 	typedMetadataSchema,
+	type VisibleNodeRow,
 } from "@cascade/outliner/node-types";
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
@@ -91,7 +92,9 @@ export const visibleTree = authed
 			parentId: r.parent_id,
 			content: r.content,
 			type: r.type,
-			metadata: r.metadata,
+			// Trusted boundary: the recursive CTE selects the same jsonb column the
+			// ORM types as NodeMetadata; the raw `sql` tag can't carry that type.
+			metadata: r.metadata as NodeMetadata,
 			expanded: r.expanded,
 			order: r.order,
 			depth: Number(r.depth),
