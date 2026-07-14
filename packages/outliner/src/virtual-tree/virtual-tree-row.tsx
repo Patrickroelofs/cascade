@@ -64,7 +64,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 			ref={measureElement}
 			data-index={index}
 			className={twMerge(
-				"top-0 left-0 w-full absolute",
+				"top-0 left-0 w-full absolute transition-opacity duration-200",
 				props.isHidden && "hidden",
 				props.isContext && "opacity-45",
 			)}
