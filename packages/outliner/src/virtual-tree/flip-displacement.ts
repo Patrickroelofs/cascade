@@ -69,6 +69,41 @@ export function animateNodeRemoval(
 	});
 }
 
+/**
+ * Fades rows newly excluded by a filter out in place (without disturbing
+ * layout), then applies the mutation and lets the resulting FLIP pass close
+ * the gaps and fade newly-included rows in — the same "leave, then reflow"
+ * shape as `animateNodeRemoval`, generalized to many rows leaving at once.
+ */
+export function animateFilterChange(
+	container: HTMLElement,
+	mutate: () => void,
+	leavingIds: Iterable<string>,
+): void {
+	const leavingElements = Array.from(leavingIds)
+		.map((id) => findNodeRow(container, id))
+		.filter((el): el is HTMLElement => el !== null);
+
+	if (leavingElements.length === 0) {
+		animateTreeChange(container, mutate, { animateEnter: true });
+		return;
+	}
+
+	const { leave } = dragAnimationConfig;
+	gsap.to(leavingElements, {
+		opacity: 0,
+		scale: leave.scale,
+		duration: leave.duration,
+		ease: leave.ease,
+		onComplete: () => {
+			// The row's DOM node is reused if the filter later un-hides it, so
+			// clear these inline styles rather than leaving it stuck faded out.
+			gsap.set(leavingElements, { clearProps: "opacity,scale" });
+			animateTreeChange(container, mutate, { animateEnter: true });
+		},
+	});
+}
+
 function rowElements(
 	container: HTMLElement,
 	ignoredId?: string,
@@ -76,5 +111,7 @@ function rowElements(
 	const selector = ignoredId
 		? `[${FLIP_ID_ATTRIBUTE}]:not([${FLIP_ID_ATTRIBUTE}="${CSS.escape(ignoredId)}"])`
 		: `[${FLIP_ID_ATTRIBUTE}]`;
-	return Array.from(container.querySelectorAll<HTMLElement>(selector));
+	return Array.from(container.querySelectorAll<HTMLElement>(selector)).filter(
+		(el) => !el.closest(".hidden"),
+	);
 }

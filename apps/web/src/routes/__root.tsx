@@ -79,6 +79,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							convertInto: m.outliner_convert_into(),
 							delete: m.outliner_delete(),
 							emptyTree: m.outliner_empty_tree(),
+							emptyFilterResults: m.outliner_empty_filter_results(),
 							addNode: m.outliner_add_node(),
 							setDueDate: m.outliner_set_due_date(),
 							changeDueDate: m.outliner_change_due_date(),
@@ -90,6 +91,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								text: m.outliner_type_text(),
 								task: m.outliner_type_task(),
 							},
+							filtersTrigger: m.filters_bar_trigger(),
+							filtersDueDateGroup: m.filters_bar_due_date_group(),
+							filtersDueToday: m.filters_bar_due_today(),
+							filtersRemoveDueToday: m.filters_bar_remove_due_today(),
+							filtersClear: m.filters_bar_clear(),
 						}}
 					>
 						<PreAlphaBanner />

@@ -1,3 +1,5 @@
+import { getRowVisibility } from "@cascade/outliner/filter-visibility";
+import { FiltersBar } from "@cascade/outliner/filters-bar";
 import { LexicalReadView } from "@cascade/outliner/lexical/read/lexical-read-view";
 import { toLexicalContent } from "@cascade/outliner/lexical-content";
 import { NodeCheckbox } from "@cascade/outliner/node-checkbox";
@@ -13,6 +15,7 @@ import { client, orpc } from "#/orpc/client";
 import { GenericErrorComponent } from "#/ui/error/generic-error";
 import { Breadcrumbs } from "#/ui/nodes/breadcrumbs";
 import { NodeLink } from "#/ui/nodes/node-link";
+import { useNodeFilters } from "#/ui/nodes/use-node-filters";
 import {
 	useVisibleTree,
 	visibleTreeOptions,
@@ -110,12 +113,28 @@ function NodeDetailPage() {
 function NodeTree({ nodeId, header }: { nodeId: string; header: ReactNode }) {
 	const tree = useVisibleTree(nodeId);
 	const { settings } = useSettings();
+	const [filters, setFilters] = useNodeFilters();
+	const visibility = getRowVisibility(tree.rows, filters);
+
 	return (
 		<VirtualTree
 			tree={tree}
 			indentSize={settings.indentSize}
 			renderNodeLink={(id) => <NodeLink id={id} />}
-			header={header}
+			header={
+				<>
+					{header}
+					<FiltersBar
+						filters={filters}
+						onFiltersChange={setFilters}
+						matchCount={visibility.matchCount}
+						totalCount={tree.rows.length}
+					/>
+				</>
+			}
+			hiddenRowIds={visibility.hiddenIds}
+			contextRowIds={visibility.contextIds}
+			newNodeDueDate={filters.dueToday ? new Date() : undefined}
 		/>
 	);
 }

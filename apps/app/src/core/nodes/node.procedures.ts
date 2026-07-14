@@ -118,6 +118,7 @@ export const createNode = authed
 		z.object({
 			parentId: z.string().nullable(),
 			afterId: z.string().nullable().optional(),
+			dueDate: z.coerce.date().nullable().optional(),
 		}),
 	)
 	.handler(async ({ input, context, errors }) => {
@@ -156,7 +157,12 @@ export const createNode = authed
 
 		const [created] = await db
 			.insert(nodes)
-			.values({ parentId: input.parentId, order, userId })
+			.values({
+				parentId: input.parentId,
+				order,
+				userId,
+				dueDate: input.dueDate ?? null,
+			})
 			.returning(nodeColumns);
 		return created;
 	});

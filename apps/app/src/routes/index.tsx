@@ -1,9 +1,12 @@
+import { getRowVisibility } from "@cascade/outliner/filter-visibility";
+import { FiltersBar } from "@cascade/outliner/filters-bar";
 import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
 import { NodeLink } from "@/ui/nodes/node-link";
+import { useNodeFilters } from "@/ui/nodes/use-node-filters";
 import {
 	useVisibleTree,
 	visibleTreeOptions,
@@ -25,12 +28,19 @@ export const Route = createFileRoute("/")({
 function RootTree() {
 	const tree = useVisibleTree(null);
 	const { settings } = useSettings();
+	const [filters, setFilters] = useNodeFilters();
+	const visibility = getRowVisibility(tree.rows, filters);
+
 	return (
 		<VirtualTree
 			tree={tree}
 			indentSize={settings.indentSize}
 			renderNodeLink={(id) => <NodeLink id={id} />}
 			contentClassName="rr-block"
+			header={<FiltersBar filters={filters} onFiltersChange={setFilters} />}
+			hiddenRowIds={visibility.hiddenIds}
+			contextRowIds={visibility.contextIds}
+			newNodeDueDate={filters.dueToday ? new Date() : undefined}
 		/>
 	);
 }

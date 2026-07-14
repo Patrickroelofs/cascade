@@ -29,10 +29,13 @@ export interface VisibleTree {
 	) => void | Promise<void>;
 	setType: (id: string, typed: TypedMetadata) => void | Promise<void>;
 	setDueDate: (id: string, dueDate: Date | null) => void | Promise<void>;
-	add: (commit?: (splice: () => void) => void) => Promise<string>;
-	addAfter: (
-		afterId: string,
-		commit?: (splice: () => void) => void,
-	) => Promise<string>;
+	add: (options?: AddNodeOptions) => Promise<string>;
+	addAfter: (afterId: string, options?: AddNodeOptions) => Promise<string>;
 	loadMore: () => void | Promise<void>;
+}
+
+export interface AddNodeOptions {
+	commit?: (splice: () => void) => void;
+	/** Stamped onto the new node at creation, e.g. to match an active due-date filter. */
+	dueDate?: Date | null;
 }

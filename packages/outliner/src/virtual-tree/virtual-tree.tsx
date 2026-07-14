@@ -13,7 +13,11 @@ import { useOutlinerLabels } from "../labels-context";
 import type { FocusPoint } from "../node-editor";
 import { defaultTypedMetadata } from "../node-types";
 import type { VisibleTree } from "../tree-types";
-import { animateNodeRemoval, animateTreeChange } from "./flip-displacement";
+import {
+	animateFilterChange,
+	animateNodeRemoval,
+	animateTreeChange,
+} from "./flip-displacement";
 import { VirtualTreeRow } from "./virtual-tree-row";
 import {
 	findIndentTarget,
@@ -27,6 +31,13 @@ export interface ActiveDragPreview {
 }
 
 const LOAD_MORE_THRESHOLD = 50;
+const EMPTY_ROW_ID_SET: Set<string> = new Set();
+
+function setsEqual(a: Set<string>, b: Set<string>): boolean {
+	if (a.size !== b.size) return false;
+	for (const id of a) if (!b.has(id)) return false;
+	return true;
+}
 
 export function VirtualTree({
 	tree,
@@ -35,6 +46,9 @@ export function VirtualTree({
 	header,
 	className,
 	contentClassName,
+	hiddenRowIds,
+	contextRowIds,
+	newNodeDueDate,
 }: {
 	tree: VisibleTree;
 	indentSize?: number;
@@ -44,12 +58,46 @@ export function VirtualTree({
 	className?: string;
 	/** Overrides the inner content wrapper's default max-width/padding. */
 	contentClassName?: string;
+	/** Row ids to hide from view, e.g. rows excluded by an active filter. */
+	hiddenRowIds?: Set<string>;
+	/** Row ids to render dimmed but still visible, e.g. ancestors kept for context. */
+	contextRowIds?: Set<string>;
+	/** Stamped onto nodes created here, e.g. so a node added under an active
+	 * "Due today" filter matches it instead of immediately being hidden. */
+	newNodeDueDate?: Date | null;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<ActiveDragPreview | null>(null);
 	const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
 	const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null);
 	const labels = useOutlinerLabels();
+
+	// Rows currently rendered as hidden. Kept separate from the `hiddenRowIds`
+	// prop so a filter change can fade newly-excluded rows out before they
+	// actually leave layout, instead of popping straight to display:none.
+	const [renderedHiddenRowIds, setRenderedHiddenRowIds] = useState<Set<string>>(
+		() => hiddenRowIds ?? EMPTY_ROW_ID_SET,
+	);
+	const previousHiddenRowIdsRef = useRef(renderedHiddenRowIds);
+
+	useEffect(() => {
+		const next = hiddenRowIds ?? EMPTY_ROW_ID_SET;
+		const previous = previousHiddenRowIdsRef.current;
+		previousHiddenRowIdsRef.current = next;
+		if (setsEqual(previous, next)) return;
+
+		const container = scrollRef.current;
+		if (!container) {
+			setRenderedHiddenRowIds(next);
+			return;
+		}
+		const leavingIds = [...next].filter((id) => !previous.has(id));
+		animateFilterChange(
+			container,
+			() => setRenderedHiddenRowIds(next),
+			leavingIds,
+		);
+	}, [hiddenRowIds]);
 
 	const virtualizer = useVirtualizer({
 		count: tree.rows.length,
@@ -99,9 +147,12 @@ export function VirtualTree({
 
 	const handleCreateBelow = async (id: string) => {
 		const container = scrollRef.current;
-		const newId = await tree.addAfter(id, (splice) => {
-			if (!container) return splice();
-			animateTreeChange(container, splice, { animateEnter: true });
+		const newId = await tree.addAfter(id, {
+			dueDate: newNodeDueDate,
+			commit: (splice) => {
+				if (!container) return splice();
+				animateTreeChange(container, splice, { animateEnter: true });
+			},
 		});
 		setFocusPoint(null);
 		setEditingNodeId(newId);
@@ -184,6 +235,8 @@ export function VirtualTree({
 				{header}
 				{tree.rows.length === 0 ? (
 					<p className="text-sm py-4">{labels.emptyTree}</p>
+				) : renderedHiddenRowIds.size === tree.rows.length ? (
+					<p className="text-sm py-4">{labels.emptyFilterResults}</p>
 				) : (
 					<div
 						style={{
@@ -204,6 +257,8 @@ export function VirtualTree({
 									indentSize={indentSize}
 									renderNodeLink={renderNodeLink}
 									measureElement={virtualizer.measureElement}
+									isHidden={renderedHiddenRowIds.has(row.id)}
+									isContext={contextRowIds?.has(row.id) ?? false}
 									editing={editingNodeId === row.id}
 									focusPoint={editingNodeId === row.id ? focusPoint : null}
 									onStartEdit={(point) => {
@@ -254,9 +309,12 @@ export function VirtualTree({
 					icon={<PlusIcon className="size-4" />}
 					onClick={async () => {
 						const container = scrollRef.current;
-						const id = await tree.add((splice) => {
-							if (!container) return splice();
-							animateTreeChange(container, splice, { animateEnter: true });
+						const id = await tree.add({
+							dueDate: newNodeDueDate,
+							commit: (splice) => {
+								if (!container) return splice();
+								animateTreeChange(container, splice, { animateEnter: true });
+							},
 						});
 						setFocusPoint(null);
 						setEditingNodeId(id);

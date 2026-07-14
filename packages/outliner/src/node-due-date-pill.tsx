@@ -2,29 +2,13 @@ import { Calendar } from "@cascade/ui/calendar";
 import { cva } from "@cascade/ui/cva.config";
 import { Popover, PopoverContent, PopoverTrigger } from "@cascade/ui/popover";
 import { CalendarIcon } from "@phosphor-icons/react/ssr";
+import { dueBucket, startOfDay } from "./due-date-bucket";
 import { type OutlinerLabels, useOutlinerLabels } from "./labels-context";
 
 interface NodeDueDatePillProps {
 	dueDate: Date;
 	completed: boolean;
 	onChange: (date: Date | null) => void;
-}
-
-type DueBucket = "overdue" | "today" | "upcoming" | "completed";
-
-function startOfDay(date: Date): Date {
-	return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function dueBucket(dueDate: Date, completed: boolean): DueBucket {
-	if (completed) return "completed";
-	const diffDays = Math.round(
-		(startOfDay(dueDate).getTime() - startOfDay(new Date()).getTime()) /
-			86_400_000,
-	);
-	if (diffDays < 0) return "overdue";
-	if (diffDays === 0) return "today";
-	return "upcoming";
 }
 
 const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
