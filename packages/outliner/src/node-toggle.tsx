@@ -9,7 +9,6 @@ interface NodeToggleProps {
 }
 
 const nodeToggleCaret = cva({
-	base: ["transition-transform"],
 	variants: {
 		rotation: {
 			expanded: ["rotate-90"],
@@ -32,7 +31,7 @@ export function NodeToggle({
 					onClick={() => onToggle(!expanded)}
 					aria-label={expanded ? labels.toggleCollapse : labels.toggleExpand}
 					aria-expanded={expanded}
-					className="cursor-pointer shrink-0 p-1 -m-1 text-dark-grey hover:text-redleather dark:text-ginger dark:hover:text-redleather transition-colors"
+					className="cursor-pointer shrink-0 p-1 -m-1 text-dark-grey hover:text-redleather dark:text-ginger dark:hover:text-redleather"
 				>
 					<CaretRightIcon
 						className={nodeToggleCaret({

@@ -24,7 +24,6 @@ interface NodeActionsProps {
 	onConvert: (type: NodeTypeName) => void;
 	onSetDueDate: (date: Date | null) => void;
 	onDelete: () => void;
-	viewTransitionName?: string;
 	children: ReactNode;
 }
 
@@ -34,7 +33,6 @@ export function NodeActions({
 	onConvert,
 	onSetDueDate,
 	onDelete,
-	viewTransitionName,
 	children,
 }: NodeActionsProps) {
 	const labels = useOutlinerLabels();
@@ -42,7 +40,6 @@ export function NodeActions({
 		<ContextMenu>
 			<ContextMenuTrigger
 				className="flex items-center gap-2 min-w-0 flex-1"
-				style={{ viewTransitionName }}
 				onTouchStart={(e) => e.stopPropagation()}
 				onContextMenu={(e) => e.stopPropagation()}
 			>

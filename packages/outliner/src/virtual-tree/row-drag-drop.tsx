@@ -5,25 +5,16 @@ import {
 	draggable,
 	dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
 import {
 	attachInstruction,
 	extractInstruction,
 	type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
-import {
-	type ReactNode,
-	type RefObject,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
-import { createDragPreview } from "../drag-animation/drag-preview";
-import { nodeRowDomAttributes } from "../drag-animation/node-rows";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { NodeDragHandle } from "../node-drag-handle";
 import { NodeDropIndicator } from "../node-drop-indicator";
 import type { VisibleNodeRow } from "../node-types";
-import type { ActiveDragPreview } from "./virtual-tree";
+import { NODE_ROW_ATTRIBUTE } from "./node-rows";
 import { type MoveTarget, subtreeRange } from "./visible-rows";
 
 interface RowDragAndDropProps {
@@ -31,7 +22,6 @@ interface RowDragAndDropProps {
 	rows: VisibleNodeRow[];
 	indentSize: number;
 	onMoveDrop: (draggedId: string, target: MoveTarget) => void;
-	previewRef: RefObject<ActiveDragPreview | null>;
 	children: ReactNode;
 }
 
@@ -55,7 +45,6 @@ export function RowDragAndDrop({
 	rows,
 	indentSize,
 	onMoveDrop,
-	previewRef,
 	children,
 }: RowDragAndDropProps) {
 	const rowRef = useRef<HTMLDivElement>(null);
@@ -77,34 +66,6 @@ export function RowDragAndDrop({
 				element: rowElement,
 				dragHandle: handle,
 				getInitialData: (): DragData => ({ nodeId: id }),
-				onGenerateDragPreview: disableNativeDragPreview,
-				onDragStart: ({ location }) => {
-					const { clientX, clientY } = location.current.input;
-					const range = subtreeRange(latest.current.rows, id);
-					const descendantIds = range
-						? latest.current.rows
-								.slice(range.start + 1, range.end)
-								.map((r) => r.id)
-						: [];
-					previewRef.current = {
-						nodeId: id,
-						preview: createDragPreview(
-							rowElement,
-							{ x: clientX, y: clientY },
-							descendantIds,
-						),
-					};
-				},
-				onDrag: ({ location }) => {
-					const { clientX, clientY } = location.current.input;
-					previewRef.current?.preview.follow({ x: clientX, y: clientY });
-				},
-				onDrop: () => {
-					queueMicrotask(() => {
-						previewRef.current?.preview.cancel();
-						previewRef.current = null;
-					});
-				},
 			}),
 			dropTargetForElements({
 				element: rowElement,
@@ -179,13 +140,13 @@ export function RowDragAndDrop({
 				},
 			}),
 		);
-	}, [previewRef]);
+	}, []);
 
 	return (
 		<div
 			ref={rowRef}
-			{...nodeRowDomAttributes(row.id)}
-			className="group/node py-1 flex items-center gap-2 relative rounded-md transition-colors duration-150 has-data-popup-open:bg-peach/25 has-data-popup-open:ring-1 has-data-popup-open:ring-inset has-data-popup-open:ring-peach/60"
+			{...{ [NODE_ROW_ATTRIBUTE]: row.id }}
+			className="group/node py-1 flex items-center gap-2 relative rounded-md has-data-popup-open:bg-peach/25 has-data-popup-open:ring-1 has-data-popup-open:ring-inset has-data-popup-open:ring-peach/60"
 		>
 			<div style={{ paddingLeft: row.depth * indentSize }} />
 			<NodeDropIndicator instruction={instruction} />

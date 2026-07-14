@@ -9,20 +9,13 @@ import type { MoveTarget } from "./virtual-tree/visible-rows";
 export interface VisibleTree {
 	rows: VisibleNodeRow[];
 	hasMore: boolean;
-	toggle: (
-		id: string,
-		expanded: boolean,
-		commit?: (splice: () => void) => void,
-	) => void | Promise<void>;
+	toggle: (id: string, expanded: boolean) => void | Promise<void>;
 	move: (
 		id: string,
 		target: MoveTarget,
 		options?: { expandParentId?: string },
 	) => void | Promise<void>;
-	remove: (
-		id: string,
-		commit?: (splice: () => void) => void,
-	) => void | Promise<void>;
+	remove: (id: string) => void | Promise<void>;
 	updateContent: (
 		id: string,
 		content: { root: unknown },
@@ -35,7 +28,6 @@ export interface VisibleTree {
 }
 
 export interface AddNodeOptions {
-	commit?: (splice: () => void) => void;
 	/** Stamped onto the new node at creation, e.g. to match an active due-date filter. */
 	dueDate?: Date | null;
 }

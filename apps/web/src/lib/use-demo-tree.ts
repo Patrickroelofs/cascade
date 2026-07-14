@@ -102,12 +102,8 @@ export function useDemoTree(rootId: string | null) {
 		return chain;
 	}, [allNodes, rootId]);
 
-	const toggle: VisibleTree["toggle"] = (
-		id,
-		expanded,
-		commit = (splice) => splice(),
-	) => {
-		commit(() => setAllNodes((current) => patchRow(current, id, { expanded })));
+	const toggle: VisibleTree["toggle"] = (id, expanded) => {
+		setAllNodes((current) => patchRow(current, id, { expanded }));
 	};
 
 	const move: VisibleTree["move"] = (id, target, options = {}) => {
@@ -119,8 +115,8 @@ export function useDemoTree(rootId: string | null) {
 		});
 	};
 
-	const remove: VisibleTree["remove"] = (id, commit = (splice) => splice()) => {
-		commit(() => setAllNodes((current) => removeSubtree(current, id)));
+	const remove: VisibleTree["remove"] = (id) => {
+		setAllNodes((current) => removeSubtree(current, id));
 		toast.success(m.node_deleted());
 	};
 
@@ -139,7 +135,6 @@ export function useDemoTree(rootId: string | null) {
 	};
 
 	const add: VisibleTree["add"] = async ({
-		commit = (splice) => splice(),
 		dueDate = null,
 	}: AddNodeOptions = {}) => {
 		const parentDepth =
@@ -152,18 +147,16 @@ export function useDemoTree(rootId: string | null) {
 			isLastChild: true,
 			dueDate,
 		});
-		commit(() =>
-			setAllNodes((current) =>
-				rootId === null
-					? appendRow(current, created)
-					: insertRowAfter(current, rootId, created),
-			),
+		setAllNodes((current) =>
+			rootId === null
+				? appendRow(current, created)
+				: insertRowAfter(current, rootId, created),
 		);
 		return created.id;
 	};
 
 	const addAfter: VisibleTree["addAfter"] = async (afterId, options = {}) => {
-		const { commit = (splice) => splice(), dueDate = null } = options;
+		const { dueDate = null } = options;
 		const sibling = allNodes.find((r) => r.id === afterId);
 		if (!sibling) return add(options);
 		const created = newRow({
@@ -172,9 +165,7 @@ export function useDemoTree(rootId: string | null) {
 			isLastChild: sibling.isLastChild,
 			dueDate,
 		});
-		commit(() =>
-			setAllNodes((current) => insertRowAfter(current, afterId, created)),
-		);
+		setAllNodes((current) => insertRowAfter(current, afterId, created));
 		return created.id;
 	};
 

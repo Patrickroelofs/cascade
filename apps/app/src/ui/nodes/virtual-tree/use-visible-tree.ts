@@ -50,22 +50,18 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: options.queryKey });
 
-	const toggle = async (
-		id: string,
-		expanded: boolean,
-		commit: (splice: () => void) => void = (splice) => splice(),
-	) => {
+	const toggle = async (id: string, expanded: boolean) => {
 		if (expanded) {
 			setRows((rows) => patchRow(rows, id, { expanded: true }));
 			try {
 				const subtree = await client.nodes.visibleTree({ rootId: id });
-				commit(() => setRows((rows) => expandNode(rows, id, subtree.rows)));
+				setRows((rows) => expandNode(rows, id, subtree.rows));
 				await client.nodes.toggleExpanded({ id, expanded: true });
 			} catch {
 				invalidate();
 			}
 		} else {
-			commit(() => setRows((rows) => collapseNode(rows, id)));
+			setRows((rows) => collapseNode(rows, id));
 			try {
 				await client.nodes.toggleExpanded({ id, expanded: false });
 			} catch {
@@ -109,11 +105,8 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		}
 	};
 
-	const remove = async (
-		id: string,
-		commit: (splice: () => void) => void = (splice) => splice(),
-	) => {
-		commit(() => setRows((rows) => removeSubtree(rows, id)));
+	const remove = async (id: string) => {
+		setRows((rows) => removeSubtree(rows, id));
 		try {
 			const { childrenDeleted } = await client.nodes.delete({ id });
 			toast.success(
@@ -160,35 +153,30 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 	};
 
 	/** Create and append a new node as the last child of this view's root. */
-	const add = async ({
-		commit = (splice) => splice(),
-		dueDate = null,
-	}: AddNodeOptions = {}) => {
+	const add = async ({ dueDate = null }: AddNodeOptions = {}) => {
 		const created = await client.nodes.create({ parentId: rootId, dueDate });
-		commit(() =>
-			setRows((rows) =>
-				appendRow(rows, {
-					id: created.id,
-					parentId: created.parentId,
-					content: created.content,
-					type: created.type,
-					metadata: created.metadata,
-					expanded: created.expanded,
-					order: created.order,
-					dueDate: created.dueDate,
-					depth: 0,
-					path: [created.order],
-					hasChildren: created.hasChildren,
-					isLastChild: true,
-				}),
-			),
+		setRows((rows) =>
+			appendRow(rows, {
+				id: created.id,
+				parentId: created.parentId,
+				content: created.content,
+				type: created.type,
+				metadata: created.metadata,
+				expanded: created.expanded,
+				order: created.order,
+				dueDate: created.dueDate,
+				depth: 0,
+				path: [created.order],
+				hasChildren: created.hasChildren,
+				isLastChild: true,
+			}),
 		);
 		return created.id;
 	};
 
 	/** Create a new node as the next sibling right after `afterId`. */
 	const addAfter = async (afterId: string, options: AddNodeOptions = {}) => {
-		const { commit = (splice) => splice(), dueDate = null } = options;
+		const { dueDate = null } = options;
 		const sibling = data.rows.find((r) => r.id === afterId);
 		if (!sibling) return add(options);
 		const created = await client.nodes.create({
@@ -196,23 +184,21 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 			afterId,
 			dueDate,
 		});
-		commit(() =>
-			setRows((rows) =>
-				insertRowAfter(rows, afterId, {
-					id: created.id,
-					parentId: created.parentId,
-					content: created.content,
-					type: created.type,
-					metadata: created.metadata,
-					expanded: created.expanded,
-					order: created.order,
-					dueDate: created.dueDate,
-					depth: sibling.depth,
-					path: [...sibling.path.slice(0, -1), created.order],
-					hasChildren: created.hasChildren,
-					isLastChild: sibling.isLastChild,
-				}),
-			),
+		setRows((rows) =>
+			insertRowAfter(rows, afterId, {
+				id: created.id,
+				parentId: created.parentId,
+				content: created.content,
+				type: created.type,
+				metadata: created.metadata,
+				expanded: created.expanded,
+				order: created.order,
+				dueDate: created.dueDate,
+				depth: sibling.depth,
+				path: [...sibling.path.slice(0, -1), created.order],
+				hasChildren: created.hasChildren,
+				isLastChild: sibling.isLastChild,
+			}),
 		);
 		return created.id;
 	};
