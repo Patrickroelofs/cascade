@@ -92,8 +92,6 @@ export const visibleTree = authed
 			parentId: r.parent_id,
 			content: r.content,
 			type: r.type,
-			// Trusted boundary: the recursive CTE selects the same jsonb column the
-			// ORM types as NodeMetadata; the raw `sql` tag can't carry that type.
 			metadata: r.metadata as NodeMetadata,
 			expanded: r.expanded,
 			order: r.order,
