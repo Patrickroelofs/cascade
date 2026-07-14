@@ -8,11 +8,7 @@ import { NodeDueDatePill } from "../node-due-date-pill";
 import { type FocusPoint, NodeEditor } from "../node-editor";
 import { DefaultNodeLink } from "../node-link-slot";
 import { NodeToggle } from "../node-toggle";
-import type {
-	NodeMetadataOf,
-	NodeTypeName,
-	VisibleNodeRow,
-} from "../node-types";
+import type { NodeTypeName, VisibleNodeRow } from "../node-types";
 import { RowDragAndDrop } from "./row-drag-drop";
 import type { ActiveDragPreview } from "./virtual-tree";
 import type { MoveTarget } from "./visible-rows";
@@ -52,9 +48,7 @@ export interface VirtualTreeRowProps {
  */
 export function VirtualTreeRow(props: VirtualTreeRowProps) {
 	const { row, start, index, measureElement } = props;
-	const completed =
-		row.type === "task" &&
-		((row.metadata as NodeMetadataOf<"task"> | null)?.completed ?? false);
+	const completed = row.type === "task" && (row.metadata?.completed ?? false);
 	// SSR hydration round-trips the query cache through JSON, which leaves
 	// dueDate as an ISO string instead of a Date; normalize it here so every
 	// consumer below can rely on a real Date | null.
