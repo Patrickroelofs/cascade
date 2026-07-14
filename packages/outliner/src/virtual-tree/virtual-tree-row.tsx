@@ -1,6 +1,6 @@
 "use no memo";
 
-import type { ReactNode, RefObject } from "react";
+import type { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 import type { LexicalElementNode } from "../lexical/read/lexical-read-view";
 import { NodeActions } from "../node-actions";
@@ -11,7 +11,6 @@ import { DefaultNodeLink } from "../node-link-slot";
 import { NodeToggle } from "../node-toggle";
 import type { NodeTypeName, VisibleNodeRow } from "../node-types";
 import { RowDragAndDrop } from "./row-drag-drop";
-import type { ActiveDragPreview } from "./virtual-tree";
 import type { MoveTarget } from "./visible-rows";
 
 export interface VirtualTreeRowProps {
@@ -43,14 +42,8 @@ export interface VirtualTreeRowProps {
 	onFocusNext: () => void;
 	onFocusPrevious: () => void;
 	onMoveDrop: (draggedId: string, target: MoveTarget) => void;
-	previewRef: RefObject<ActiveDragPreview | null>;
 }
 
-/**
- * Two-div structure is load-bearing: the outer div owns the virtualizer
- * transform and measurement; the inner div (inside RowDragAndDrop) is the
- * only element GSAP animates, so the two never fight over `transform`.
- */
 export function VirtualTreeRow(props: VirtualTreeRowProps) {
 	const { row, start, index, measureElement } = props;
 	const completed = row.type === "task" && (row.metadata?.completed ?? false);
@@ -64,7 +57,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 			ref={measureElement}
 			data-index={index}
 			className={twMerge(
-				"top-0 left-0 w-full absolute transition-opacity duration-200",
+				"top-0 left-0 w-full absolute",
 				props.isHidden && "hidden",
 				props.isContext && "opacity-45",
 			)}
@@ -77,7 +70,6 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				rows={props.rows}
 				indentSize={props.indentSize}
 				onMoveDrop={props.onMoveDrop}
-				previewRef={props.previewRef}
 			>
 				<NodeActions
 					nodeType={row.type}
@@ -85,7 +77,6 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					onConvert={props.onConvert}
 					onSetDueDate={props.onSetDueDate}
 					onDelete={props.onDelete}
-					viewTransitionName={`node-${row.id}`}
 				>
 					<NodeToggle
 						hasChildren={row.hasChildren}

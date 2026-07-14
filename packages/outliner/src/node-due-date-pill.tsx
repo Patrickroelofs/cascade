@@ -42,7 +42,7 @@ function formatDuePill(
 const pill = cva({
 	base: [
 		"inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 mr-1 text-[11.5px] font-medium tabular-nums outline-none",
-		"transition-shadow hover:ring-1 hover:ring-inset hover:ring-current/40",
+		"hover:ring-1 hover:ring-inset hover:ring-current/40",
 	],
 	variants: {
 		bucket: {

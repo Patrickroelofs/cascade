@@ -87,10 +87,7 @@ function NodeDetailPage() {
 				header={
 					<>
 						<Breadcrumbs nodeId={nodeId} />
-						<div
-							style={{ viewTransitionName: `node-${nodeId}` }}
-							className="text-2xl mb-8 flex items-center gap-3"
-						>
+						<div className="text-2xl mb-8 flex items-center gap-3">
 							{node.type === "task" && (
 								<NodeCheckbox metadata={node.metadata} onToggle={toggleTask} />
 							)}

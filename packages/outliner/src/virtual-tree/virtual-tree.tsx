@@ -7,17 +7,11 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import type { DragPreviewHandle } from "../drag-animation/drag-preview";
-import { findNodeRow } from "../drag-animation/node-rows";
 import { useOutlinerLabels } from "../labels-context";
 import type { FocusPoint } from "../node-editor";
 import { defaultTypedMetadata } from "../node-types";
 import type { VisibleTree } from "../tree-types";
-import {
-	animateFilterChange,
-	animateNodeRemoval,
-	animateTreeChange,
-} from "./flip-displacement";
+import { findNodeRow } from "./node-rows";
 import { VirtualTreeRow } from "./virtual-tree-row";
 import {
 	findIndentTarget,
@@ -25,19 +19,7 @@ import {
 	type MoveTarget,
 } from "./visible-rows";
 
-export interface ActiveDragPreview {
-	nodeId: string;
-	preview: DragPreviewHandle;
-}
-
 const LOAD_MORE_THRESHOLD = 50;
-const EMPTY_ROW_ID_SET: Set<string> = new Set();
-
-function setsEqual(a: Set<string>, b: Set<string>): boolean {
-	if (a.size !== b.size) return false;
-	for (const id of a) if (!b.has(id)) return false;
-	return true;
-}
 
 export function VirtualTree({
 	tree,
@@ -67,37 +49,9 @@ export function VirtualTree({
 	newNodeDueDate?: Date | null;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
-	const previewRef = useRef<ActiveDragPreview | null>(null);
 	const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
 	const [focusPoint, setFocusPoint] = useState<FocusPoint | null>(null);
 	const labels = useOutlinerLabels();
-
-	// Rows currently rendered as hidden. Kept separate from the `hiddenRowIds`
-	// prop so a filter change can fade newly-excluded rows out before they
-	// actually leave layout, instead of popping straight to display:none.
-	const [renderedHiddenRowIds, setRenderedHiddenRowIds] = useState<Set<string>>(
-		() => hiddenRowIds ?? EMPTY_ROW_ID_SET,
-	);
-	const previousHiddenRowIdsRef = useRef(renderedHiddenRowIds);
-
-	useEffect(() => {
-		const next = hiddenRowIds ?? EMPTY_ROW_ID_SET;
-		const previous = previousHiddenRowIdsRef.current;
-		previousHiddenRowIdsRef.current = next;
-		if (setsEqual(previous, next)) return;
-
-		const container = scrollRef.current;
-		if (!container) {
-			setRenderedHiddenRowIds(next);
-			return;
-		}
-		const leavingIds = [...next].filter((id) => !previous.has(id));
-		animateFilterChange(
-			container,
-			() => setRenderedHiddenRowIds(next),
-			leavingIds,
-		);
-	}, [hiddenRowIds]);
 
 	const virtualizer = useVirtualizer({
 		count: tree.rows.length,
@@ -122,38 +76,11 @@ export function VirtualTree({
 	}, [lastIndex, tree.hasMore, tree.rows.length, tree.loadMore]);
 
 	const handleMoveDrop = (draggedId: string, target: MoveTarget) => {
-		const container = scrollRef.current;
-		if (!container) return;
-
-		animateTreeChange(container, () => tree.move(draggedId, target), {
-			ignoredId: draggedId,
-		});
-
-		const active = previewRef.current;
-		previewRef.current = null;
-		if (!active) return;
-		const rowElement =
-			findNodeRow(container, draggedId) ??
-			(target.position === "append" && target.parentId
-				? findNodeRow(container, target.parentId)
-				: null);
-		if (rowElement) {
-			active.preview.settleInto(rowElement.getBoundingClientRect());
-		} else {
-			// Neither the row nor its parent is in the rendered window.
-			active.preview.cancel();
-		}
+		tree.move(draggedId, target);
 	};
 
 	const handleCreateBelow = async (id: string) => {
-		const container = scrollRef.current;
-		const newId = await tree.addAfter(id, {
-			dueDate: newNodeDueDate,
-			commit: (splice) => {
-				if (!container) return splice();
-				animateTreeChange(container, splice, { animateEnter: true });
-			},
-		});
+		const newId = await tree.addAfter(id, { dueDate: newNodeDueDate });
 		setFocusPoint(null);
 		setEditingNodeId(newId);
 	};
@@ -164,32 +91,24 @@ export function VirtualTree({
 		const next = tree.rows[index + 1] ?? null;
 		const focusTarget = previous ?? next;
 
-		const container = scrollRef.current;
-		tree.remove(id, (splice) => {
-			if (!container) return splice();
-			animateNodeRemoval(container, id, splice);
-		});
+		tree.remove(id);
 		setFocusPoint(null);
 		setEditingNodeId(focusTarget?.id ?? null);
 	};
 
 	const handleIndent = (id: string) => {
-		const container = scrollRef.current;
 		const target = findIndentTarget(tree.rows, id);
-		if (!container || !target) return;
+		if (!target) return;
 		const newParent = tree.rows.find((row) => row.id === target.parentId);
 		const expandParentId =
 			newParent && !newParent.expanded ? newParent.id : undefined;
-		animateTreeChange(container, () =>
-			tree.move(id, target, { expandParentId }),
-		);
+		tree.move(id, target, { expandParentId });
 	};
 
 	const handleOutdent = (id: string) => {
-		const container = scrollRef.current;
 		const target = findOutdentTarget(tree.rows, id);
-		if (!container || !target) return;
-		animateTreeChange(container, () => tree.move(id, target));
+		if (!target) return;
+		tree.move(id, target);
 	};
 
 	const focusRow = (id: string) => {
@@ -219,14 +138,6 @@ export function VirtualTree({
 		}
 	};
 
-	const handleToggle = (nodeId: string, expanded: boolean) => {
-		tree.toggle(nodeId, expanded, (splice) => {
-			const container = scrollRef.current;
-			if (!container) return splice();
-			animateTreeChange(container, splice, { animateEnter: expanded });
-		});
-	};
-
 	return (
 		<div ref={scrollRef} className={twMerge("h-dvh overflow-auto", className)}>
 			<div
@@ -235,7 +146,7 @@ export function VirtualTree({
 				{header}
 				{tree.rows.length === 0 ? (
 					<p className="text-sm py-4">{labels.emptyTree}</p>
-				) : renderedHiddenRowIds.size === tree.rows.length ? (
+				) : hiddenRowIds?.size === tree.rows.length ? (
 					<p className="text-sm py-4">{labels.emptyFilterResults}</p>
 				) : (
 					<div
@@ -257,7 +168,7 @@ export function VirtualTree({
 									indentSize={indentSize}
 									renderNodeLink={renderNodeLink}
 									measureElement={virtualizer.measureElement}
-									isHidden={renderedHiddenRowIds.has(row.id)}
+									isHidden={hiddenRowIds?.has(row.id) ?? false}
 									isContext={contextRowIds?.has(row.id) ?? false}
 									editing={editingNodeId === row.id}
 									focusPoint={editingNodeId === row.id ? focusPoint : null}
@@ -270,7 +181,7 @@ export function VirtualTree({
 											current === row.id ? null : current,
 										)
 									}
-									onToggle={(expanded) => handleToggle(row.id, expanded)}
+									onToggle={(expanded) => tree.toggle(row.id, expanded)}
 									onConvert={(type) =>
 										tree.setType(row.id, defaultTypedMetadata(type))
 									}
@@ -281,13 +192,7 @@ export function VirtualTree({
 										})
 									}
 									onSetDueDate={(date) => tree.setDueDate(row.id, date)}
-									onDelete={() => {
-										const container = scrollRef.current;
-										tree.remove(row.id, (splice) => {
-											if (!container) return splice();
-											animateNodeRemoval(container, row.id, splice);
-										});
-									}}
+									onDelete={() => tree.remove(row.id)}
 									onSaveContent={(content) =>
 										tree.updateContent(row.id, content)
 									}
@@ -298,24 +203,15 @@ export function VirtualTree({
 									onFocusNext={() => handleFocusNeighbor(row.id, 1)}
 									onFocusPrevious={() => handleFocusNeighbor(row.id, -1)}
 									onMoveDrop={handleMoveDrop}
-									previewRef={previewRef}
 								/>
 							);
 						})}
 					</div>
 				)}
 				<Button
-					data-flip-id="add-node"
 					icon={<PlusIcon className="size-4" />}
 					onClick={async () => {
-						const container = scrollRef.current;
-						const id = await tree.add({
-							dueDate: newNodeDueDate,
-							commit: (splice) => {
-								if (!container) return splice();
-								animateTreeChange(container, splice, { animateEnter: true });
-							},
-						});
+						const id = await tree.add({ dueDate: newNodeDueDate });
 						setFocusPoint(null);
 						setEditingNodeId(id);
 					}}

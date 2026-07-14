@@ -16,7 +16,7 @@ interface FiltersBarProps {
 
 const trigger = cva({
 	base: [
-		"inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium outline-none transition-colors",
+		"inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium outline-none",
 		"border-dark-grey/15 text-graphite hover:border-dark-grey/30 hover:text-dark-grey",
 		"dark:border-ginger/15 dark:text-ginger/70 dark:hover:border-ginger/30 dark:hover:text-ginger",
 		"data-popup-open:border-redleather/30 data-popup-open:bg-redleather/10 data-popup-open:text-redleather",
@@ -26,10 +26,8 @@ const trigger = cva({
 
 const popup = cva({
 	base: [
-		"origin-(--transform-origin) w-56 rounded-lg border border-dark-grey/10 bg-white p-1 text-dark-grey",
-		"shadow-lg shadow-dark-grey/15 transition-[transform,opacity] duration-150 ease-out",
-		"data-starting-style:scale-95 data-starting-style:opacity-0",
-		"data-ending-style:scale-95 data-ending-style:opacity-0",
+		"w-56 rounded-lg border border-dark-grey/10 bg-white p-1 text-dark-grey",
+		"shadow-lg shadow-dark-grey/15",
 		"outline-none",
 		"dark:border-ginger/10 dark:bg-dark-grey dark:text-ginger",
 	],
