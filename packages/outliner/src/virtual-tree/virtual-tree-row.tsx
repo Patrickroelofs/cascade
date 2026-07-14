@@ -4,6 +4,7 @@ import type { ReactNode, RefObject } from "react";
 import type { LexicalElementNode } from "../lexical/read/lexical-read-view";
 import { NodeActions } from "../node-actions";
 import { NodeCheckbox } from "../node-checkbox";
+import { NodeDueDatePill } from "../node-due-date-pill";
 import { type FocusPoint, NodeEditor } from "../node-editor";
 import { DefaultNodeLink } from "../node-link-slot";
 import { NodeToggle } from "../node-toggle";
@@ -31,6 +32,7 @@ export interface VirtualTreeRowProps {
 	onToggle: (expanded: boolean) => void;
 	onConvert: (type: NodeTypeName) => void;
 	onToggleTask: (completed: boolean) => void;
+	onSetDueDate: (date: Date | null) => void;
 	onDelete: () => void;
 	onSaveContent: (content: { root: LexicalElementNode }) => void;
 	onCreateBelow: () => void;
@@ -50,6 +52,13 @@ export interface VirtualTreeRowProps {
  */
 export function VirtualTreeRow(props: VirtualTreeRowProps) {
 	const { row, start, index, measureElement } = props;
+	const completed =
+		row.type === "task" &&
+		((row.metadata as NodeMetadataOf<"task"> | null)?.completed ?? false);
+	// SSR hydration round-trips the query cache through JSON, which leaves
+	// dueDate as an ISO string instead of a Date; normalize it here so every
+	// consumer below can rely on a real Date | null.
+	const dueDate = row.dueDate ? new Date(row.dueDate) : null;
 
 	return (
 		<div
@@ -69,7 +78,9 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 			>
 				<NodeActions
 					nodeType={row.type}
+					dueDate={dueDate}
 					onConvert={props.onConvert}
+					onSetDueDate={props.onSetDueDate}
 					onDelete={props.onDelete}
 					viewTransitionName={`node-${row.id}`}
 				>
@@ -94,11 +105,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							id={row.id}
 							content={row.content}
 							editing={props.editing}
-							completed={
-								row.type === "task" &&
-								((row.metadata as NodeMetadataOf<"task"> | null)?.completed ??
-									false)
-							}
+							completed={completed}
 							focusPoint={props.focusPoint}
 							onStartEdit={props.onStartEdit}
 							onExit={props.onExitEdit}
@@ -111,6 +118,13 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							onFocusPrevious={props.onFocusPrevious}
 						/>
 					</div>
+					{dueDate && (
+						<NodeDueDatePill
+							dueDate={dueDate}
+							completed={completed}
+							onChange={props.onSetDueDate}
+						/>
+					)}
 				</NodeActions>
 			</RowDragAndDrop>
 		</div>
