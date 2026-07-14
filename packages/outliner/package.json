@@ -8,6 +8,9 @@
     "./node-types": "./src/node-types.ts",
     "./tree-types": "./src/tree-types.ts",
     "./visible-rows": "./src/virtual-tree/visible-rows.ts",
+    "./filter-visibility": "./src/virtual-tree/filter-visibility.ts",
+    "./node-filters": "./src/node-filters.ts",
+    "./due-date-bucket": "./src/due-date-bucket.ts",
     "./lexical-content": "./src/lexical/lexical-content.ts",
     "./*": "./src/*.tsx"
   },
@@ -19,6 +22,7 @@
     "@atlaskit/pragmatic-drag-and-drop": "^2.0.1",
     "@atlaskit/pragmatic-drag-and-drop-auto-scroll": "^3.0.0",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^2.0.0",
+    "@base-ui/react": "^1.6.0",
     "@cascade/ui": "workspace:*",
     "@lexical/history": "^0.46.0",
     "@lexical/react": "^0.46.0",

@@ -1,6 +1,7 @@
 "use no memo";
 
 import type { ReactNode, RefObject } from "react";
+import { twMerge } from "tailwind-merge";
 import type { LexicalElementNode } from "../lexical/read/lexical-read-view";
 import { NodeActions } from "../node-actions";
 import { NodeCheckbox } from "../node-checkbox";
@@ -21,6 +22,10 @@ export interface VirtualTreeRowProps {
 	indentSize: number;
 	renderNodeLink?: (id: string) => ReactNode;
 	measureElement: (element: HTMLElement | null) => void;
+	/** Excluded by an active filter; rendered collapsed and out of the tab order. */
+	isHidden: boolean;
+	/** Not itself a filter match, but an ancestor of one; rendered dimmed. */
+	isContext: boolean;
 	editing: boolean;
 	focusPoint: FocusPoint | null;
 	onStartEdit: (point?: FocusPoint) => void;
@@ -58,7 +63,11 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 		<div
 			ref={measureElement}
 			data-index={index}
-			className="top-0 left-0 w-full absolute"
+			className={twMerge(
+				"top-0 left-0 w-full absolute",
+				props.isHidden && "hidden",
+				props.isContext && "opacity-45",
+			)}
 			style={{
 				transform: `translateY(${start}px)`,
 			}}

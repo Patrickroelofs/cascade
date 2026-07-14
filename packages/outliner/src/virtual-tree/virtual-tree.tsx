@@ -35,6 +35,8 @@ export function VirtualTree({
 	header,
 	className,
 	contentClassName,
+	hiddenRowIds,
+	contextRowIds,
 }: {
 	tree: VisibleTree;
 	indentSize?: number;
@@ -44,6 +46,10 @@ export function VirtualTree({
 	className?: string;
 	/** Overrides the inner content wrapper's default max-width/padding. */
 	contentClassName?: string;
+	/** Row ids to hide from view, e.g. rows excluded by an active filter. */
+	hiddenRowIds?: Set<string>;
+	/** Row ids to render dimmed but still visible, e.g. ancestors kept for context. */
+	contextRowIds?: Set<string>;
 }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const previewRef = useRef<ActiveDragPreview | null>(null);
@@ -184,6 +190,8 @@ export function VirtualTree({
 				{header}
 				{tree.rows.length === 0 ? (
 					<p className="text-sm py-4">{labels.emptyTree}</p>
+				) : hiddenRowIds && hiddenRowIds.size === tree.rows.length ? (
+					<p className="text-sm py-4">{labels.emptyFilterResults}</p>
 				) : (
 					<div
 						style={{
@@ -204,6 +212,8 @@ export function VirtualTree({
 									indentSize={indentSize}
 									renderNodeLink={renderNodeLink}
 									measureElement={virtualizer.measureElement}
+									isHidden={hiddenRowIds?.has(row.id) ?? false}
+									isContext={contextRowIds?.has(row.id) ?? false}
 									editing={editingNodeId === row.id}
 									focusPoint={editingNodeId === row.id ? focusPoint : null}
 									onStartEdit={(point) => {

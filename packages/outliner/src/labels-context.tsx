@@ -10,6 +10,7 @@ export interface OutlinerLabels {
 	convertInto: string;
 	delete: string;
 	emptyTree: string;
+	emptyFilterResults: string;
 	addNode: string;
 	setDueDate: string;
 	changeDueDate: string;
@@ -18,6 +19,18 @@ export interface OutlinerLabels {
 	dueTomorrow: string;
 	dueYesterday: string;
 	nodeTypeLabels: Record<NodeTypeName, string>;
+	filtersTrigger: string;
+	filtersDueDateGroup: string;
+	filtersDueToday: string;
+	filtersDueThisWeek: string;
+	filtersOverdue: string;
+	filtersOtherGroup: string;
+	filtersAssignee: string;
+	filtersStatus: string;
+	filtersSoon: string;
+	filtersRemoveDueToday: string;
+	filtersClear: string;
+	filtersShowing: (params: { shown: number; total: number }) => string;
 }
 
 export const defaultOutlinerLabels: OutlinerLabels = {
@@ -29,6 +42,7 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	convertInto: "Convert into",
 	delete: "Delete",
 	emptyTree: "This tree is empty. Add a node to get started.",
+	emptyFilterResults: "No nodes match the current filters.",
 	addNode: "Add node",
 	setDueDate: "Set date",
 	changeDueDate: "Change date",
@@ -39,6 +53,18 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	nodeTypeLabels: Object.fromEntries(
 		nodeTypeNames.map((type) => [type, nodeTypeDefs[type].label]),
 	) as Record<NodeTypeName, string>,
+	filtersTrigger: "Filter",
+	filtersDueDateGroup: "Due date",
+	filtersDueToday: "Due today",
+	filtersDueThisWeek: "Due this week",
+	filtersOverdue: "Overdue",
+	filtersOtherGroup: "Other",
+	filtersAssignee: "Assignee",
+	filtersStatus: "Status",
+	filtersSoon: "Soon",
+	filtersRemoveDueToday: "Remove Due today filter",
+	filtersClear: "Clear filters",
+	filtersShowing: ({ shown, total }) => `Showing ${shown} of ${total}`,
 };
 
 const OutlinerLabelsContext = createContext<OutlinerLabels | null>(null);
