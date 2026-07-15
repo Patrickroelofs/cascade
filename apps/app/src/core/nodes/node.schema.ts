@@ -4,12 +4,26 @@ import { sql } from "drizzle-orm";
 import {
 	type AnyPgColumn,
 	boolean,
+	customType,
 	index,
 	jsonb,
 	pgTable,
 	text,
 	timestamp,
 } from "drizzle-orm/pg-core";
+
+/**
+ * `text` with `COLLATE "C"` (byte-order comparison), matching migration
+ * 0000_uneven_gravity.sql. The `order` column's fractional-index keys are
+ * compared byte-by-byte to derive DFS order (see `visibleTree` in
+ * node.procedures.ts), so schema, generated migrations, and `db:push` must
+ * all agree on this collation.
+ */
+const collatedText = customType<{ data: string }>({
+	dataType() {
+		return `text COLLATE "C"`;
+	},
+});
 
 export const nodes = pgTable(
 	"nodes",
@@ -25,7 +39,7 @@ export const nodes = pgTable(
 		type: text().notNull().default("text").$type<NodeTypeName>(),
 		metadata: jsonb("metadata").$type<NodeMetadata>(),
 		expanded: boolean().notNull().default(false),
-		order: text("order").notNull(),
+		order: collatedText("order").notNull(),
 		createdAt: timestamp("created_at", { withTimezone: true })
 			.notNull()
 			.defaultNow(),
