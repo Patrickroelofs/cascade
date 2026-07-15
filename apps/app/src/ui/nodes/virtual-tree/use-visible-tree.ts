@@ -110,9 +110,11 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		try {
 			const { childrenDeleted } = await client.nodes.delete({ id });
 			toast.success(
-				childrenDeleted > 0
-					? m.node_deleted_with_children({ count: childrenDeleted })
-					: m.node_deleted(),
+				childrenDeleted > 64
+					? m.node_deleted_with_many_children()
+					: childrenDeleted > 0
+						? m.node_deleted_with_children({ count: childrenDeleted })
+						: m.node_deleted(),
 			);
 		} catch {
 			invalidate();
