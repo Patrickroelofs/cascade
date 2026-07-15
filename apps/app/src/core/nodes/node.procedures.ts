@@ -316,6 +316,12 @@ export const moveNode = authed
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
 		await db.transaction(async (tx) => {
+			// Serializes structural moves per user so the ancestor-chain cycle
+			// check below can't race with a concurrent move (e.g. A->B and B->A
+			// committing together would create a cycle). Held for the whole
+			// transaction and released automatically on commit/rollback.
+			await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`);
+
 			const [moved] = await tx
 				.select({ id: nodes.id })
 				.from(nodes)
@@ -328,12 +334,12 @@ export const moveNode = authed
 				// this user; an empty result means it doesn't.
 				const ancestors = (await tx.execute(sql`
 					WITH RECURSIVE ancestors AS (
-						SELECT id, parent_id FROM nodes
+						SELECT id, parent_id, 0 AS depth FROM nodes
 						WHERE id = ${input.parentId} AND user_id = ${userId}
 						UNION ALL
-						SELECT n.id, n.parent_id FROM nodes n
+						SELECT n.id, n.parent_id, a.depth + 1 FROM nodes n
 						JOIN ancestors a ON n.id = a.parent_id
-						WHERE n.user_id = ${userId}
+						WHERE n.user_id = ${userId} AND a.depth < 64
 					)
 					SELECT id FROM ancestors
 				`)) as unknown as { id: string }[];
