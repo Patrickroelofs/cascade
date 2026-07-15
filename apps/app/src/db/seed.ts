@@ -8,6 +8,8 @@ import { generateNKeysBetween } from "fractional-indexing";
 import { nodes } from "@/core/nodes/node.schema";
 import { db } from "@/db";
 
+// This seed-user can only be used in a local environment, and will be deleted and recreated each time the seed script is run.
+// The password being visible is intentional to make development easy and have a predictable user available.
 const DEV_USER = {
 	email: "dev@cascadelist.com",
 	password: "password1234",
@@ -230,7 +232,9 @@ async function main() {
 	if (created) {
 		console.log(`Sign in as ${DEV_USER.email} / ${DEV_USER.password}`);
 	} else {
-		console.log(`Signed in as existing user ${DEV_USER.email} (password unchanged).`);
+		console.log(
+			`Signed in as existing user ${DEV_USER.email} (password unchanged).`,
+		);
 	}
 	process.exit(0);
 }
