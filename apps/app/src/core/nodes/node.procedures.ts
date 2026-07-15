@@ -316,10 +316,6 @@ export const moveNode = authed
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
 		await db.transaction(async (tx) => {
-			// Serializes structural moves per user so the ancestor-chain cycle
-			// check below can't race with a concurrent move (e.g. A->B and B->A
-			// committing together would create a cycle). Held for the whole
-			// transaction and released automatically on commit/rollback.
 			await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`);
 
 			const [moved] = await tx
