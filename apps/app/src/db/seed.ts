@@ -10,7 +10,7 @@ import { db } from "@/db";
 
 const DEV_USER = {
 	email: "dev@cascadelist.com",
-	password: randomUUID(),
+	password: "password1234",
 	name: "Dev User",
 };
 
