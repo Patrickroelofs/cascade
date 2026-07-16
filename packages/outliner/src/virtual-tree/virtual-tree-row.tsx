@@ -8,7 +8,7 @@ import { NodeCheckbox } from "../node-checkbox";
 import { NodeDueDatePill } from "../node-due-date-pill";
 import { type FocusPoint, NodeEditor } from "../node-editor";
 import { DefaultNodeLink } from "../node-link-slot";
-import { NodeTagPills } from "../node-tags-pills";
+import { NodeTagsControl } from "../node-tags-pills";
 import { NodeToggle } from "../node-toggle";
 import type { NodeTypeName, VisibleNodeRow } from "../node-types";
 import { RowDragAndDrop } from "./row-drag-drop";
@@ -76,10 +76,8 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				<NodeActions
 					nodeType={row.type}
 					dueDate={dueDate}
-					tags={row.tags}
 					onConvert={props.onConvert}
 					onSetDueDate={props.onSetDueDate}
-					onSetTags={props.onSetTags}
 					onDelete={props.onDelete}
 					viewTransitionName={`node-${row.id}`}
 				>
@@ -124,7 +122,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							onChange={props.onSetDueDate}
 						/>
 					)}
-					{row.tags.length > 0 && <NodeTagPills tags={row.tags} />}
+					<NodeTagsControl tags={row.tags} onChange={props.onSetTags} />
 				</NodeActions>
 			</RowDragAndDrop>
 		</div>

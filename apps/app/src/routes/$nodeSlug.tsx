@@ -4,7 +4,7 @@ import { LexicalReadView } from "@cascade/outliner/lexical/read/lexical-read-vie
 import { toLexicalContent } from "@cascade/outliner/lexical-content";
 import { NodeCheckbox } from "@cascade/outliner/node-checkbox";
 import { NodeDueDatePill } from "@cascade/outliner/node-due-date-pill";
-import { NodeTagPills } from "@cascade/outliner/node-tags-pills";
+import { NodeTagsControl } from "@cascade/outliner/node-tags-pills";
 import type { NodeMetadataOf } from "@cascade/outliner/node-types";
 import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
@@ -79,6 +79,17 @@ function NodeDetailPage() {
 		}
 	};
 
+	const setTags = async (tags: string[]) => {
+		queryClient.setQueryData(options.queryKey, (old) =>
+			old ? { ...old, tags } : old,
+		);
+		try {
+			await client.nodes.setTags({ id: nodeId, tags });
+		} catch {
+			queryClient.invalidateQueries({ queryKey: options.queryKey });
+		}
+	};
+
 	// SSR hydration round-trips the query cache through JSON, which leaves
 	// dueDate as an ISO string instead of a Date; normalize it here so
 	// NodeDueDatePill always gets a real Date | null (see virtual-tree-row.tsx).
@@ -96,7 +107,7 @@ function NodeDetailPage() {
 						<Breadcrumbs nodeId={nodeId} />
 						<div
 							style={{ viewTransitionName: `node-${nodeId}` }}
-							className="text-2xl mb-8 flex items-center gap-3"
+							className="group/node text-2xl mb-8 flex items-center gap-3"
 						>
 							{node.type === "task" && (
 								<NodeCheckbox metadata={node.metadata} onToggle={toggleTask} />
@@ -109,7 +120,7 @@ function NodeDetailPage() {
 									onChange={setDueDate}
 								/>
 							)}
-							{node.tags.length > 0 && <NodeTagPills tags={node.tags} />}
+							<NodeTagsControl tags={node.tags} onChange={setTags} />
 						</div>
 					</>
 				}
