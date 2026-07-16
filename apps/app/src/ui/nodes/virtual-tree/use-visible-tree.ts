@@ -18,6 +18,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { m } from "#/paraglide/messages.js";
 import { client, orpc } from "@/orpc/client";
+import { existingTagsOptions } from "@/ui/nodes/use-existing-tags";
 
 interface VisibleTreeData {
 	rows: VisibleNodeRow[];
@@ -110,9 +111,11 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		try {
 			const { childrenDeleted } = await client.nodes.delete({ id });
 			toast.success(
-				childrenDeleted > 0
-					? m.node_deleted_with_children({ count: childrenDeleted })
-					: m.node_deleted(),
+				childrenDeleted > 64
+					? m.node_deleted_with_many_children()
+					: childrenDeleted > 0
+						? m.node_deleted_with_children({ count: childrenDeleted })
+						: m.node_deleted(),
 			);
 		} catch {
 			invalidate();
@@ -160,6 +163,20 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		}
 	};
 
+	const setTags = async (id: string, tags: string[]) => {
+		setRows((rows) => patchRow(rows, id, { tags }));
+		try {
+			await client.nodes.setTags({ id, tags });
+			// A brand-new tag name may have just been created; refresh the
+			// suggestion list so it's offered elsewhere without a reload.
+			queryClient.invalidateQueries({
+				queryKey: existingTagsOptions().queryKey,
+			});
+		} catch {
+			invalidate();
+		}
+	};
+
 	/** Create and append a new node as the last child of this view's root. */
 	const add = async ({ dueDate = null }: AddNodeOptions = {}) => {
 		const created = await client.nodes.create({ parentId: rootId, dueDate });
@@ -173,6 +190,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 				expanded: created.expanded,
 				order: created.order,
 				dueDate: created.dueDate,
+				tags: created.tags,
 				depth: 0,
 				path: [created.order],
 				hasChildren: created.hasChildren,
@@ -202,6 +220,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 				expanded: created.expanded,
 				order: created.order,
 				dueDate: created.dueDate,
+				tags: created.tags,
 				depth: sibling.depth,
 				path: [...sibling.path.slice(0, -1), created.order],
 				hasChildren: created.hasChildren,
@@ -240,6 +259,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		updateContent,
 		setType,
 		setDueDate,
+		setTags,
 		add,
 		addAfter,
 		loadMore,

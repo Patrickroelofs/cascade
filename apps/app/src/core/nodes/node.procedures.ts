@@ -1,15 +1,27 @@
+import { normalizeTags } from "@cascade/outliner/node-tags";
 import {
 	type NodeMetadata,
 	type NodeTypeName,
 	typedMetadataSchema,
 	type VisibleNodeRow,
 } from "@cascade/outliner/node-types";
-import { and, asc, desc, eq, gt, isNull, like, lt, sql } from "drizzle-orm";
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	gt,
+	isNull,
+	like,
+	lt,
+	sql,
+} from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
-import { nodeColumns } from "@/core/nodes/node.queries";
-import { nodes } from "@/core/nodes/node.schema";
 import { updateNodeContentInputSchema } from "@/core/nodes/node-content-schema";
+import { nodeColumns, nodeTagNames } from "@/core/nodes/node.queries";
+import { nodes, nodeTags, tags as tagsTable } from "@/core/nodes/node.schema";
 import { db } from "@/db";
 import { authed } from "@/orpc/context";
 import {
@@ -48,6 +60,7 @@ interface VisibleTreeSqlRow {
 	path: string[];
 	has_children: boolean;
 	is_last_child: boolean;
+	tags: string[];
 }
 
 /**
@@ -86,7 +99,8 @@ export const visibleTree = authed
 			)
 			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
 				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id AND ch.user_id = ${userId}) AS has_children,
-				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
+				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child,
+				${nodeTagNames(sql`v.id`)} AS tags
 			FROM visible v
 			${cursor ? sql`WHERE v.path > ${cursor}::text[]` : sql``}
 			ORDER BY v.path
@@ -103,6 +117,7 @@ export const visibleTree = authed
 			expanded: r.expanded,
 			order: r.order,
 			dueDate: r.due_date,
+			tags: r.tags,
 			depth: Number(r.depth),
 			path: r.path,
 			hasChildren: r.has_children,
@@ -280,6 +295,77 @@ export const setNodeDueDate = authed
 			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
 	});
 
+/** This user's tags with how many nodes each is on, sorted by name. */
+export const listTags = authed.handler(async ({ context }) => {
+	return await db
+		.select({ name: tagsTable.name, count: count(nodeTags.nodeId) })
+		.from(tagsTable)
+		.leftJoin(nodeTags, eq(nodeTags.tagId, tagsTable.id))
+		.where(eq(tagsTable.userId, context.user.id))
+		.groupBy(tagsTable.id)
+		.orderBy(asc(tagsTable.name));
+});
+
+/** Deletes a tag outright (cascades to every node it's on), not just one node's use of it. */
+export const deleteTag = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Tag not found" },
+	})
+	.input(z.object({ name: z.string() }))
+	.handler(async ({ input, context, errors }) => {
+		const deleted = await db
+			.delete(tagsTable)
+			.where(
+				and(
+					eq(tagsTable.userId, context.user.id),
+					eq(tagsTable.name, input.name),
+				),
+			)
+			.returning({ id: tagsTable.id });
+		if (deleted.length === 0) throw errors.NOT_FOUND();
+	});
+
+export const setNodeTags = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
+	.input(z.object({ id: z.string(), tags: z.array(z.string()) }))
+	.handler(async ({ input, context, errors }) => {
+		const userId = context.user.id;
+		const names = normalizeTags(input.tags);
+
+		await db.transaction(async (tx) => {
+			const [node] = await tx
+				.select({ id: nodes.id })
+				.from(nodes)
+				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)))
+				.limit(1);
+			if (!node) throw errors.NOT_FOUND();
+
+			let tagIds: string[] = [];
+			if (names.length > 0) {
+				// onConflictDoUpdate (no-op set) so RETURNING also yields ids for
+				// tags that already existed, not just newly-inserted ones.
+				const rows = await tx
+					.insert(tagsTable)
+					.values(names.map((name) => ({ userId, name })))
+					.onConflictDoUpdate({
+						target: [tagsTable.userId, tagsTable.name],
+						set: { name: sql`excluded.name` },
+					})
+					.returning({ id: tagsTable.id });
+				tagIds = rows.map((r) => r.id);
+			}
+
+			await tx.delete(nodeTags).where(eq(nodeTags.nodeId, input.id));
+			if (tagIds.length > 0) {
+				await tx
+					.insert(nodeTags)
+					.values(tagIds.map((tagId) => ({ nodeId: input.id, tagId })));
+			}
+		});
+	});
+
 export const setNodeType = authed
 	.input(z.object({ id: z.string() }).and(typedMetadataSchema))
 	.handler(async ({ input, context }) => {
@@ -317,6 +403,8 @@ export const moveNode = authed
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
 		await db.transaction(async (tx) => {
+			await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`);
+
 			const [moved] = await tx
 				.select({ id: nodes.id })
 				.from(nodes)
@@ -329,12 +417,12 @@ export const moveNode = authed
 				// this user; an empty result means it doesn't.
 				const ancestors = (await tx.execute(sql`
 					WITH RECURSIVE ancestors AS (
-						SELECT id, parent_id FROM nodes
+						SELECT id, parent_id, 0 AS depth FROM nodes
 						WHERE id = ${input.parentId} AND user_id = ${userId}
 						UNION ALL
-						SELECT n.id, n.parent_id FROM nodes n
+						SELECT n.id, n.parent_id, a.depth + 1 FROM nodes n
 						JOIN ancestors a ON n.id = a.parent_id
-						WHERE n.user_id = ${userId}
+						WHERE n.user_id = ${userId} AND a.depth < 64
 					)
 					SELECT id FROM ancestors
 				`)) as unknown as { id: string }[];
@@ -407,22 +495,19 @@ export const deleteNode = authed
 	.input(z.object({ id: z.string() }))
 	.handler(async ({ input, context }) => {
 		const userId = context.user.id;
-		const [{ count }] = (await db.execute(sql`
+		const [result] = (await db.execute(sql`
 			WITH RECURSIVE descendants AS (
-				SELECT id FROM nodes WHERE parent_id = ${input.id} AND user_id = ${userId}
+				SELECT id, 0 AS depth FROM nodes WHERE parent_id = ${input.id} AND user_id = ${userId}
 				UNION ALL
-				SELECT c.id FROM nodes c
+				SELECT c.id, d.depth + 1 FROM nodes c
 				JOIN descendants d ON c.parent_id = d.id
-				WHERE c.user_id = ${userId}
+				WHERE c.user_id = ${userId} AND d.depth < 64
 			)
-			SELECT count(*)::int AS count FROM descendants
-		`)) as unknown as [{ count: number }];
+			DELETE FROM nodes WHERE id = ${input.id} AND user_id = ${userId}
+			RETURNING (SELECT count(*) FROM descendants)::int AS count
+		`)) as unknown as { count: number }[];
 
-		await db
-			.delete(nodes)
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)));
-
-		return { childrenDeleted: count };
+		return { childrenDeleted: result?.count ?? 0 };
 	});
 
 export const updateNodeContent = authed

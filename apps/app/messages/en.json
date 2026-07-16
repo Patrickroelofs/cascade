@@ -45,6 +45,7 @@
 			}
 		}
 	],
+	"node_deleted_with_many_children": "Node deleted along with many child nodes",
 	"outliner_toggle_expand": "Expand",
 	"outliner_toggle_collapse": "Collapse",
 	"outliner_task_completed": "Task completed",
@@ -63,6 +64,15 @@
 	"outliner_due_today": "Today",
 	"outliner_due_tomorrow": "Tomorrow",
 	"outliner_due_yesterday": "Yesterday",
+	"outliner_add_tag": "Add tag",
+	"outliner_manage_tags": "Manage tags",
+	"outliner_tags_input_placeholder": "Add tag…",
+	"outliner_tag_hint_navigate": "navigate",
+	"outliner_tag_hint_toggle": "toggle",
+	"outliner_create_tag": "Create",
+	"outliner_delete_tag_aria": "Delete tag",
+	"outliner_delete_tag_confirm_body": "This removes it from every node it's on. This can't be undone.",
+	"outliner_cancel": "Cancel",
 	"filters_bar_trigger": "Filter",
 	"filters_bar_due_date_group": "Due date",
 	"filters_bar_due_today": "Due today",
