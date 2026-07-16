@@ -21,6 +21,7 @@ import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
 import { nodeColumns, nodeTagNames } from "@/core/nodes/node.queries";
 import { nodes, nodeTags, tags as tagsTable } from "@/core/nodes/node.schema";
+import { updateNodeContentInputSchema } from "@/core/nodes/node-content-schema";
 import { db } from "@/db";
 import { authed } from "@/orpc/context";
 import {
@@ -509,32 +510,8 @@ export const deleteNode = authed
 		return { childrenDeleted: result?.count ?? 0 };
 	});
 
-const lexicalTextNodeSchema = z
-	.object({
-		type: z.literal("text"),
-		text: z.string(),
-		format: z.number().optional(),
-	})
-	.passthrough();
-
-const lexicalElementNodeSchema: z.ZodType<unknown> = z.lazy(() =>
-	z
-		.object({
-			type: z.string(),
-			children: z
-				.array(z.union([lexicalTextNodeSchema, lexicalElementNodeSchema]))
-				.optional(),
-		})
-		.passthrough(),
-);
-
 export const updateNodeContent = authed
-	.input(
-		z.object({
-			id: z.string(),
-			content: z.object({ root: lexicalElementNodeSchema }),
-		}),
-	)
+	.input(updateNodeContentInputSchema)
 	.handler(async ({ input, context }) => {
 		await db
 			.update(nodes)
