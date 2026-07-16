@@ -54,9 +54,12 @@ const groupLabel = cva({
 const optionRow = cva({
 	base: [
 		"flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none",
-		"text-dark-grey dark:text-ginger",
+		"text-dark-grey dark:text-ginger hover:bg-ginger/70 dark:hover:bg-ginger/20",
 	],
 	variants: {
+		// Keyboard-driven (arrow keys), independent of CSS :hover above, so a
+		// stationary mouse resting over a suggestion can't silently hijack
+		// what Enter does while the user is typing something else.
 		highlighted: {
 			true: "bg-ginger/70 dark:bg-ginger/20",
 			false: "",
@@ -182,7 +185,6 @@ export function NodeTagsEditor({
 									key={tag}
 									type="button"
 									className={optionRow({ highlighted: i === highlighted })}
-									onMouseEnter={() => setHighlighted(i)}
 									onClick={() => addTag(tag)}
 								>
 									<TagIcon size={12} weight="bold" className="shrink-0" />
@@ -197,7 +199,6 @@ export function NodeTagsEditor({
 							className={optionRow({
 								highlighted: highlighted === suggestions.length,
 							})}
-							onMouseEnter={() => setHighlighted(suggestions.length)}
 							onClick={() => addTag(trimmedQuery)}
 						>
 							<PlusIcon size={12} weight="bold" className="shrink-0" />
