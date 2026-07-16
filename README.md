@@ -108,7 +108,7 @@ Tests authenticate once, reuse that session, and create throwaway nodes per test
 
 ## AI usage
 
-Use AI to accelerate implementation when the problem and solution are already understood. Do not use AI as a substitute for product/design thinking or core technical understanding.
+Use AI to accelerate implementation when the problem and solution are already understood. Do not use AI as a substitute for your own knowledge.
 
 ## Contributors
 
