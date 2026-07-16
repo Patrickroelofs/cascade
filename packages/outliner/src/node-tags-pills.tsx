@@ -17,7 +17,7 @@ const MAX_VISIBLE_TAGS = 4;
 
 const pill = cva({
 	base: [
-		"inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] font-medium",
+		"inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium",
 		"border-dark-grey/15 bg-transparent text-graphite dark:border-ginger/15 dark:text-ginger/60",
 	],
 	variants: {
@@ -52,7 +52,7 @@ function TagPillRow({
 	children?: ReactNode;
 }) {
 	return (
-		<span className="inline-flex shrink-0 flex-wrap items-center gap-1">
+		<span className="inline-flex shrink-0 flex-wrap items-center gap-1 pr-1">
 			{tags.slice(0, MAX_VISIBLE_TAGS).map((tag) => (
 				<span key={tag} className={pill()}>
 					<TagIcon size={11} weight="bold" />

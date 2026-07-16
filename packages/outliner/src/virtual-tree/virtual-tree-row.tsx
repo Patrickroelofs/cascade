@@ -123,14 +123,16 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 							onFocusPrevious={props.onFocusPrevious}
 						/>
 					</div>
-					{dueDate && (
-						<NodeDueDatePill
-							dueDate={dueDate}
-							completed={completed}
-							onChange={props.onSetDueDate}
-						/>
-					)}
-					<NodeTagPills tags={row.tags} />
+					<div className="flex gap-1">
+						{dueDate && (
+							<NodeDueDatePill
+								dueDate={dueDate}
+								completed={completed}
+								onChange={props.onSetDueDate}
+							/>
+						)}
+						<NodeTagPills tags={row.tags} />
+					</div>
 				</NodeActions>
 			</RowDragAndDrop>
 		</div>
