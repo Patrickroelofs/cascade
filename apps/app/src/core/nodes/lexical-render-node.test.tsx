@@ -2,7 +2,7 @@
 
 import { renderNode } from "@cascade/outliner/lexical/read/lexical-render-node";
 import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 afterEach(() => {
 	cleanup();
@@ -36,8 +36,14 @@ describe("renderNode", () => {
 	// mirrors the crash lexicalToPlainText had server-side on pathologically
 	// nested content read straight from storage.
 	it("does not crash or infinitely recurse on pathologically deep content", () => {
+		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
 		const deeplyNested = buildDeeplyNested(100_000);
-		expect(() => render(renderNode(deeplyNested, 0))).not.toThrow();
+		try {
+			expect(() => render(renderNode(deeplyNested, 0))).not.toThrow();
+		} finally {
+			consoleErrorSpy.mockRestore();
+		}
 	});
 
 	it("stops recursing once the render depth cap is exceeded", () => {

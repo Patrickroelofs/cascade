@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.10.0",
   "scripts": {
     "dev": "pnpm --filter app db:push && pnpm --filter app --filter web --parallel run dev",
+    "tsc": "pnpm --filter app exec tsc --noEmit && pnpm --filter web exec tsc --noEmit",
     "-----": "--------------------------",
     "dev:app": "pnpm --filter app dev",
     "generate-routes:app": "pnpm --filter app generate-routes",

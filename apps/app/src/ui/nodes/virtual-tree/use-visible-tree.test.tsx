@@ -42,6 +42,7 @@ const row: VisibleNodeRow = {
 	expanded: false,
 	order: "a0",
 	dueDate: null,
+	tags: [],
 	depth: 0,
 	path: ["a0"],
 	hasChildren: false,

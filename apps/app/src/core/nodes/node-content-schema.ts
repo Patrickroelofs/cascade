@@ -9,7 +9,22 @@ export const MAX_CONTENT_BYTES = 256 * 1024;
 
 // Explicit allowlist of the fields Lexical's built-in nodes (root, paragraph,
 // text, tab, linebreak) actually serialize, instead of `.passthrough()`.
-function lexicalNodeSchema(depth: number): z.ZodType<unknown> {
+export interface LexicalSchemaNode {
+	type: string;
+	text?: string;
+	format?: number | string;
+	detail?: number;
+	mode?: string;
+	style?: string;
+	indent?: number;
+	direction?: "ltr" | "rtl" | null;
+	version?: number;
+	textFormat?: number;
+	textStyle?: string;
+	children?: LexicalSchemaNode[];
+}
+
+function lexicalNodeSchema(depth: number): z.ZodType<LexicalSchemaNode> {
 	return z
 		.object({
 			type: z.string(),
@@ -37,6 +52,12 @@ function lexicalNodeSchema(depth: number): z.ZodType<unknown> {
 }
 
 export const lexicalElementNodeSchema = lexicalNodeSchema(0);
+export type LexicalElementNodeFromSchema = z.infer<
+	typeof lexicalElementNodeSchema
+>;
+export type LexicalContentFromSchema = {
+	root: LexicalElementNodeFromSchema;
+};
 
 export const updateNodeContentInputSchema = z
 	.object({
