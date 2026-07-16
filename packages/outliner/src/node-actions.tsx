@@ -28,6 +28,7 @@ interface NodeActionsProps {
 	onConvert: (type: NodeTypeName) => void;
 	onSetDueDate: (date: Date | null) => void;
 	onSetTags: (tags: string[]) => void;
+	onDeleteTag: (name: string) => void | Promise<void>;
 	onDelete: () => void;
 	viewTransitionName?: string;
 	children: ReactNode;
@@ -41,6 +42,7 @@ export function NodeActions({
 	onConvert,
 	onSetDueDate,
 	onSetTags,
+	onDeleteTag,
 	onDelete,
 	viewTransitionName,
 	children,
@@ -87,6 +89,7 @@ export function NodeActions({
 							tags={tags}
 							existingTags={existingTags}
 							onChange={onSetTags}
+							onDeleteTag={onDeleteTag}
 						/>
 					</ContextMenuSubContent>
 				</ContextMenuSub>

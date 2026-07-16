@@ -8,6 +8,7 @@ interface NodeTagsControlProps {
 	tags: string[];
 	existingTags: string[];
 	onChange: (tags: string[]) => void;
+	onDeleteTag: (name: string) => void | Promise<void>;
 }
 
 const MAX_VISIBLE_TAGS = 4;
@@ -81,6 +82,7 @@ export function NodeTagsControl({
 	tags,
 	existingTags,
 	onChange,
+	onDeleteTag,
 }: NodeTagsControlProps) {
 	const labels = useOutlinerLabels();
 	const visible = tags.slice(0, MAX_VISIBLE_TAGS);
@@ -118,6 +120,7 @@ export function NodeTagsControl({
 					tags={tags}
 					existingTags={existingTags}
 					onChange={onChange}
+					onDeleteTag={onDeleteTag}
 				/>
 			</PopoverContent>
 		</Popover>

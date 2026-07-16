@@ -19,6 +19,7 @@ import { NodeLink } from "#/ui/nodes/node-link";
 import { splitNodeSlug } from "#/ui/nodes/node-slug";
 import {
 	existingTagsOptions,
+	useDeleteTag,
 	useExistingTags,
 } from "#/ui/nodes/use-existing-tags";
 import { useNodeFilters } from "#/ui/nodes/use-node-filters";
@@ -58,6 +59,7 @@ function NodeDetailPage() {
 	const options = orpc.nodes.get.queryOptions({ input: { id: nodeId } });
 	const { data: node } = useSuspenseQuery(options);
 	const existingTags = useExistingTags();
+	const deleteTag = useDeleteTag();
 
 	const toggleTask = async (completed: boolean) => {
 		queryClient.setQueryData(options.queryKey, (old) =>
@@ -91,6 +93,9 @@ function NodeDetailPage() {
 		);
 		try {
 			await client.nodes.setTags({ id: nodeId, tags });
+			queryClient.invalidateQueries({
+				queryKey: existingTagsOptions().queryKey,
+			});
 		} catch {
 			queryClient.invalidateQueries({ queryKey: options.queryKey });
 		}
@@ -130,11 +135,13 @@ function NodeDetailPage() {
 								tags={node.tags}
 								existingTags={existingTags}
 								onChange={setTags}
+								onDeleteTag={deleteTag}
 							/>
 						</div>
 					</>
 				}
 				existingTags={existingTags}
+				onDeleteTag={deleteTag}
 			/>
 		</Suspense>
 	);
@@ -144,10 +151,12 @@ function NodeTree({
 	nodeId,
 	header,
 	existingTags,
+	onDeleteTag,
 }: {
 	nodeId: string;
 	header: ReactNode;
 	existingTags: string[];
+	onDeleteTag: (name: string) => void | Promise<void>;
 }) {
 	const tree = useVisibleTree(nodeId);
 	const { settings } = useSettings();
@@ -171,6 +180,7 @@ function NodeTree({
 			contextRowIds={visibility.contextIds}
 			newNodeDueDate={filters.dueToday ? new Date() : undefined}
 			existingTags={existingTags}
+			onDeleteTag={onDeleteTag}
 		/>
 	);
 }

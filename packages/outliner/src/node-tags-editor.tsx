@@ -1,6 +1,6 @@
-import { Combobox } from "@base-ui/react";
+import { AlertDialog, Combobox } from "@base-ui/react";
 import { cva } from "@cascade/ui/cva.config";
-import { PlusIcon, TagIcon, XIcon } from "@phosphor-icons/react/ssr";
+import { PlusIcon, TagIcon, TrashIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { type KeyboardEvent, useMemo, useRef, useState } from "react";
 import { useOutlinerLabels } from "./labels-context";
 import { normalizeTags } from "./node-tags";
@@ -10,6 +10,9 @@ interface NodeTagsEditorProps {
 	/** This user's other tag names, for the suggestion list (already sorted). */
 	existingTags: string[];
 	onChange: (tags: string[]) => void;
+	/** Deletes the tag outright (every node that has it loses it), not just
+	 * this node's use of it. */
+	onDeleteTag: (name: string) => void | Promise<void>;
 }
 
 const MAX_SUGGESTIONS = 6;
@@ -53,7 +56,7 @@ const groupLabel = cva({
 
 const optionRow = cva({
 	base: [
-		"flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm outline-none",
+		"group/option flex w-full items-center gap-1 rounded-md pr-1 pl-2 text-sm outline-none",
 		"text-dark-grey dark:text-ginger hover:bg-ginger/70 dark:hover:bg-ginger/20",
 	],
 	variants: {
@@ -67,14 +70,31 @@ const optionRow = cva({
 	},
 });
 
+const optionButton = cva({
+	base: "flex min-w-0 flex-1 cursor-pointer items-center gap-2 py-1.5 text-left outline-none",
+});
+
+const deleteTagButton = cva({
+	base: [
+		"flex shrink-0 items-center justify-center rounded-md size-6 outline-none cursor-pointer",
+		"opacity-0 group-hover/option:opacity-100 focus-visible:opacity-100",
+		"text-graphite/60 hover:bg-redleather/10 hover:text-redleather",
+		"focus-visible:ring-2 focus-visible:ring-redleather/50",
+		"dark:text-ginger/50 dark:hover:bg-redleather/15",
+	],
+});
+
 export function NodeTagsEditor({
 	tags,
 	existingTags,
 	onChange,
+	onDeleteTag,
 }: NodeTagsEditorProps) {
 	const labels = useOutlinerLabels();
 	const [query, setQuery] = useState("");
 	const [highlighted, setHighlighted] = useState(-1);
+	const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const trimmedQuery = query.trim();
@@ -149,6 +169,17 @@ export function NodeTagsEditor({
 		}
 	};
 
+	const confirmDelete = async () => {
+		if (!pendingDelete) return;
+		setIsDeleting(true);
+		try {
+			await onDeleteTag(pendingDelete);
+		} finally {
+			setIsDeleting(false);
+			setPendingDelete(null);
+		}
+	};
+
 	return (
 		<Combobox.Root
 			multiple
@@ -192,15 +223,30 @@ export function NodeTagsEditor({
 						<>
 							<div className={groupLabel()}>{labels.tagSuggestions}</div>
 							{suggestions.map((tag, i) => (
-								<button
+								<div
 									key={tag}
-									type="button"
 									className={optionRow({ highlighted: i === highlighted })}
-									onClick={() => addTag(tag)}
 								>
-									<TagIcon size={12} weight="bold" className="shrink-0" />
-									<span className="truncate">{tag}</span>
-								</button>
+									<button
+										type="button"
+										className={optionButton()}
+										onClick={() => addTag(tag)}
+									>
+										<TagIcon size={12} weight="bold" className="shrink-0" />
+										<span className="truncate">{tag}</span>
+									</button>
+									<button
+										type="button"
+										className={deleteTagButton()}
+										aria-label={`${labels.deleteTagAria}: ${tag}`}
+										onClick={(e) => {
+											e.stopPropagation();
+											setPendingDelete(tag);
+										}}
+									>
+										<TrashIcon size={12} weight="bold" />
+									</button>
+								</div>
 							))}
 						</>
 					)}
@@ -212,14 +258,53 @@ export function NodeTagsEditor({
 							})}
 							onClick={() => addTag(trimmedQuery)}
 						>
-							<PlusIcon size={12} weight="bold" className="shrink-0" />
-							<span className="truncate">
-								{labels.createTag} &ldquo;{trimmedQuery}&rdquo;
+							<span className="flex min-w-0 flex-1 items-center gap-2 py-1.5">
+								<PlusIcon size={12} weight="bold" className="shrink-0" />
+								<span className="truncate">
+									{labels.createTag} &ldquo;{trimmedQuery}&rdquo;
+								</span>
 							</span>
 						</button>
 					)}
 				</div>
 			)}
+			<AlertDialog.Root
+				open={pendingDelete !== null}
+				onOpenChange={(open) => {
+					if (!open) setPendingDelete(null);
+				}}
+			>
+				<AlertDialog.Portal>
+					<AlertDialog.Backdrop className="fixed inset-0 z-50 bg-ginger/20 backdrop-blur-sm" />
+					<AlertDialog.Popup
+						className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg border border-dark-grey/10 bg-white p-6 text-dark-grey shadow-lg shadow-dark-grey/15 outline-none dark:border-ginger/15 dark:bg-dark-grey dark:text-ginger"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<AlertDialog.Title className="text-lg font-semibold">
+							{labels.delete} &ldquo;{pendingDelete}&rdquo;?
+						</AlertDialog.Title>
+						<AlertDialog.Description className="mt-2 text-sm text-dark-grey dark:text-ginger">
+							{labels.deleteTagConfirmBody}
+						</AlertDialog.Description>
+						<div className="mt-6 flex justify-end gap-2">
+							<AlertDialog.Close
+								disabled={isDeleting}
+								className="cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none hover:bg-ginger/70 focus-visible:ring-2 focus-visible:ring-redleather/50 disabled:cursor-default disabled:opacity-40 dark:hover:bg-ginger/20"
+							>
+								{labels.cancel}
+							</AlertDialog.Close>
+							<button
+								type="button"
+								onClick={confirmDelete}
+								disabled={isDeleting}
+								className="cursor-pointer rounded-md bg-redleather px-3 py-1.5 text-sm text-super-ginger outline-none hover:bg-redleather/90 focus-visible:ring-2 focus-visible:ring-redleather/50 disabled:cursor-default disabled:opacity-40"
+							>
+								{isDeleting ? labels.deletingTag : labels.delete}
+							</button>
+						</div>
+					</AlertDialog.Popup>
+				</AlertDialog.Portal>
+			</AlertDialog.Root>
 		</Combobox.Root>
 	);
 }

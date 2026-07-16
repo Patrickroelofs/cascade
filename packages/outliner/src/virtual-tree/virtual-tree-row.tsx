@@ -37,6 +37,7 @@ export interface VirtualTreeRowProps {
 	onToggleTask: (completed: boolean) => void;
 	onSetDueDate: (date: Date | null) => void;
 	onSetTags: (tags: string[]) => void;
+	onDeleteTag: (name: string) => void | Promise<void>;
 	onDelete: () => void;
 	onSaveContent: (content: { root: LexicalElementNode }) => void;
 	onCreateBelow: () => void;
@@ -83,6 +84,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					onConvert={props.onConvert}
 					onSetDueDate={props.onSetDueDate}
 					onSetTags={props.onSetTags}
+					onDeleteTag={props.onDeleteTag}
 					onDelete={props.onDelete}
 					viewTransitionName={`node-${row.id}`}
 				>

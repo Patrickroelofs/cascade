@@ -18,6 +18,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { m } from "#/paraglide/messages.js";
 import { client, orpc } from "@/orpc/client";
+import { existingTagsOptions } from "@/ui/nodes/use-existing-tags";
 
 interface VisibleTreeData {
 	rows: VisibleNodeRow[];
@@ -165,6 +166,11 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		setRows((rows) => patchRow(rows, id, { tags }));
 		try {
 			await client.nodes.setTags({ id, tags });
+			// A brand-new tag name may have just been created; refresh the
+			// suggestion list so it's offered elsewhere without a reload.
+			queryClient.invalidateQueries({
+				queryKey: existingTagsOptions().queryKey,
+			});
 		} catch {
 			invalidate();
 		}

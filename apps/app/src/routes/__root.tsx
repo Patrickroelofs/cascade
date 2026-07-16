@@ -134,6 +134,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								removeTagAria: m.outliner_remove_tag_aria(),
 								tagSuggestions: m.outliner_tag_suggestions(),
 								createTag: m.outliner_create_tag(),
+								deleteTagAria: m.outliner_delete_tag_aria(),
+								deleteTagConfirmBody: m.outliner_delete_tag_confirm_body(),
+								deletingTag: m.outliner_deleting_tag(),
+								cancel: m.outliner_cancel(),
 								nodeTypeLabels: {
 									text: m.outliner_type_text(),
 									task: m.outliner_type_task(),

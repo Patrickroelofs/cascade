@@ -1,6 +1,7 @@
 import {
 	createNode,
 	deleteNode,
+	deleteTag,
 	getNode,
 	getNodeAncestors,
 	listNodes,
@@ -31,5 +32,6 @@ export default {
 		setDueDate: setNodeDueDate,
 		setTags: setNodeTags,
 		tagNames: listTagNames,
+		deleteTag,
 	},
 };

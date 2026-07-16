@@ -292,6 +292,25 @@ export const listTagNames = authed.handler(async ({ context }) => {
 	return rows.map((r) => r.name);
 });
 
+/** Deletes a tag outright (cascades to every node it's on), not just one node's use of it. */
+export const deleteTag = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Tag not found" },
+	})
+	.input(z.object({ name: z.string() }))
+	.handler(async ({ input, context, errors }) => {
+		const deleted = await db
+			.delete(tagsTable)
+			.where(
+				and(
+					eq(tagsTable.userId, context.user.id),
+					eq(tagsTable.name, input.name),
+				),
+			)
+			.returning({ id: tagsTable.id });
+		if (deleted.length === 0) throw errors.NOT_FOUND();
+	});
+
 export const setNodeTags = authed
 	.errors({
 		NOT_FOUND: { status: 404, message: "Node not found" },
