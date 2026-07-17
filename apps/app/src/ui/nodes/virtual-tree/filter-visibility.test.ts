@@ -124,7 +124,9 @@ describe("getRowVisibility with dueThisWeek", () => {
 		expect(visibility.hiddenIds).toEqual(new Set(["done"]));
 	});
 
-	it("combines with dueToday so only rows matching both remain", () => {
+	// The UI keeps due-date filters mutually exclusive; if both are ever
+	// active anyway, rows must satisfy every active filter.
+	it("requires rows to match all active filters when both are set", () => {
 		const rows = [
 			row("due-wednesday", null, 0, new Date(2026, 6, 15)),
 			row("due-friday", null, 0, friday),

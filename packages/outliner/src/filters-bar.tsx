@@ -97,7 +97,14 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 											checked={filters[filter.key]}
 											closeOnClick
 											onCheckedChange={(checked) =>
-												onFiltersChange({ ...filters, [filter.key]: checked })
+												// Due-date filters are mutually exclusive: picking one
+												// replaces whichever was active.
+												onFiltersChange({
+													...filters,
+													dueToday: false,
+													dueThisWeek: false,
+													[filter.key]: checked,
+												})
 											}
 										>
 											<CalendarIcon size={13} weight="bold" />

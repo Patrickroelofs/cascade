@@ -1,7 +1,7 @@
 # Changelog
 
 ## 2026-07-17
-- Filter on due date `this week`, showing everything due between Monday and Sunday of the current week; combinable with the existing `today` filter. [#215](https://github.com/Patrickroelofs/cascade/issues/215)
+- Filter on due date `this week`, showing everything due between Monday and Sunday of the current week; selecting it replaces the `today` filter and vice versa. [#215](https://github.com/Patrickroelofs/cascade/issues/215)
 
 ## 2026-07-16
 - Nodes can now be tagged: add or create tags from the row's context menu or the node page, and delete a tag everywhere in one step. [#78](https://github.com/Patrickroelofs/cascade/issues/78)
