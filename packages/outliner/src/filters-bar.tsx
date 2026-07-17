@@ -2,6 +2,8 @@ import { Menu } from "@base-ui/react";
 import { Calendar } from "@cascade/ui/calendar";
 import { cva } from "@cascade/ui/cva.config";
 import {
+	CalendarDotIcon,
+	CalendarDotsIcon,
 	CalendarIcon,
 	CaretRightIcon,
 	CheckIcon,
@@ -110,11 +112,13 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 			key: "dueToday",
 			label: labels.filtersDueToday,
 			removeLabel: labels.filtersRemoveDueToday,
+			icon: CalendarDotIcon,
 		},
 		{
 			key: "dueThisWeek",
 			label: labels.filtersDueThisWeek,
 			removeLabel: labels.filtersRemoveDueThisWeek,
+			icon: CalendarDotsIcon,
 		},
 	] as const;
 
@@ -140,8 +144,6 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 											checked={filters[filter.key]}
 											closeOnClick
 											onCheckedChange={(checked) =>
-												// Due-date filters are mutually exclusive: picking one
-												// replaces whichever was active.
 												onFiltersChange({
 													...filters,
 													dueToday: false,
@@ -151,7 +153,7 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 												})
 											}
 										>
-											<CalendarIcon size={13} weight="bold" />
+											<filter.icon size={13} weight="bold" />
 											{filter.label}
 											<Menu.CheckboxItemIndicator className="ml-auto">
 												<CheckIcon size={13} weight="bold" />
@@ -177,8 +179,6 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 													<Calendar
 														value={filters.dueOnDate}
 														onSelect={(date) => {
-															// Mutually exclusive with the other due-date
-															// filters, same as the checkbox items above.
 															onFiltersChange({
 																...filters,
 																dueToday: false,

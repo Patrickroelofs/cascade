@@ -18,9 +18,6 @@ const MAX_VISIBLE_TAGS = 4;
 const pill = cva({
 	base: "inline-flex min-w-0 max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap",
 	variants: {
-		// Low-alpha border/background, full-strength text — the due-date
-		// pill's tint recipe. Each hue's dark variant is hand-tuned (shifted a
-		// shade lighter, not just inverted) for contrast on dark-grey.
 		hue: {
 			neutral:
 				"border-dark-grey/15 bg-transparent text-graphite dark:border-ginger/15 dark:text-ginger/60",
@@ -68,11 +65,11 @@ function TagPillRow({
 	children?: ReactNode;
 }) {
 	return (
-		<span className="inline-flex min-w-0 max-w-full items-center gap-1 overflow-hidden">
+		<span className="inline-flex max-w-full items-center gap-1">
 			{tags.slice(0, MAX_VISIBLE_TAGS).map((tag) => (
 				<span key={tag} className={pill({ hue: tagHue(tag) })}>
 					<TagIcon size={11} weight="bold" />
-					<span className="max-w-28 truncate">{tag}</span>
+					<span className="max-w-28 shrink-0">{tag}</span>
 				</span>
 			))}
 			{children}
