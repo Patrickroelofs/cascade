@@ -32,6 +32,8 @@ export interface OutlinerLabels {
 	filtersDueDateGroup: string;
 	filtersDueToday: string;
 	filtersRemoveDueToday: string;
+	filtersDueThisWeek: string;
+	filtersRemoveDueThisWeek: string;
 	filtersClear: string;
 }
 
@@ -69,6 +71,8 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	filtersDueDateGroup: "Due date",
 	filtersDueToday: "Due today",
 	filtersRemoveDueToday: "Remove Due today filter",
+	filtersDueThisWeek: "Due this week",
+	filtersRemoveDueThisWeek: "Remove Due this week filter",
 	filtersClear: "Clear filters",
 };
 
