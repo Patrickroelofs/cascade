@@ -104,6 +104,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							filtersDueDateGroup: m.filters_bar_due_date_group(),
 							filtersDueToday: m.filters_bar_due_today(),
 							filtersRemoveDueToday: m.filters_bar_remove_due_today(),
+							filtersDueThisWeek: m.filters_bar_due_this_week(),
+							filtersRemoveDueThisWeek: m.filters_bar_remove_due_this_week(),
 							filtersClear: m.filters_bar_clear(),
 						}}
 					>

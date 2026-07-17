@@ -1,5 +1,5 @@
-import { dueBucket } from "../due-date-bucket";
-import type { NodeFilters } from "../node-filters";
+import { dueBucket, isDueThisWeek } from "../due-date-bucket";
+import { hasActiveFilters, type NodeFilters } from "../node-filters";
 import type { VisibleNodeRow } from "../node-types";
 import { subtreeRange } from "./visible-rows";
 
@@ -26,18 +26,11 @@ export function getRowVisibility(
 	rows: VisibleNodeRow[],
 	filters: NodeFilters,
 ): RowVisibility {
-	if (!filters.dueToday) return emptyVisibility;
+	if (!hasActiveFilters(filters)) return emptyVisibility;
 
 	const parentById = new Map(rows.map((row) => [row.id, row.parentId]));
 	const matchIds = new Set(
-		rows
-			.filter((row) => {
-				if (!row.dueDate) return false;
-				const completed =
-					row.type === "task" && (row.metadata?.completed ?? false);
-				return dueBucket(new Date(row.dueDate), completed) === "today";
-			})
-			.map((row) => row.id),
+		rows.filter((row) => rowMatchesFilters(row, filters)).map((row) => row.id),
 	);
 
 	const contextIds = new Set<string>();
@@ -70,4 +63,20 @@ export function getRowVisibility(
 	);
 
 	return { hiddenIds, contextIds };
+}
+
+/** A row matches when it satisfies every active due-date filter. */
+function rowMatchesFilters(row: VisibleNodeRow, filters: NodeFilters): boolean {
+	if (!row.dueDate) return false;
+	const completed = row.type === "task" && (row.metadata?.completed ?? false);
+	if (
+		filters.dueToday &&
+		dueBucket(new Date(row.dueDate), completed) !== "today"
+	) {
+		return false;
+	}
+	if (filters.dueThisWeek && !isDueThisWeek(new Date(row.dueDate), completed)) {
+		return false;
+	}
+	return true;
 }

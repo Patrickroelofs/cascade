@@ -55,12 +55,25 @@ const chip = cva({
 /**
  * Entry point for outliner filters: a Filter menu grouped by field, active
  * filters rendered as removable chips, and a match count once something is
- * active. Only "Due today" is wired up today; the rest of the menu previews
- * where this is headed without shipping half-built filters.
+ * active. Only the due-date filters are wired up today; the rest of the menu
+ * previews where this is headed without shipping half-built filters.
  */
 export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 	const labels = useOutlinerLabels();
 	const active = hasActiveFilters(filters);
+
+	const dueDateFilters = [
+		{
+			key: "dueToday",
+			label: labels.filtersDueToday,
+			removeLabel: labels.filtersRemoveDueToday,
+		},
+		{
+			key: "dueThisWeek",
+			label: labels.filtersDueThisWeek,
+			removeLabel: labels.filtersRemoveDueThisWeek,
+		},
+	] as const;
 
 	return (
 		<div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-dark-grey/10 pb-3 dark:border-ginger/10">
@@ -77,39 +90,47 @@ export function FiltersBar({ filters, onFiltersChange }: FiltersBarProps) {
 									<Menu.GroupLabel className={groupLabel()}>
 										{labels.filtersDueDateGroup}
 									</Menu.GroupLabel>
-									<Menu.CheckboxItem
-										className={menuItem()}
-										checked={filters.dueToday}
-										closeOnClick
-										onCheckedChange={(checked) =>
-											onFiltersChange({ ...filters, dueToday: checked })
-										}
-									>
-										<CalendarIcon size={13} weight="bold" />
-										{labels.filtersDueToday}
-										<Menu.CheckboxItemIndicator className="ml-auto">
-											<CheckIcon size={13} weight="bold" />
-										</Menu.CheckboxItemIndicator>
-									</Menu.CheckboxItem>
+									{dueDateFilters.map((filter) => (
+										<Menu.CheckboxItem
+											key={filter.key}
+											className={menuItem()}
+											checked={filters[filter.key]}
+											closeOnClick
+											onCheckedChange={(checked) =>
+												onFiltersChange({ ...filters, [filter.key]: checked })
+											}
+										>
+											<CalendarIcon size={13} weight="bold" />
+											{filter.label}
+											<Menu.CheckboxItemIndicator className="ml-auto">
+												<CheckIcon size={13} weight="bold" />
+											</Menu.CheckboxItemIndicator>
+										</Menu.CheckboxItem>
+									))}
 								</Menu.Group>
 							</Menu.Popup>
 						</Menu.Positioner>
 					</Menu.Portal>
 				</Menu.Root>
 
-				{filters.dueToday && (
-					<span className={chip()}>
-						<CalendarIcon size={11} weight="bold" />
-						{labels.filtersDueToday}
-						<button
-							type="button"
-							aria-label={labels.filtersRemoveDueToday}
-							className="flex size-4 items-center justify-center rounded-full outline-none hover:bg-dark-grey/10 focus-visible:ring-2 focus-visible:ring-redleather/50 dark:hover:bg-ginger/15"
-							onClick={() => onFiltersChange({ ...filters, dueToday: false })}
-						>
-							<XIcon size={9} weight="bold" />
-						</button>
-					</span>
+				{dueDateFilters.map(
+					(filter) =>
+						filters[filter.key] && (
+							<span key={filter.key} className={chip()}>
+								<CalendarIcon size={11} weight="bold" />
+								{filter.label}
+								<button
+									type="button"
+									aria-label={filter.removeLabel}
+									className="flex size-4 items-center justify-center rounded-full outline-none hover:bg-dark-grey/10 focus-visible:ring-2 focus-visible:ring-redleather/50 dark:hover:bg-ginger/15"
+									onClick={() =>
+										onFiltersChange({ ...filters, [filter.key]: false })
+									}
+								>
+									<XIcon size={9} weight="bold" />
+								</button>
+							</span>
+						),
 				)}
 			</div>
 
