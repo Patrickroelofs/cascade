@@ -67,9 +67,7 @@ function NodeDetailPage() {
 
 	const invalidateNode = () =>
 		queryClient.invalidateQueries({ queryKey: options.queryKey });
-
-	// These callbacks are fire-and-forget; failures are already surfaced via
-	// each mutation's onError (which invalidates the node-detail query).
+	
 	const swallow = async (promise: Promise<unknown>) => {
 		try {
 			await promise;
