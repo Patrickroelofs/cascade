@@ -27,7 +27,7 @@ import { useOptimisticNodeMutation } from "#/ui/nodes/use-optimistic-node-mutati
 import {
 	useVisibleTree,
 	visibleTreeOptions,
-} from "#/ui/nodes/virtual-tree/use-visible-tree";
+} from "#/ui/nodes/virtual-tree/data/use-visible-tree";
 import { useSettings } from "#/ui/settings-context";
 
 export const Route = createFileRoute("/$nodeSlug")({
