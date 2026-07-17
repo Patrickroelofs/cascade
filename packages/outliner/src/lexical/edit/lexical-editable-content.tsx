@@ -1,4 +1,4 @@
-import { $createLinkNode } from "@lexical/link";
+import { $createLinkNode, registerAutoLink } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
@@ -19,6 +19,7 @@ import {
 import { useEffect, useRef } from "react";
 import type { FocusPoint } from "../../node-editor";
 import type { LexicalElementNode } from "../read/lexical-read-view";
+import { finalizePendingAutoLinks, urlLinkMatcher } from "./autolink-utils";
 import { extractPastedUrl, tidyLinkLabel } from "./link-paste-utils";
 
 interface EditableContentProps {
@@ -59,6 +60,9 @@ export function EditableContent({
 	const lastSavedRef = useRef<string | null>(null);
 
 	const save = () => {
+		// A url the user typed (rather than pasted) is still showing as raw
+		// autolinked text at this point; tidy it now that they're moving on.
+		finalizePendingAutoLinks(editor);
 		const state = editor.getEditorState().toJSON();
 		const serialized = JSON.stringify(state);
 		if (serialized === lastSavedRef.current) return;
@@ -143,6 +147,14 @@ export function EditableContent({
 			},
 			COMMAND_PRIORITY_HIGH,
 		);
+	}, [editor]);
+
+	useEffect(() => {
+		return registerAutoLink(editor, {
+			matchers: [urlLinkMatcher],
+			changeHandlers: [],
+			excludeParents: [],
+		});
 	}, [editor]);
 
 	useEffect(() => {
