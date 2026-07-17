@@ -54,14 +54,6 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: options.queryKey });
 
-	// The VisibleTree contract is fire-and-forget (`void | Promise<void>`);
-	// failures are already surfaced via each mutation's onError (toast/invalidate).
-	const swallow = async (promise: Promise<unknown>) => {
-		try {
-			await promise;
-		} catch {}
-	};
-
 	const toggleMutation = useMutation({
 		mutationFn: async ({ id, expanded }: { id: string; expanded: boolean }) => {
 			if (expanded) {
@@ -82,7 +74,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		onError: () => invalidate(),
 	});
 	const toggle = (id: string, expanded: boolean) =>
-		swallow(toggleMutation.mutateAsync({ id, expanded }));
+		toggleMutation.mutate({ id, expanded });
 
 	const moveMutation = useMutation({
 		mutationFn: async ({
@@ -149,7 +141,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		},
 		onError: () => invalidate(),
 	});
-	const remove = (id: string) => swallow(removeMutation.mutateAsync({ id }));
+	const remove = (id: string) => removeMutation.mutate({ id });
 
 	const updateContentMutation = useMutation({
 		mutationFn: (vars: { id: string; content: { root: unknown } }) =>
@@ -173,7 +165,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		},
 	});
 	const updateContent = (id: string, content: { root: unknown }) =>
-		swallow(updateContentMutation.mutateAsync({ id, content }));
+		updateContentMutation.mutate({ id, content });
 
 	/** Convert a node's type or update its per-type metadata (e.g. task completion). */
 	const setTypeMutation = useMutation({
@@ -186,7 +178,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		onError: () => invalidate(),
 	});
 	const setType = (id: string, typed: TypedMetadata) =>
-		swallow(setTypeMutation.mutateAsync({ id, ...typed }));
+		setTypeMutation.mutate({ id, ...typed });
 
 	const setDueDateMutation = useMutation({
 		mutationFn: (vars: { id: string; dueDate: Date | null }) =>
@@ -196,7 +188,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		onError: () => invalidate(),
 	});
 	const setDueDate = (id: string, dueDate: Date | null) =>
-		swallow(setDueDateMutation.mutateAsync({ id, dueDate }));
+		setDueDateMutation.mutate({ id, dueDate });
 
 	const setTagsMutation = useMutation({
 		mutationFn: (vars: { id: string; tags: string[] }) =>
@@ -212,7 +204,7 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 		onError: () => invalidate(),
 	});
 	const setTags = (id: string, tags: string[]) =>
-		swallow(setTagsMutation.mutateAsync({ id, tags }));
+		setTagsMutation.mutate({ id, tags });
 
 	const createMutation = useMutation({
 		mutationFn: (vars: {

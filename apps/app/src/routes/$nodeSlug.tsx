@@ -67,12 +67,6 @@ function NodeDetailPage() {
 
 	const invalidateNode = () =>
 		queryClient.invalidateQueries({ queryKey: options.queryKey });
-	
-	const swallow = async (promise: Promise<unknown>) => {
-		try {
-			await promise;
-		} catch {}
-	};
 
 	const toggleTaskMutation = useMutation({
 		mutationFn: (completed: boolean) =>
@@ -88,7 +82,7 @@ function NodeDetailPage() {
 		onError: invalidateNode,
 	});
 	const toggleTask = (completed: boolean) =>
-		swallow(toggleTaskMutation.mutateAsync(completed));
+		toggleTaskMutation.mutate(completed);
 
 	const setDueDateMutation = useMutation({
 		mutationFn: (dueDate: Date | null) =>
@@ -100,7 +94,7 @@ function NodeDetailPage() {
 		onError: invalidateNode,
 	});
 	const setDueDate = (dueDate: Date | null) =>
-		swallow(setDueDateMutation.mutateAsync(dueDate));
+		setDueDateMutation.mutate(dueDate);
 
 	const setTagsMutation = useMutation({
 		mutationFn: (tags: string[]) => client.nodes.setTags({ id: nodeId, tags }),
@@ -114,8 +108,7 @@ function NodeDetailPage() {
 			}),
 		onError: invalidateNode,
 	});
-	const setTags = (tags: string[]) =>
-		swallow(setTagsMutation.mutateAsync(tags));
+	const setTags = (tags: string[]) => setTagsMutation.mutate(tags);
 
 	// SSR hydration round-trips the query cache through JSON, which leaves
 	// dueDate as an ISO string instead of a Date; normalize it here so
