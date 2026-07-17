@@ -20,8 +20,7 @@ test("dark mode persists to the account and applies on a device with no local st
 			.poll(async () => (await orpcClient.settings.get()).dark)
 			.toBe(!wasDark);
 
-		// A device with no local cache gets the setting from the account.
-		await page.evaluate(() => localStorage.removeItem("settings"));
+		// A reload gets the setting from the account (SSR'd, no local state).
 		await page.reload();
 		await expect
 			.poll(() =>

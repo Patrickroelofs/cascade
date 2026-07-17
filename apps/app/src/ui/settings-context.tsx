@@ -1,11 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createContext, use, useEffect, useMemo, useState } from "react";
-import {
-	type Settings,
-	type SettingsPatch,
-	settingsPatchSchema,
+import { createContext, use, useEffect, useState } from "react";
+import type {
+	Settings,
+	SettingsPatch,
 } from "@/core/settings/settings-patch-schema";
-import { client, orpc } from "@/orpc/client";
+import { orpc } from "@/orpc/client";
 
 export {
 	MAX_INDENT_SIZE,
@@ -23,21 +22,6 @@ function defaults(): Settings {
 	};
 }
 
-/** localStorage keeps a copy of the settings patch so they apply instantly
- * on boot (before the server round-trip) and the dark-mode script in
- * `__root.tsx` can read it pre-hydration. */
-function readLocal(): SettingsPatch {
-	if (typeof localStorage === "undefined") return {};
-	try {
-		const parsed = settingsPatchSchema.safeParse(
-			JSON.parse(localStorage.settings ?? "{}"),
-		);
-		return parsed.success ? parsed.data : {};
-	} catch {
-		return {};
-	}
-}
-
 const SettingsContext = createContext<{
 	settings: Settings;
 	setSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
@@ -45,29 +29,16 @@ const SettingsContext = createContext<{
 } | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-	// What localStorage held when the app booted; the fallback until (and in
-	// case) the server responds.
-	const [boot] = useState(readLocal);
 	// Changes made since the last successful save; flushed by `saveSettings`
 	// (called when the settings dialog closes).
 	const [unsaved, setUnsaved] = useState<SettingsPatch>({});
 	const queryClient = useQueryClient();
 
 	const queryOptions = orpc.settings.get.queryOptions();
-	// Refetched on window focus (the query default), so changes made on
-	// another device are picked up when returning to the tab. When the account
-	// has no stored settings yet, the fetch seeds it from this device's
-	// pre-existing local settings instead of wiping them.
-	const { data: remote } = useQuery({
-		...queryOptions,
-		queryFn: async (): Promise<SettingsPatch> => {
-			const stored = await client.settings.get();
-			if (Object.keys(stored).length > 0) return stored;
-			const local = readLocal();
-			if (Object.keys(local).length === 0) return stored;
-			return client.settings.update(local);
-		},
-	});
+	// Already in the cache on first render: the root route's loader ensures it
+	// during SSR. Refetched on window focus (the query default), so changes
+	// made on another device are picked up when returning to the tab.
+	const { data: remote } = useQuery(queryOptions);
 
 	const { mutate } = useMutation(
 		orpc.settings.update.mutationOptions({
@@ -91,23 +62,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 		}),
 	);
 
-	// Derived, never synced: server state over the boot cache, unsaved edits
-	// on top. A focus refetch can update `remote` mid-edit without ever
-	// clobbering what the user is doing.
-	const stored = useMemo<SettingsPatch>(
-		() => ({ ...boot, ...remote, ...unsaved }),
-		[boot, remote, unsaved],
-	);
-	const settings: Settings = { ...defaults(), ...stored };
+	// Derived, never synced: server state with unsaved edits on top. A focus
+	// refetch can update `remote` mid-edit without clobbering what the user is
+	// doing.
+	const settings: Settings = { ...defaults(), ...remote, ...unsaved };
 
-	// The `dark` class lives on <html> — outside this component's tree — and
-	// localStorage feeds the pre-hydration dark-mode script in `__root.tsx`.
-	// Both are external systems, so syncing them is the one legitimate effect
-	// here.
+	// The `dark` class lives on <html>, outside this component's tree. SSR
+	// renders the initial value (see __root.tsx); this keeps it in sync with
+	// changes made after hydration.
 	useEffect(() => {
 		document.documentElement.classList.toggle("dark", settings.dark);
-		localStorage.settings = JSON.stringify(stored);
-	}, [settings.dark, stored]);
+	}, [settings.dark]);
 
 	function setSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
 		setUnsaved((prev) => ({ ...prev, [key]: value }));

@@ -14,6 +14,8 @@ import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { m } from "#/paraglide/messages.js";
 import { getLocale } from "#/paraglide/runtime.js";
 import { getSession } from "@/auth/session";
+import type { SettingsPatch } from "@/core/settings/settings-patch-schema";
+import { orpc } from "@/orpc/client";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
 import { SettingsProvider } from "@/ui/settings-context";
 import { UserMenu } from "@/ui/user-menu";
@@ -34,7 +36,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 		}
 		return { user: session.user };
 	},
-	head: () => ({
+	loader: async ({ context: { queryClient } }) => {
+		// SSR the user's settings so the first paint already has them (e.g. the
+		// dark class on <html>). A failed fetch falls back to defaults rather
+		// than blocking the app.
+		const settings = await queryClient
+			.ensureQueryData(orpc.settings.get.queryOptions())
+			.catch((): SettingsPatch => ({}));
+		return { settings };
+	},
+	head: ({ loaderData }) => ({
 		meta: [
 			{
 				charSet: "utf-8",
@@ -52,10 +63,16 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 		],
 		scripts: [
-			{
-				children:
-					'if(JSON.parse(localStorage.settings||"{}").dark??matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.classList.add("dark")',
-			},
+			// The account's theme is SSR'd onto <html> (see RootDocument); this
+			// pre-hydration fallback only covers users who never picked one.
+			...(loaderData?.settings.dark === undefined
+				? [
+						{
+							children:
+								'if(matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.classList.add("dark")',
+						},
+					]
+				: []),
 			...(import.meta.env.PROD
 				? [
 						{
@@ -90,8 +107,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const { settings } = Route.useLoaderData();
 	return (
-		<html lang={getLocale()} suppressHydrationWarning>
+		<html
+			lang={getLocale()}
+			className={settings.dark ? "dark" : undefined}
+			suppressHydrationWarning
+		>
 			<head>
 				<HeadContent />
 			</head>
