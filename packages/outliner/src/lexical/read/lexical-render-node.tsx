@@ -1,3 +1,4 @@
+import { ArrowSquareOutIcon } from "@phosphor-icons/react/ssr";
 import type { ReactNode } from "react";
 import type { LexicalElementNode } from "./lexical-read-view";
 import { type LexicalTextNode, renderTextNode } from "./render-text-nodes";
@@ -39,8 +40,10 @@ export function renderNode(
 					title={node.title || node.url}
 					target="_blank"
 					rel="noopener noreferrer"
+					className="underline underline-offset-2 inline-flex items-center gap-0.5"
 				>
 					{children}
+					<ArrowSquareOutIcon size="1em" weight="bold" className="shrink-0" />
 				</a>
 			);
 		}

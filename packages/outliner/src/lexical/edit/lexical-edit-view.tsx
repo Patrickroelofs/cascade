@@ -38,6 +38,7 @@ export function LexicalEditView({
 				onError: (error) => console.error("lexical error", error),
 				editorState: content ? JSON.stringify(content) : null,
 				nodes: [LinkNode],
+				theme: { link: "underline underline-offset-2" },
 			}}
 		>
 			<EditableContent
