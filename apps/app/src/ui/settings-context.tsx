@@ -29,24 +29,15 @@ const SettingsContext = createContext<{
 } | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-	// Changes made since the last successful save; flushed by `saveSettings`
-	// (called when the settings dialog closes).
 	const [unsaved, setUnsaved] = useState<SettingsPatch>({});
 	const queryClient = useQueryClient();
 
 	const queryOptions = orpc.settings.get.queryOptions();
-	// Already in the cache on first render: the root route's loader ensures it
-	// during SSR. Refetched on window focus (the query default), so changes
-	// made on another device are picked up when returning to the tab.
 	const { data: remote } = useQuery(queryOptions);
 
 	const { mutate } = useMutation(
 		orpc.settings.update.mutationOptions({
 			onSuccess: (merged, patch) => {
-				// The server returns the merged row (which may include keys written
-				// by other devices); make it the new baseline and drop the unsaved
-				// keys it covers. A key re-changed while the save was in flight
-				// keeps its newer value and goes out with the next save.
 				queryClient.setQueryData(queryOptions.queryKey, merged);
 				setUnsaved(
 					(prev) =>
@@ -57,19 +48,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 						) as SettingsPatch,
 				);
 			},
-			// On error the patch simply stays in `unsaved`: the change keeps
-			// applying locally and the next save retries it.
 		}),
 	);
 
-	// Derived, never synced: server state with unsaved edits on top. A focus
-	// refetch can update `remote` mid-edit without clobbering what the user is
-	// doing.
 	const settings: Settings = { ...defaults(), ...remote, ...unsaved };
 
-	// The `dark` class lives on <html>, outside this component's tree. SSR
-	// renders the initial value (see __root.tsx); this keeps it in sync with
-	// changes made after hydration.
 	useEffect(() => {
 		document.documentElement.classList.toggle("dark", settings.dark);
 	}, [settings.dark]);
