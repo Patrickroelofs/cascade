@@ -23,6 +23,7 @@ import {
 	useExistingTags,
 } from "#/ui/nodes/use-existing-tags";
 import { useNodeFilters } from "#/ui/nodes/use-node-filters";
+import { useOptimisticNodeMutation } from "#/ui/nodes/use-optimistic-node-mutation";
 import {
 	useVisibleTree,
 	visibleTreeOptions,
@@ -53,6 +54,8 @@ export const Route = createFileRoute("/$nodeSlug")({
 	component: NodeDetailPage,
 });
 
+type NodeDetailData = Awaited<ReturnType<typeof client.nodes.get>>;
+
 function NodeDetailPage() {
 	const { nodeId } = Route.useLoaderData();
 	const queryClient = useQueryClient();
@@ -61,45 +64,50 @@ function NodeDetailPage() {
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
 
-	const toggleTask = async (completed: boolean) => {
-		queryClient.setQueryData(options.queryKey, (old) =>
-			old ? { ...old, metadata: { completed } } : old,
-		);
-		try {
-			await client.nodes.setType({
+	const toggleTaskMutation = useOptimisticNodeMutation<
+		boolean,
+		void,
+		NodeDetailData
+	>({
+		queryKey: options.queryKey,
+		mutationFn: (completed) =>
+			client.nodes.setType({
 				id: nodeId,
 				type: "task",
 				metadata: { completed },
-			});
-		} catch {
-			queryClient.invalidateQueries({ queryKey: options.queryKey });
-		}
-	};
+			}),
+		patch: (old, completed) =>
+			old ? { ...old, metadata: { completed } } : old,
+	});
+	const toggleTask = (completed: boolean) =>
+		toggleTaskMutation.mutate(completed);
 
-	const setDueDate = async (dueDate: Date | null) => {
-		queryClient.setQueryData(options.queryKey, (old) =>
-			old ? { ...old, dueDate } : old,
-		);
-		try {
-			await client.nodes.setDueDate({ id: nodeId, dueDate });
-		} catch {
-			queryClient.invalidateQueries({ queryKey: options.queryKey });
-		}
-	};
+	const setDueDateMutation = useOptimisticNodeMutation<
+		Date | null,
+		void,
+		NodeDetailData
+	>({
+		queryKey: options.queryKey,
+		mutationFn: (dueDate) => client.nodes.setDueDate({ id: nodeId, dueDate }),
+		patch: (old, dueDate) => (old ? { ...old, dueDate } : old),
+	});
+	const setDueDate = (dueDate: Date | null) =>
+		setDueDateMutation.mutate(dueDate);
 
-	const setTags = async (tags: string[]) => {
-		queryClient.setQueryData(options.queryKey, (old) =>
-			old ? { ...old, tags } : old,
-		);
-		try {
-			await client.nodes.setTags({ id: nodeId, tags });
+	const setTagsMutation = useOptimisticNodeMutation<
+		string[],
+		void,
+		NodeDetailData
+	>({
+		queryKey: options.queryKey,
+		mutationFn: (tags) => client.nodes.setTags({ id: nodeId, tags }),
+		patch: (old, tags) => (old ? { ...old, tags } : old),
+		onSuccess: () =>
 			queryClient.invalidateQueries({
 				queryKey: existingTagsOptions().queryKey,
-			});
-		} catch {
-			queryClient.invalidateQueries({ queryKey: options.queryKey });
-		}
-	};
+			}),
+	});
+	const setTags = (tags: string[]) => setTagsMutation.mutate(tags);
 
 	// SSR hydration round-trips the query cache through JSON, which leaves
 	// dueDate as an ISO string instead of a Date; normalize it here so
