@@ -15,7 +15,7 @@ import { useNodeFilters } from "@/ui/nodes/use-node-filters";
 import {
 	useVisibleTree,
 	visibleTreeOptions,
-} from "@/ui/nodes/virtual-tree/use-visible-tree";
+} from "@/ui/nodes/virtual-tree/data/use-visible-tree";
 import { useSettings } from "@/ui/settings-context";
 
 export const Route = createFileRoute("/")({
