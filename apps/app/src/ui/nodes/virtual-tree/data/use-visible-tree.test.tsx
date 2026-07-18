@@ -12,6 +12,7 @@ vi.mock("@/orpc/client", () => ({
 	client: {
 		nodes: {
 			updateContent: vi.fn(),
+			toggleExpanded: vi.fn(),
 		},
 	},
 	orpc: {
@@ -49,8 +50,11 @@ const row: VisibleNodeRow = {
 	isLastChild: true,
 };
 
-function renderVisibleTree(queryClient: QueryClient) {
-	return renderHook(() => useVisibleTree(null), {
+function renderVisibleTree(
+	queryClient: QueryClient,
+	includeCollapsedDescendants = false,
+) {
+	return renderHook(() => useVisibleTree(null, includeCollapsedDescendants), {
 		wrapper: ({ children }) => (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		),
@@ -58,14 +62,15 @@ function renderVisibleTree(queryClient: QueryClient) {
 }
 
 describe("useVisibleTree.updateContent", () => {
-	const queryKey = ["nodes", "visibleTree", { input: { rootId: null } }];
-
 	beforeEach(() => {
 		vi.clearAllMocks();
-		vi.mocked(orpc.nodes.visibleTree.queryOptions).mockReturnValue({
-			queryKey,
-			queryFn: () => Promise.resolve({ rows: [row], nextCursor: null }),
-		} as never);
+		vi.mocked(orpc.nodes.visibleTree.queryOptions).mockImplementation(
+			({ input }) =>
+				({
+					queryKey: ["nodes", "visibleTree", { input }],
+					queryFn: () => Promise.resolve({ rows: [row], nextCursor: null }),
+				}) as never,
+		);
 	});
 
 	it("shows an error toast and reverts when the server rejects the update", async () => {
@@ -104,5 +109,37 @@ describe("useVisibleTree.updateContent", () => {
 		});
 
 		expect(toast.error).not.toHaveBeenCalled();
+	});
+
+	it("requests collapsed descendants when a due-date filter is active", () => {
+		const queryClient = new QueryClient();
+
+		renderVisibleTree(queryClient, true);
+
+		expect(orpc.nodes.visibleTree.queryOptions).toHaveBeenCalledWith({
+			input: { rootId: null, includeCollapsedDescendants: true },
+		});
+	});
+
+	it("patches expanded state locally when toggling in filtered mode", async () => {
+		const queryClient = new QueryClient();
+		queryClient.setQueryData(visibleTreeOptions(null, true).queryKey, {
+			rows: [{ ...row, expanded: true, hasChildren: true }],
+			nextCursor: null,
+		});
+		vi.mocked(client.nodes.toggleExpanded).mockResolvedValueOnce(undefined);
+
+		const { result } = renderVisibleTree(queryClient, true);
+
+		result.current.toggle("node-1", false);
+
+		await waitFor(() => {
+			expect(
+				queryClient.getQueryData(visibleTreeOptions(null, true).queryKey),
+			).toEqual({
+				rows: [{ ...row, expanded: false, hasChildren: true }],
+				nextCursor: null,
+			});
+		});
 	});
 });
