@@ -2,6 +2,7 @@
 
 ## 2026-07-18
 - URLs you paste or type into a node now turn into tidy links (e.g. `example.com/docs…`) instead of the full raw address. Click a link to see the full URL and edit its text or destination, or use the little arrow icon next to every link to open it directly in a new tab. [#183](https://github.com/Patrickroelofs/cascade/issues/183)
+- The `Due today` filter now searches the full outline, including tasks inside collapsed branches, so due tasks no longer disappear just because their parent is closed. [#203](https://github.com/Patrickroelofs/cascade/issues/203)
 - Tag names are now capped at 64 characters: the tags editor shows a character counter near the limit and blocks over-long names with a clear message, and the server rejects them too. [#242](https://github.com/Patrickroelofs/cascade/issues/242)
 
 ## 2026-07-17
