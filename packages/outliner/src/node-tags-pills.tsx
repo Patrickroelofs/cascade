@@ -69,7 +69,9 @@ function TagPillRow({
 			{tags.slice(0, MAX_VISIBLE_TAGS).map((tag) => (
 				<span key={tag} className={pill({ hue: tagHue(tag) })}>
 					<TagIcon size={11} weight="bold" />
-					<span className="max-w-28 shrink-0">{tag}</span>
+					<span className="max-w-28 shrink-0 overflow-hidden text-ellipsis">
+						{tag}
+					</span>
 				</span>
 			))}
 			{children}
