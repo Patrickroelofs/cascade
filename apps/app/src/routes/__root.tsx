@@ -164,6 +164,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								linkUrlLabel: m.outliner_link_url_label(),
 								linkOpen: m.outliner_link_open(),
 								linkSave: m.outliner_link_save(),
+								linkDelete: m.outliner_link_delete(),
 								nodeTypeLabels: {
 									text: m.outliner_type_text(),
 									task: m.outliner_type_task(),

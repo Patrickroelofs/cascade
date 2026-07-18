@@ -1,7 +1,10 @@
 import { useOutlinerLabels } from "./labels-context";
 import { LexicalEditView } from "./lexical/edit/lexical-edit-view";
 import { toLexicalContent } from "./lexical/lexical-content";
-import { updateLinkInContent } from "./lexical/link-content";
+import {
+	removeLinkFromContent,
+	updateLinkInContent,
+} from "./lexical/link-content";
 import type { LexicalElementNode } from "./lexical/read/lexical-read-view";
 import { LexicalReadView } from "./lexical/read/lexical-read-view";
 
@@ -109,6 +112,12 @@ export function NodeEditor({
 					const current = toLexicalContent(content);
 					if (!current) return;
 					const updated = updateLinkInContent(current, path, update);
+					if (updated) onSave(updated);
+				}}
+				onDeleteLink={(path, update) => {
+					const current = toLexicalContent(content);
+					if (!current) return;
+					const updated = removeLinkFromContent(current, path, update.text);
 					if (updated) onSave(updated);
 				}}
 			/>

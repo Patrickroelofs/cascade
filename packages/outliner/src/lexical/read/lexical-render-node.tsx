@@ -2,7 +2,11 @@ import type { ReactNode } from "react";
 import { linkTextContent, type SerializedLinkNode } from "../link-content";
 import { isHttpUrl, tidyUrlLabel } from "../link-url";
 import type { LexicalElementNode } from "./lexical-read-view";
-import { NodeLinkView, type OnSaveLink } from "./node-link-view";
+import {
+	NodeLinkView,
+	type OnDeleteLink,
+	type OnSaveLink,
+} from "./node-link-view";
 import { type LexicalTextNode, renderTextNode } from "./render-text-nodes";
 
 // Defense in depth against pathologically nested content (e.g. pre-existing
@@ -12,6 +16,8 @@ const MAX_RENDER_DEPTH = 64;
 export interface RenderNodeOptions {
 	/** When set, links render with a click-to-edit popover; `path` is the chain of child indexes from the root. */
 	onSaveLink?: OnSaveLink;
+	/** Popover delete action: replaces the link with its plain text. */
+	onDeleteLink?: OnDeleteLink;
 	path?: number[];
 }
 
@@ -66,6 +72,7 @@ export function renderNode(
 					text={label}
 					path={path}
 					onSaveLink={options?.onSaveLink}
+					onDeleteLink={options?.onDeleteLink}
 				>
 					{isRawUrlText ? label : renderChildren(link.children)}
 				</NodeLinkView>

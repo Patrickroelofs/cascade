@@ -80,6 +80,7 @@
 	"outliner_link_url_label": "URL",
 	"outliner_link_open": "Open link",
 	"outliner_link_save": "Save",
+	"outliner_link_delete": "Remove link",
 	"filters_bar_trigger": "Filter",
 	"filters_bar_due_date_group": "Due date",
 	"filters_bar_due_today": "Due today",

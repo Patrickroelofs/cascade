@@ -36,6 +36,7 @@ export interface OutlinerLabels {
 	linkUrlLabel: string;
 	linkOpen: string;
 	linkSave: string;
+	linkDelete: string;
 	nodeTypeLabels: Record<NodeTypeName, string>;
 	filtersTrigger: string;
 	filtersDueDateGroup: string;
@@ -86,6 +87,7 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	linkUrlLabel: "URL",
 	linkOpen: "Open link",
 	linkSave: "Save",
+	linkDelete: "Remove link",
 	nodeTypeLabels: Object.fromEntries(
 		nodeTypeNames.map((type) => [type, nodeTypeDefs[type].label]),
 	) as Record<NodeTypeName, string>,

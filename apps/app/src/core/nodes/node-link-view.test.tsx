@@ -65,6 +65,29 @@ describe("link click-to-edit popover", () => {
 		});
 	});
 
+	it("delete calls onDeleteLink with the current Text field value", async () => {
+		const onSaveLink = vi.fn();
+		const onDeleteLink = vi.fn();
+
+		render(
+			<LexicalReadView
+				content={linkContent("https://example.com/old", "example.com/old")}
+				onSaveLink={onSaveLink}
+				onDeleteLink={onDeleteLink}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("link", { name: "example.com/old" }));
+		const textInput = (await screen.findByLabelText("Text", {
+			selector: "input",
+		})) as HTMLInputElement;
+		fireEvent.change(textInput, { target: { value: "kept text" } });
+		fireEvent.click(screen.getByRole("button", { name: "Remove link" }));
+
+		expect(onDeleteLink).toHaveBeenCalledWith([0, 1], { text: "kept text" });
+		expect(onSaveLink).not.toHaveBeenCalled();
+	});
+
 	it("disables save while the URL is invalid", async () => {
 		const onSaveLink = vi.fn();
 

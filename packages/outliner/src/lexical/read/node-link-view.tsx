@@ -1,6 +1,6 @@
 import { Input } from "@cascade/ui/input";
 import { Popover, PopoverContent } from "@cascade/ui/popover";
-import { ArrowSquareOutIcon } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, TrashIcon } from "@phosphor-icons/react";
 import { type ReactNode, useRef, useState } from "react";
 import { useOutlinerLabels } from "../../labels-context";
 import { MAX_URL_LENGTH, normalizeHttpUrl } from "../link-url";
@@ -9,6 +9,8 @@ export type OnSaveLink = (
 	path: number[],
 	update: { text: string; url: string },
 ) => void;
+
+export type OnDeleteLink = (path: number[], update: { text: string }) => void;
 
 const anchorClassName =
 	"text-redleather underline decoration-redleather/40 underline-offset-2 hover:decoration-redleather dark:text-peach dark:decoration-peach/40 dark:hover:decoration-peach";
@@ -35,19 +37,22 @@ interface NodeLinkViewProps {
 	text: string;
 	path: number[];
 	onSaveLink?: OnSaveLink;
+	onDeleteLink?: OnDeleteLink;
 	children: ReactNode;
 }
 
 /**
  * A link inside node content. Read-only consumers (no `onSaveLink`) get a
  * plain anchor; inside the outline, clicking it opens a popover that shows
- * the full URL and lets the user edit the link text and URL or open it.
+ * the full URL and lets the user edit the link text and URL, open it, or
+ * remove the link (keeping its text).
  */
 export function NodeLinkView({
 	url,
 	text,
 	path,
 	onSaveLink,
+	onDeleteLink,
 	children,
 }: NodeLinkViewProps) {
 	const labels = useOutlinerLabels();
@@ -69,7 +74,13 @@ export function NodeLinkView({
 		);
 	}
 	return (
-		<EditableLink url={url} text={text} path={path} onSaveLink={onSaveLink}>
+		<EditableLink
+			url={url}
+			text={text}
+			path={path}
+			onSaveLink={onSaveLink}
+			onDeleteLink={onDeleteLink}
+		>
 			{children}
 		</EditableLink>
 	);
@@ -80,6 +91,7 @@ function EditableLink({
 	text,
 	path,
 	onSaveLink,
+	onDeleteLink,
 	children,
 }: NodeLinkViewProps & { onSaveLink: OnSaveLink }) {
 	const labels = useOutlinerLabels();
@@ -96,6 +108,13 @@ function EditableLink({
 		const trimmedText = draftText.trim();
 		if (trimmedText === "") return;
 		onSaveLink(path, { text: trimmedText, url: normalizedUrl });
+		setOpen(false);
+	};
+
+	const removeLink = () => {
+		// Removing the link keeps its visible text — whatever is in the Text
+		// field at that moment, falling back to the stored label.
+		onDeleteLink?.(path, { text: draftText.trim() || text || url });
 		setOpen(false);
 	};
 
@@ -164,13 +183,26 @@ function EditableLink({
 								<ArrowSquareOutIcon size="1em" />
 								{labels.linkOpen}
 							</a>
-							<button
-								type="submit"
-								disabled={!canSave}
-								className="cursor-pointer rounded-md bg-redleather px-3 py-1.5 text-sm text-super-ginger outline-none hover:bg-redleather/90 focus-visible:ring-2 focus-visible:ring-redleather/50 disabled:cursor-default disabled:opacity-40"
-							>
-								{labels.linkSave}
-							</button>
+							<div className="flex items-center gap-2">
+								{onDeleteLink && (
+									<button
+										type="button"
+										aria-label={labels.linkDelete}
+										title={labels.linkDelete}
+										onClick={removeLink}
+										className="cursor-pointer rounded-md p-1.5 text-sm outline-none hover:bg-ginger/70 focus-visible:ring-2 focus-visible:ring-redleather/50 dark:hover:bg-ginger/20"
+									>
+										<TrashIcon size="1.15em" />
+									</button>
+								)}
+								<button
+									type="submit"
+									disabled={!canSave}
+									className="cursor-pointer rounded-md bg-redleather px-3 py-1.5 text-sm text-super-ginger outline-none hover:bg-redleather/90 focus-visible:ring-2 focus-visible:ring-redleather/50 disabled:cursor-default disabled:opacity-40"
+								>
+									{labels.linkSave}
+								</button>
+							</div>
 						</div>
 					</form>
 				</PopoverContent>

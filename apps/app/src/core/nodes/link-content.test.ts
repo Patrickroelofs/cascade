@@ -1,5 +1,6 @@
 import {
 	linkTextContent,
+	removeLinkFromContent,
 	updateLinkInContent,
 } from "@cascade/outliner/lexical/link-content";
 import type { LexicalElementNode } from "@cascade/outliner/lexical/read/lexical-read-view";
@@ -114,5 +115,43 @@ describe("updateLinkInContent", () => {
 				url: "https://example.com/x",
 			}),
 		).toBe(null);
+	});
+});
+
+describe("removeLinkFromContent", () => {
+	it("replaces the link with a plain text node carrying the given text", () => {
+		const before = content([
+			textNode("see "),
+			linkNode("https://example.com/docs", "the docs"),
+			textNode(" tonight"),
+		]);
+		const after = removeLinkFromContent(before, [0, 1], "the docs");
+		const paragraph = after?.root.children?.[0] as LexicalElementNode;
+		const replaced = paragraph.children?.[1] as {
+			type?: string;
+			text?: string;
+			url?: string;
+			format?: number;
+		};
+		expect(replaced.type).toBe("text");
+		expect(replaced.text).toBe("the docs");
+		expect(replaced.url).toBe(undefined);
+		// Formatting fields of the link's text child carry over.
+		expect(replaced.format).toBe(1);
+		expect(paragraph.children).toHaveLength(3);
+	});
+
+	it("does not mutate the original content", () => {
+		const before = content([linkNode("https://example.com", "example.com")]);
+		const snapshot = structuredClone(before);
+		removeLinkFromContent(before, [0, 0], "example.com");
+		expect(before).toEqual(snapshot);
+	});
+
+	it("returns null for a stale path or a non-link node", () => {
+		const before = content([textNode("plain")]);
+		expect(removeLinkFromContent(before, [0, 0], "x")).toBe(null);
+		expect(removeLinkFromContent(before, [0, 7], "x")).toBe(null);
+		expect(removeLinkFromContent(before, [], "x")).toBe(null);
 	});
 });
