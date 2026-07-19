@@ -1,8 +1,18 @@
+import { fontAttribute } from "@cascade/theme/fonts";
+import {
+	isDarkTheme,
+	resolveThemeId,
+	SYSTEM_THEME,
+	themeAttribute,
+} from "@cascade/theme/themes";
+import { toast } from "@cascade/ui/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, use, useEffect, useState } from "react";
-import type {
-	Settings,
-	SettingsPatch,
+import { m } from "#/paraglide/messages.js";
+import {
+	type Settings,
+	type SettingsPatch,
+	settingsPatchSchema,
 } from "@/core/settings/settings-patch-schema";
 import { orpc } from "@/orpc/client";
 
@@ -13,12 +23,20 @@ export {
 
 function defaults(): Settings {
 	return {
-		dark:
-			typeof matchMedia !== "undefined" &&
-			matchMedia("(prefers-color-scheme: dark)").matches,
+		theme: SYSTEM_THEME,
+		lightTheme: "light",
+		darkTheme: "dark",
+		font: "bitter",
 		indentSize: 16,
 		preAlphaBannerDismissed: false,
 	};
+}
+
+function getSystemPrefersDark(): boolean {
+	return (
+		typeof matchMedia !== "undefined" &&
+		matchMedia("(prefers-color-scheme: dark)").matches
+	);
 }
 
 const SettingsContext = createContext<{
@@ -29,7 +47,20 @@ const SettingsContext = createContext<{
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
 	const [unsaved, setUnsaved] = useState<SettingsPatch>({});
+	const [systemPrefersDark, setSystemPrefersDark] =
+		useState(getSystemPrefersDark);
 	const queryClient = useQueryClient();
+
+	// Live-updates the resolved theme when "sync with system" is selected and
+	// the OS preference changes while the app is open (e.g. scheduled dark
+	// mode kicking in), not just on the next load.
+	useEffect(() => {
+		if (typeof matchMedia === "undefined") return;
+		const media = matchMedia("(prefers-color-scheme: dark)");
+		const onChange = () => setSystemPrefersDark(media.matches);
+		media.addEventListener("change", onChange);
+		return () => media.removeEventListener("change", onChange);
+	}, []);
 
 	const queryOptions = orpc.settings.get.queryOptions();
 	const { data: remote } = useQuery(queryOptions);
@@ -50,11 +81,51 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 		}),
 	);
 
-	const settings: Settings = { ...defaults(), ...remote, ...unsaved };
+	const remoteResult =
+		remote === undefined ? undefined : settingsPatchSchema.safeParse(remote);
+	const remoteValid = remoteResult?.success;
+
+	// A stored settings row that no longer matches the current schema (e.g.
+	// after a theme/font is removed from the registry) would otherwise apply
+	// silently in a broken or unexpected way; reset it to known-good defaults
+	// instead and let the user know.
+	useEffect(() => {
+		if (remoteValid === false) {
+			toast.error(m.settings_invalid_reset());
+			mutate(defaults());
+		}
+	}, [remoteValid, mutate]);
+
+	const remoteSettings: SettingsPatch = remoteResult?.success
+		? remoteResult.data
+		: {};
+
+	const settings: Settings = {
+		...defaults(),
+		...remoteSettings,
+		...unsaved,
+	};
+	const resolvedTheme = resolveThemeId(
+		settings.theme,
+		settings.lightTheme,
+		settings.darkTheme,
+		systemPrefersDark,
+	);
 
 	useEffect(() => {
-		document.documentElement.classList.toggle("dark", settings.dark);
-	}, [settings.dark]);
+		const root = document.documentElement;
+		root.classList.toggle("dark", isDarkTheme(resolvedTheme));
+		const attribute = themeAttribute(resolvedTheme);
+		if (attribute) root.dataset.theme = attribute;
+		else delete root.dataset.theme;
+	}, [resolvedTheme]);
+
+	useEffect(() => {
+		const root = document.documentElement;
+		const attribute = fontAttribute(settings.font);
+		if (attribute) root.dataset.font = attribute;
+		else delete root.dataset.font;
+	}, [settings.font]);
 
 	function setSetting<K extends keyof Settings>(key: K, value: Settings[K]) {
 		setUnsaved((prev) => ({ ...prev, [key]: value }));
