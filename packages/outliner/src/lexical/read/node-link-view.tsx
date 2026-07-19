@@ -3,7 +3,7 @@ import { Popover, PopoverContent } from "@cascade/ui/popover";
 import { ArrowSquareOutIcon, TrashIcon } from "@phosphor-icons/react";
 import { type ReactNode, useRef, useState } from "react";
 import { useOutlinerLabels } from "../../labels-context";
-import { MAX_URL_LENGTH, normalizeHttpUrl } from "../link-url";
+import { isNodeDetailUrl, MAX_URL_LENGTH, normalizeHttpUrl } from "../link-url";
 
 export type OnSaveLink = (
 	path: number[],
@@ -17,11 +17,12 @@ const anchorClassName =
 
 /** Small trailing icon that always opens the URL directly in a new tab. */
 function OpenLinkIcon({ url, label }: { url: string; label: string }) {
+	const opensInNewWindow = !isNodeDetailUrl(url);
 	return (
 		<a
 			href={url}
-			target="_blank"
-			rel="noreferrer"
+			target={opensInNewWindow ? "_blank" : undefined}
+			rel={opensInNewWindow ? "noreferrer" : undefined}
 			aria-label={label}
 			title={url}
 			className="inline-block align-[-0.1em] ml-0.5 text-danger hover:text-danger/70 dark:text-accent dark:hover:text-accent/70"
@@ -56,14 +57,15 @@ export function NodeLinkView({
 	children,
 }: NodeLinkViewProps) {
 	const labels = useOutlinerLabels();
+	const opensInNewWindow = !isNodeDetailUrl(url);
 	if (!onSaveLink) {
 		return (
 			<>
 				<a
 					href={url}
 					title={url}
-					target="_blank"
-					rel="noreferrer"
+					target={opensInNewWindow ? "_blank" : undefined}
+					rel={opensInNewWindow ? "noreferrer" : undefined}
 					className={anchorClassName}
 					onClick={(event) => event.stopPropagation()}
 				>
@@ -99,6 +101,7 @@ function EditableLink({
 	const [open, setOpen] = useState(false);
 	const [draftText, setDraftText] = useState(text);
 	const [draftUrl, setDraftUrl] = useState(url);
+	const opensInNewWindow = !isNodeDetailUrl(url);
 
 	const normalizedUrl = normalizeHttpUrl(draftUrl);
 	const canSave = normalizedUrl !== null && draftText.trim() !== "";
@@ -176,8 +179,8 @@ function EditableLink({
 						<div className="flex items-center justify-between gap-2">
 							<a
 								href={url}
-								target="_blank"
-								rel="noreferrer"
+								target={opensInNewWindow ? "_blank" : undefined}
+								rel={opensInNewWindow ? "noreferrer" : undefined}
 								className="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-sm outline-none hover:bg-surface/70 focus-visible:ring-2 focus-visible:ring-danger/50 dark:hover:bg-surface/20"
 							>
 								<ArrowSquareOutIcon size="1em" />

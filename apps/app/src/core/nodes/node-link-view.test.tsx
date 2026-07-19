@@ -118,4 +118,24 @@ describe("link click-to-edit popover", () => {
 		expect(anchor.getAttribute("target")).toBe("_blank");
 		expect(anchor.getAttribute("href")).toBe("https://example.com");
 	});
+
+	it("keeps node detail links in the current window", () => {
+		render(
+			<LexicalReadView
+				content={linkContent(
+					"https://app.cascadelist.com/source-node-12345678",
+					"source node",
+				)}
+			/>,
+		);
+		const [anchor, openLink] = screen.getAllByRole("link");
+		expect(anchor.getAttribute("target")).toBe(null);
+		expect(anchor.getAttribute("href")).toBe(
+			"https://app.cascadelist.com/source-node-12345678",
+		);
+		expect(openLink.getAttribute("target")).toBe(null);
+		expect(openLink.getAttribute("href")).toBe(
+			"https://app.cascadelist.com/source-node-12345678",
+		);
+	});
 });

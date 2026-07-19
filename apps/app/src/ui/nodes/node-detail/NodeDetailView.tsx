@@ -7,11 +7,22 @@ import { NodeCheckbox } from "@cascade/outliner/node-checkbox";
 import { NodeDueDatePill } from "@cascade/outliner/node-due-date-pill";
 import type { TagSummary } from "@cascade/outliner/node-tags";
 import { NodeTagsControl } from "@cascade/outliner/node-tags-pills";
+import {
+	ContextMenu,
+	ContextMenuContent,
+	ContextMenuItem,
+	ContextMenuTrigger,
+} from "@cascade/ui/context-menu";
+import { toast } from "@cascade/ui/toast";
 import { Link } from "@tanstack/react-router";
 import { m } from "#/paraglide/messages.js";
 import { Breadcrumbs } from "#/ui/nodes/breadcrumbs";
 import { toNodeSlug } from "#/ui/nodes/node-slug";
 import type { NodeDetailData } from "./types";
+
+function toBacklinkHref(backlink: { id: string; content: unknown }) {
+	return `/${toNodeSlug(backlink)}`;
+}
 
 export function NodeDetailHeader({
 	node,
@@ -75,15 +86,38 @@ export function NodeDetailHeader({
 						<ul className="mt-2 flex flex-col gap-1 text-sm">
 							{backlinks.map((backlink) => (
 								<li key={backlink.id}>
-									<Link
-										to="/$nodeSlug"
-										params={{ nodeSlug: toNodeSlug(backlink) }}
-										search={true}
-										className="underline-offset-2 hover:underline"
-									>
-										{lexicalToPlainText(backlink.content).trim() ||
-											m.breadcrumbs_untitled()}
-									</Link>
+									<ContextMenu>
+										<ContextMenuTrigger className="inline-flex">
+											<Link
+												to="/$nodeSlug"
+												params={{ nodeSlug: toNodeSlug(backlink) }}
+												search={true}
+												className="underline-offset-2 hover:underline"
+											>
+												{lexicalToPlainText(backlink.content).trim() ||
+													m.breadcrumbs_untitled()}
+											</Link>
+										</ContextMenuTrigger>
+										<ContextMenuContent>
+											<ContextMenuItem
+												onClick={() => {
+													if (typeof window === "undefined") return;
+													if (typeof navigator === "undefined") return;
+													if (!("clipboard" in navigator)) return;
+													const href = toBacklinkHref(backlink);
+													void navigator.clipboard
+														.writeText(
+															new URL(href, window.location.origin).toString(),
+														)
+														.then(() => {
+															toast.success(m.node_backlinks_copied());
+														});
+												}}
+											>
+												{m.node_backlinks_copy()}
+											</ContextMenuItem>
+										</ContextMenuContent>
+									</ContextMenu>
 								</li>
 							))}
 						</ul>

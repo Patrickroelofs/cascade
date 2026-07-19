@@ -1,5 +1,9 @@
 export const MAX_URL_LENGTH = 2048;
 export const TIDY_LABEL_MAX_LENGTH = 40;
+const EDGE_SLASHES = /^\/+|\/+$/g;
+const UUID_REGEX =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_FIRST_BLOCK_REGEX = /^[0-9a-f]{8}$/i;
 
 /**
  * Only http(s) URLs are ever turned into links on paste or rendered with an
@@ -28,6 +32,38 @@ export function normalizeHttpUrl(input: string): string | null {
 		? trimmed
 		: `https://${trimmed}`;
 	return isHttpUrl(candidate) ? candidate : null;
+}
+
+function isNodeSlugId(value: string): boolean {
+	return UUID_REGEX.test(value) || UUID_FIRST_BLOCK_REGEX.test(value);
+}
+
+/**
+ * Returns true when the URL looks like a Cascade node detail route. Those
+ * should stay in the current window so node-to-node links behave like app
+ * navigation instead of opening a new tab.
+ */
+export function isNodeDetailUrl(url: string): boolean {
+	if (!isHttpUrl(url)) return false;
+	try {
+		const path = decodeURIComponent(new URL(url).pathname).replace(
+			EDGE_SLASHES,
+			"",
+		);
+		if (!path || path.includes("/")) return false;
+		if (isNodeSlugId(path)) return true;
+
+		const legacyDelimiterIndex = path.lastIndexOf("--");
+		if (legacyDelimiterIndex >= 0) {
+			return isNodeSlugId(path.slice(legacyDelimiterIndex + 2));
+		}
+
+		const delimiterIndex = path.lastIndexOf("-");
+		if (delimiterIndex < 0) return false;
+		return isNodeSlugId(path.slice(delimiterIndex + 1));
+	} catch {
+		return false;
+	}
 }
 
 /**
