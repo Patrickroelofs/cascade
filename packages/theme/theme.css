@@ -7,13 +7,14 @@
 	--color-muted: #62646b;
 	--color-accent: #e38b75;
 	--color-ink: #2b2d33;
+	--color-primary: #ad4c4e;
 
 	--font-app: "Bitter Variable", serif;
 }
 
 /*
  * Theme palettes (see themes.ts for the registry). Every theme overrides the
- * same six color slots, whose roles are:
+ * same seven color slots, whose roles are:
  *
  *   canvas   page background (light themes) / primary text (dark themes)
  *   surface  surfaces & hover tints (light) / secondary text, borders (dark)
@@ -21,6 +22,13 @@
  *   muted    muted text
  *   accent   accent
  *   danger   danger / strong accent
+ *   primary  primary action buttons (Button/Action "primary" variant)
+ *
+ * `primary` is intentionally its own slot rather than reusing `danger`: it
+ * needs to read as a call-to-action color, not an error/warning one, and (for
+ * dark palettes especially) needs to stay dark/saturated enough to keep the
+ * button's light `text-canvas` label legible, which `danger` isn't guaranteed
+ * to be once it's a theme's actual alarm red.
  *
  * Tailwind utilities compile to var(--color-*) references, so these
  * un-layered overrides re-theme every component. Dark themes additionally
@@ -35,6 +43,7 @@
 	--color-muted: #6c6f85;
 	--color-accent: #fe640b;
 	--color-ink: #4c4f69;
+	--color-primary: #145ff5;
 }
 
 [data-theme="catppuccin-frappe"] {
@@ -44,6 +53,7 @@
 	--color-muted: #737994;
 	--color-accent: #ef9f76;
 	--color-ink: #303446;
+	--color-primary: #1d50c4;
 }
 
 [data-theme="catppuccin-macchiato"] {
@@ -53,6 +63,7 @@
 	--color-muted: #6e738d;
 	--color-accent: #f5a97f;
 	--color-ink: #24273a;
+	--color-primary: #1350cd;
 }
 
 [data-theme="catppuccin-mocha"] {
@@ -62,6 +73,7 @@
 	--color-muted: #6c7086;
 	--color-accent: #fab387;
 	--color-ink: #1e1e2e;
+	--color-primary: #0953cd;
 }
 
 [data-theme="nord"] {
@@ -71,6 +83,7 @@
 	--color-muted: #4c566a;
 	--color-accent: #88c0d0;
 	--color-ink: #2e3440;
+	--color-primary: #4d6d95;
 }
 
 [data-theme="dracula"] {
@@ -80,6 +93,7 @@
 	--color-muted: #6272a4;
 	--color-accent: #bd93f9;
 	--color-ink: #282a36;
+	--color-primary: #8e46f5;
 }
 
 /*
