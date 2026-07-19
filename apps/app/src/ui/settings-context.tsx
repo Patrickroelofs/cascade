@@ -3,6 +3,7 @@ import {
 	isDarkTheme,
 	resolveThemeId,
 	SYSTEM_THEME,
+	type ThemeId,
 	themeAttribute,
 } from "@cascade/theme/themes";
 import { toast } from "@cascade/ui/toast";
@@ -37,6 +38,24 @@ function getSystemPrefersDark(): boolean {
 		typeof matchMedia !== "undefined" &&
 		matchMedia("(prefers-color-scheme: dark)").matches
 	);
+}
+
+function syncThemeColorMeta(resolvedTheme: ThemeId) {
+	const styles = getComputedStyle(document.documentElement);
+	const property = isDarkTheme(resolvedTheme)
+		? "--color-ink"
+		: "--color-canvas";
+	const color = styles.getPropertyValue(property).trim();
+	if (!color) return;
+	let meta = document.head.querySelector<HTMLMetaElement>(
+		'meta[name="theme-color"]',
+	);
+	if (!meta) {
+		meta = document.createElement("meta");
+		meta.name = "theme-color";
+		document.head.append(meta);
+	}
+	meta.content = color;
 }
 
 const SettingsContext = createContext<{
@@ -118,6 +137,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 		const attribute = themeAttribute(resolvedTheme);
 		if (attribute) root.dataset.theme = attribute;
 		else delete root.dataset.theme;
+		syncThemeColorMeta(resolvedTheme);
 	}, [resolvedTheme]);
 
 	useEffect(() => {
