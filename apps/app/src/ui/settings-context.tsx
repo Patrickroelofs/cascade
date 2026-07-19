@@ -5,11 +5,14 @@ import {
 	SYSTEM_THEME,
 	themeAttribute,
 } from "@cascade/theme/themes";
+import { toast } from "@cascade/ui/toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, use, useEffect, useState } from "react";
-import type {
-	Settings,
-	SettingsPatch,
+import { m } from "#/paraglide/messages.js";
+import {
+	type Settings,
+	type SettingsPatch,
+	settingsPatchSchema,
 } from "@/core/settings/settings-patch-schema";
 import { orpc } from "@/orpc/client";
 
@@ -78,9 +81,28 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 		}),
 	);
 
+	const remoteResult =
+		remote === undefined ? undefined : settingsPatchSchema.safeParse(remote);
+	const remoteValid = remoteResult?.success;
+
+	// A stored settings row that no longer matches the current schema (e.g.
+	// after a theme/font is removed from the registry) would otherwise apply
+	// silently in a broken or unexpected way; reset it to known-good defaults
+	// instead and let the user know.
+	useEffect(() => {
+		if (remoteValid === false) {
+			toast.error(m.settings_invalid_reset());
+			mutate(defaults());
+		}
+	}, [remoteValid, mutate]);
+
+	const remoteSettings: SettingsPatch = remoteResult?.success
+		? remoteResult.data
+		: {};
+
 	const settings: Settings = {
 		...defaults(),
-		...remote,
+		...remoteSettings,
 		...unsaved,
 	};
 	const resolvedTheme = resolveThemeId(
