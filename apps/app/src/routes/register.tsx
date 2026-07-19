@@ -6,20 +6,18 @@ import { GithubLogoIcon, GoogleLogoIcon } from "@phosphor-icons/react/ssr";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { Footer } from "#/components/marketing/footer";
-import { Nav } from "#/components/marketing/nav";
-import { appUrl } from "#/lib/app-url";
-import { oauthErrorMessage } from "#/lib/oauth-error";
-import { seoHead } from "#/lib/seo";
 import { m } from "#/paraglide/messages.js";
+import { oauthErrorMessage } from "@/lib/oauth-error";
+import { webUrl } from "@/lib/web-url";
+import { bar, brand } from "@/ui/header/styles";
 
-export const Route = createFileRoute("/login")({
-	head: () => seoHead(m.login_seo_title(), m.login_seo_description(), "/login"),
+export const Route = createFileRoute("/register")({
+	head: () => ({ meta: [{ title: m.register_seo_title() }] }),
 	validateSearch: z.object({ error: z.string().optional() }),
-	component: Login,
+	component: Register,
 });
 
-function Login() {
+function Register() {
 	const { error: oauthError } = Route.useSearch();
 	const [error, setError] = useState<string | null>(
 		oauthErrorMessage(oauthError),
@@ -32,23 +30,24 @@ function Login() {
 		setError(null);
 		setSubmitting(true);
 
-		const { error: signInError } = await authClient.signIn.email({
+		const { error: signUpError } = await authClient.signUp.email({
+			name: String(form.get("name")),
 			email: String(form.get("email")),
 			password: String(form.get("password")),
 		});
 
-		if (signInError) {
+		if (signUpError) {
 			setSubmitting(false);
-			setError(signInError.message ?? m.login_error_fallback());
+			setError(signUpError.message ?? m.register_error_fallback());
 			return;
 		}
-		window.location.href = appUrl;
+		window.location.href = "/";
 	}
 
 	async function handleGithub() {
 		await authClient.signIn.social({
 			provider: "github",
-			callbackURL: appUrl,
+			callbackURL: "/",
 			errorCallbackURL: window.location.origin + Route.fullPath,
 		});
 	}
@@ -56,17 +55,26 @@ function Login() {
 	async function handleGoogle() {
 		await authClient.signIn.social({
 			provider: "google",
-			callbackURL: appUrl,
+			callbackURL: "/",
 			errorCallbackURL: window.location.origin + Route.fullPath,
 		});
 	}
 
 	return (
 		<>
-			<Nav />
-			<main className="mx-auto max-w-sm px-8 pt-16 pb-24 min-h-128">
+			<div className={bar()}>
+				<a href={webUrl} className={brand()}>
+					<img
+						width={28}
+						height={28}
+						alt={m.header_logo_alt()}
+						src="/logo192.png"
+					/>
+				</a>
+			</div>
+			<main className="mx-auto max-w-sm px-8 pt-24 pb-24">
 				<h1 className="mb-8 text-center font-serif text-4xl italic">
-					{m.login_heading()}
+					{m.register_heading()}
 				</h1>
 				<button
 					type="button"
@@ -95,17 +103,25 @@ function Login() {
 					className="flex flex-col gap-4 rr-block"
 				>
 					<Input
-						label={m.login_email_label()}
+						label={m.register_name_label()}
+						name="name"
+						type="text"
+						autoComplete="name"
+						required
+					/>
+					<Input
+						label={m.register_email_label()}
 						name="email"
 						type="email"
 						autoComplete="email"
 						required
 					/>
 					<Input
-						label={m.login_password_label()}
+						label={m.register_password_label()}
 						name="password"
 						type="password"
-						autoComplete="current-password"
+						autoComplete="new-password"
+						minLength={8}
 						required
 					/>
 					{error && (
@@ -119,17 +135,16 @@ function Login() {
 						className="mt-2 self-center"
 						icon={<ArrowRightIcon className="size-4" weight="bold" />}
 					>
-						{m.login_submit()}
+						{m.register_submit()}
 					</Button>
 				</form>
 				<p className="mt-8 text-center text-sm text-muted">
-					{m.login_no_account()}
-					<Link to="/register" className="font-bold text-danger pl-1">
-						{m.login_create_one()}
+					{m.register_have_account()}
+					<Link to="/login" className="font-bold text-danger pl-1">
+						{m.register_login_link()}
 					</Link>
 				</p>
 			</main>
-			<Footer />
 		</>
 	);
 }

@@ -10,18 +10,15 @@ import type { QueryClient } from "@tanstack/react-query";
 import {
 	createRootRouteWithContext,
 	HeadContent,
-	redirect,
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import { getLocale } from "#/paraglide/runtime.js";
-import { getSession } from "@/auth/session";
 import type { SettingsPatch } from "@/core/settings/settings-patch-schema";
 import { AppLabelsProvider } from "@/lib/labels-provider";
 import { orpc } from "@/orpc/client";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
-import { AppHeader } from "@/ui/header/AppHeader";
 import { SettingsProvider } from "@/ui/settings-context";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
@@ -34,16 +31,7 @@ interface MyRouterContext {
 	queryClient: QueryClient;
 }
 
-const webUrl = import.meta.env.VITE_WEB_URL ?? "localhost:3000";
-
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: async () => {
-		const session = await getSession();
-		if (!session) {
-			throw redirect({ href: `${webUrl}/login` });
-		}
-		return { user: session.user };
-	},
 	loader: async ({ context: { queryClient } }) => {
 		const settings = await queryClient
 			.ensureQueryData(orpc.settings.get.queryOptions())
@@ -154,10 +142,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<NuqsAdapter>
 					<AppLabelsProvider>
 						<SettingsProvider>
-							<Toaster>
-								<AppHeader />
-								{children}
-							</Toaster>
+							<Toaster>{children}</Toaster>
 						</SettingsProvider>
 					</AppLabelsProvider>
 				</NuqsAdapter>

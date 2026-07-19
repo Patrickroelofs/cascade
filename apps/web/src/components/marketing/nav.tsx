@@ -8,13 +8,12 @@ function NavLinks() {
 	return (
 		<>
 			<Link to="/changelog">{m.nav_changelog()}</Link>
-			<Link
-				to="/login"
+			<a
 				href={appUrl}
 				className="font-bold text-danger inline-flex items-center gap-2"
 			>
 				{m.nav_go_to_app()} <ArrowUpRightIcon size={24} />
-			</Link>
+			</a>
 		</>
 	);
 }

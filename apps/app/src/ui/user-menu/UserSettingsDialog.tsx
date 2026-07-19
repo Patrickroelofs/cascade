@@ -11,6 +11,7 @@ import {
 	TrashIcon,
 	XIcon,
 } from "@phosphor-icons/react/ssr";
+import { webUrl } from "#/lib/web-url";
 import { m } from "#/paraglide/messages.js";
 import {
 	getLocale,
@@ -31,8 +32,6 @@ import {
 	tabTrigger,
 } from "./styles";
 import type { UserMenuUser } from "./types";
-
-const webUrl = import.meta.env.VITE_WEB_URL ?? "https://cascadelist.com";
 
 /** The built-in light/dark palettes get translated labels; theme names are proper nouns. */
 function themeLabel(theme: (typeof themes)[number]): string {

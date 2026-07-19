@@ -10,14 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as ChangelogRouteImport } from './routes/changelog'
 import { Route as PayloadRouteImport } from './routes/_payload'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PayloadAdminIndexRouteImport } from './routes/_payload/admin.index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 import { Route as PayloadApiSplatRouteImport } from './routes/_payload/api.$'
 import { Route as PayloadAdminSplatRouteImport } from './routes/_payload/admin.$'
 
@@ -26,19 +23,9 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangelogRoute = ChangelogRouteImport.update({
@@ -60,11 +47,6 @@ const PayloadAdminIndexRoute = PayloadAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => PayloadRoute,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PayloadApiSplatRoute = PayloadApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
@@ -79,25 +61,19 @@ const PayloadAdminSplatRoute = PayloadAdminSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
   '/admin/$': typeof PayloadAdminSplatRoute
   '/api/$': typeof PayloadApiSplatRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof PayloadAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/changelog': typeof ChangelogRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
   '/admin/$': typeof PayloadAdminSplatRoute
   '/api/$': typeof PayloadApiSplatRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof PayloadAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -105,13 +81,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_payload': typeof PayloadRouteWithChildren
   '/changelog': typeof ChangelogRoute
-  '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
-  '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
   '/_payload/admin/$': typeof PayloadAdminSplatRoute
   '/_payload/api/$': typeof PayloadApiSplatRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
   '/_payload/admin/': typeof PayloadAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -119,38 +92,29 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/changelog'
-    | '/login'
     | '/privacy'
-    | '/register'
     | '/terms'
     | '/admin/$'
     | '/api/$'
-    | '/api/auth/$'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/changelog'
-    | '/login'
     | '/privacy'
-    | '/register'
     | '/terms'
     | '/admin/$'
     | '/api/$'
-    | '/api/auth/$'
     | '/admin'
   id:
     | '__root__'
     | '/'
     | '/_payload'
     | '/changelog'
-    | '/login'
     | '/privacy'
-    | '/register'
     | '/terms'
     | '/_payload/admin/$'
     | '/_payload/api/$'
-    | '/api/auth/$'
     | '/_payload/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -158,11 +122,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PayloadRoute: typeof PayloadRouteWithChildren
   ChangelogRoute: typeof ChangelogRoute
-  LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
-  RegisterRoute: typeof RegisterRoute
   TermsRoute: typeof TermsRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -174,25 +135,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/changelog': {
@@ -222,13 +169,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof PayloadAdminIndexRouteImport
       parentRoute: typeof PayloadRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_payload/api/$': {
       id: '/_payload/api/$'
@@ -266,11 +206,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PayloadRoute: PayloadRouteWithChildren,
   ChangelogRoute: ChangelogRoute,
-  LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
-  RegisterRoute: RegisterRoute,
   TermsRoute: TermsRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
