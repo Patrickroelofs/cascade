@@ -68,10 +68,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				{
 					title: "Cascade",
 				},
-				{
-					name: "theme-color",
-					content: "#f9e4d6",
-				},
 			],
 			scripts: [
 				...(isSystemSync

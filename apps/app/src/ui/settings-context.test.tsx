@@ -44,6 +44,15 @@ describe("SettingsProvider", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		updateMock.mockResolvedValue({});
+		document.head.innerHTML = "";
+		document.documentElement.className = "";
+		delete document.documentElement.dataset.theme;
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: false,
+			media: query,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+		}));
 		vi.mocked(orpc.settings.update.mutationOptions).mockImplementation(
 			(config) =>
 				({
@@ -105,5 +114,41 @@ describe("SettingsProvider", () => {
 		});
 		expect(toast.error).not.toHaveBeenCalled();
 		expect(updateMock).not.toHaveBeenCalled();
+	});
+
+	it("creates and updates the theme-color meta tag from the active theme background", async () => {
+		mockRemoteSettings({});
+		const queryClient = new QueryClient();
+		vi.spyOn(window, "getComputedStyle").mockImplementation((() => ({
+			getPropertyValue: (property: string) => {
+				if (document.documentElement.classList.contains("dark")) {
+					if (property === "--color-ink") return "#2e3440";
+					if (property === "--color-canvas") return "#eceff4";
+				}
+				if (property === "--color-canvas") return "#FCF5EE";
+				if (property === "--color-ink") return "#2b2d33";
+				return "";
+			},
+		})) as unknown as typeof window.getComputedStyle);
+
+		const { result } = renderSettings(queryClient);
+
+		await waitFor(() => {
+			expect(
+				document.head
+					.querySelector('meta[name="theme-color"]')
+					?.getAttribute("content"),
+			).toBe("#FCF5EE");
+		});
+
+		result.current.setSetting("theme", "nord");
+
+		await waitFor(() => {
+			expect(
+				document.head
+					.querySelector('meta[name="theme-color"]')
+					?.getAttribute("content"),
+			).toBe("#2e3440");
+		});
 	});
 });

@@ -14,6 +14,12 @@ const themeCss = readFileSync(
 	new URL("../../../../../packages/theme/theme.css", import.meta.url),
 	"utf8",
 );
+const manifest = JSON.parse(
+	readFileSync(
+		new URL("../../../public/manifest.json", import.meta.url),
+		"utf8",
+	),
+);
 
 describe("theme registry", () => {
 	it("has a CSS palette block for every non-built-in theme", () => {
@@ -52,6 +58,11 @@ describe("theme registry", () => {
 	it("uses unique theme and font ids", () => {
 		expect(new Set(themes.map((theme) => theme.id)).size).toBe(themes.length);
 		expect(new Set(fonts.map((font) => font.id)).size).toBe(fonts.length);
+	});
+
+	it("lets the browser pick default manifest colors", () => {
+		expect(manifest).not.toHaveProperty("theme_color");
+		expect(manifest).not.toHaveProperty("background_color");
 	});
 
 	it("partitions every theme into exactly light or dark", () => {
