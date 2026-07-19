@@ -17,7 +17,9 @@
 			"!**/src/routeTree.gen.ts",
 			"!**/src/styles.css",
 			"!**/e2e/.auth/**/*",
-			"!**/src/paraglide"
+			"!**/src/paraglide",
+			"!**/src/payload-types.ts",
+			"!**/src/importMap.js"
 		]
 	},
 	"formatter": {

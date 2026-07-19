@@ -1,4 +1,5 @@
 import { PreAlphaBanner } from "@cascade/ui/pre-alpha-banner";
+import { withPayloadRoot } from "@payloadcms/tanstack-start/client";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -46,7 +47,9 @@ export const Route = createRootRoute({
 			...home.links,
 		],
 	}),
-	shellComponent: RootDocument,
+	// `withPayloadRoot` renders Payload's own admin document shell on
+	// `/admin` routes and `RootDocument` everywhere else.
+	shellComponent: withPayloadRoot(RootDocument),
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {

@@ -1,3 +1,7 @@
+import {
+	payloadParseSearch,
+	payloadStringifySearch,
+} from "@payloadcms/tanstack-start";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { deLocalizeUrl, localizeUrl } from "./paraglide/runtime";
 import { routeTree } from "./routeTree.gen";
@@ -8,6 +12,8 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+		parseSearch: payloadParseSearch,
+		stringifySearch: payloadStringifySearch,
 		rewrite: {
 			input: ({ url }) => deLocalizeUrl(url),
 			output: ({ url }) => localizeUrl(url),

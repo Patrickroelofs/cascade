@@ -3,6 +3,15 @@ packages:
   - 'packages/*'
 overrides:
   kysely: 0.28.17
+  payload: 4.0.0-canary.13
+  '@payloadcms/db-postgres': 4.0.0-canary.13
+  '@payloadcms/drizzle': 4.0.0-canary.13
+  '@payloadcms/richtext-lexical': 4.0.0-canary.13
+  '@payloadcms/tanstack-start': 4.0.0-canary.13
+  '@payloadcms/translations': 4.0.0-canary.13
+  '@payloadcms/ui': 4.0.0-canary.13
 allowBuilds:
+  '@parcel/watcher': true
   better-sqlite3: true
   esbuild: true
+  sharp: true

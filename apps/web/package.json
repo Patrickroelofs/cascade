@@ -12,7 +12,11 @@
     "build": "node scripts/generate-sitemap.mjs && vite build",
     "start": "node ./.output/server/index.mjs",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "payload": "payload",
+    "payload:migrate": "payload migrate",
+    "generate:importmap": "payload generate:importmap",
+    "generate:types": "payload generate:types"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -23,6 +27,11 @@
     "@cascade/ui": "workspace:*",
     "@fontsource-variable/bitter": "^5.2.10",
     "@inlang/paraglide-js": "2.21.0",
+    "@payloadcms/db-postgres": "4.0.0-canary.13",
+    "@payloadcms/richtext-lexical": "4.0.0-canary.13",
+    "@payloadcms/tanstack-start": "4.0.0-canary.13",
+    "@payloadcms/translations": "4.0.0-canary.13",
+    "@payloadcms/ui": "4.0.0-canary.13",
     "@phosphor-icons/react": "^2.1.10",
     "@t3-oss/env-core": "^0.13.11",
     "@tailwindcss/vite": "^4.3.2",
@@ -32,10 +41,13 @@
     "@tanstack/react-router-ssr-query": "^1.167.1",
     "@tanstack/react-start": "^1.168.27",
     "@tanstack/router-plugin": "^1.168.19",
+    "graphql": "^16.8.2",
     "marked": "^18.0.5",
     "nitro": "3.0.260610-beta",
+    "payload": "4.0.0-canary.13",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "sharp": "^0.34.2",
     "tailwindcss": "^4.3.2",
     "zod": "^4.4.3"
   },
@@ -50,7 +62,9 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "@vitejs/plugin-rsc": "^0.5.26",
     "jsdom": "^29.1.1",
+    "sass": "^1.77.4",
     "typescript": "^7.0.2",
     "vite": "^8.1.3",
     "vitest": "^4.1.10"
@@ -58,7 +72,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "lightningcss"
+      "lightningcss",
+      "sharp"
     ]
   },
   "engines": {

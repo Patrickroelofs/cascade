@@ -14,8 +14,12 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as PayloadRouteImport } from './routes/_payload'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PayloadAdminIndexRouteImport } from './routes/_payload/admin.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
+import { Route as PayloadApiSplatRouteImport } from './routes/_payload/api.$'
+import { Route as PayloadAdminSplatRouteImport } from './routes/_payload/admin.$'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -42,15 +46,34 @@ const ChangelogRoute = ChangelogRouteImport.update({
   path: '/changelog',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayloadRoute = PayloadRouteImport.update({
+  id: '/_payload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayloadAdminIndexRoute = PayloadAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => PayloadRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PayloadApiSplatRoute = PayloadApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => PayloadRoute,
+} as any)
+const PayloadAdminSplatRoute = PayloadAdminSplatRouteImport.update({
+  id: '/admin/$',
+  path: '/admin/$',
+  getParentRoute: () => PayloadRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -60,7 +83,10 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
+  '/admin/$': typeof PayloadAdminSplatRoute
+  '/api/$': typeof PayloadApiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/': typeof PayloadAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,17 +95,24 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
+  '/admin/$': typeof PayloadAdminSplatRoute
+  '/api/$': typeof PayloadApiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin': typeof PayloadAdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_payload': typeof PayloadRouteWithChildren
   '/changelog': typeof ChangelogRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
+  '/_payload/admin/$': typeof PayloadAdminSplatRoute
+  '/_payload/api/$': typeof PayloadApiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_payload/admin/': typeof PayloadAdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,7 +123,10 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/register'
     | '/terms'
+    | '/admin/$'
+    | '/api/$'
     | '/api/auth/$'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,20 +135,28 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/register'
     | '/terms'
+    | '/admin/$'
+    | '/api/$'
     | '/api/auth/$'
+    | '/admin'
   id:
     | '__root__'
     | '/'
+    | '/_payload'
     | '/changelog'
     | '/login'
     | '/privacy'
     | '/register'
     | '/terms'
+    | '/_payload/admin/$'
+    | '/_payload/api/$'
     | '/api/auth/$'
+    | '/_payload/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PayloadRoute: typeof PayloadRouteWithChildren
   ChangelogRoute: typeof ChangelogRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -158,12 +202,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangelogRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_payload': {
+      id: '/_payload'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof PayloadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_payload/admin/': {
+      id: '/_payload/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof PayloadAdminIndexRouteImport
+      parentRoute: typeof PayloadRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -172,11 +230,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_payload/api/$': {
+      id: '/_payload/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof PayloadApiSplatRouteImport
+      parentRoute: typeof PayloadRoute
+    }
+    '/_payload/admin/$': {
+      id: '/_payload/admin/$'
+      path: '/admin/$'
+      fullPath: '/admin/$'
+      preLoaderRoute: typeof PayloadAdminSplatRouteImport
+      parentRoute: typeof PayloadRoute
+    }
   }
 }
 
+interface PayloadRouteChildren {
+  PayloadAdminSplatRoute: typeof PayloadAdminSplatRoute
+  PayloadApiSplatRoute: typeof PayloadApiSplatRoute
+  PayloadAdminIndexRoute: typeof PayloadAdminIndexRoute
+}
+
+const PayloadRouteChildren: PayloadRouteChildren = {
+  PayloadAdminSplatRoute: PayloadAdminSplatRoute,
+  PayloadApiSplatRoute: PayloadApiSplatRoute,
+  PayloadAdminIndexRoute: PayloadAdminIndexRoute,
+}
+
+const PayloadRouteWithChildren =
+  PayloadRoute._addFileChildren(PayloadRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PayloadRoute: PayloadRouteWithChildren,
   ChangelogRoute: ChangelogRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
