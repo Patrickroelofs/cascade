@@ -198,7 +198,7 @@ function EditableLink({
 								<button
 									type="submit"
 									disabled={!canSave}
-									className="cursor-pointer rounded-md bg-danger px-3 py-1.5 text-sm text-canvas outline-none hover:bg-danger/90 focus-visible:ring-2 focus-visible:ring-danger/50 disabled:cursor-default disabled:opacity-40"
+									className="cursor-pointer rounded-md bg-primary px-3 py-1.5 text-sm text-canvas outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-default disabled:opacity-40"
 								>
 									{labels.linkSave}
 								</button>

@@ -3,12 +3,12 @@ import { useId } from "react";
 import { cva } from "./cva.config";
 
 const variantRing = {
-	primary: "focus-visible:ring-danger/50",
+	primary: "focus-visible:ring-primary/50",
 	dark: "focus-visible:ring-ink/50",
 };
 
 const variantBg = {
-	primary: "bg-danger",
+	primary: "bg-primary",
 	dark: "bg-ink",
 };
 
