@@ -1,5 +1,6 @@
 import { parseArgs } from "node:util";
 import { user } from "@cascade/auth/schema";
+import { faker } from "@faker-js/faker";
 import { eq } from "drizzle-orm";
 import { cliArgs } from "./support/cli-args";
 import { config } from "./support/config";
@@ -22,12 +23,24 @@ const { values } = parseArgs({
 		count: { type: "string", default: "20000" },
 		shape: { type: "string", default: "balanced" },
 		email: { type: "string", default: config.perfUserEmail },
+		// buildTree's branching factor is randomized via faker on every node.
+		// Left unseeded, every seed run produces a differently-shaped tree, so
+		// a "before vs. after" comparison (see perf.yml) ends up comparing two
+		// unrelated random trees instead of the same data. Fixed by default so
+		// repeated runs (and base-vs-head comparisons) are reproducible; override
+		// to intentionally sample a different random shape.
+		seed: { type: "string", default: "42" },
 	},
 });
 
 const count = Number.parseInt(values.count, 10);
 if (!Number.isFinite(count) || count <= 0) {
 	console.error(`--count must be a positive integer, got ${values.count}`);
+	process.exit(1);
+}
+const seed = Number.parseInt(values.seed, 10);
+if (!Number.isFinite(seed)) {
+	console.error(`--seed must be an integer, got ${values.seed}`);
 	process.exit(1);
 }
 if (values.shape !== "wide" && values.shape !== "deep" && values.shape !== "balanced") {
@@ -103,9 +116,12 @@ async function main() {
 	// comparable run to run.
 	await db.delete(nodes).where(eq(nodes.userId, userId));
 
+	faker.seed(seed);
 	const treeConfig = shapeConfig(shape, count);
 	const expected = expectedNodeCount(treeConfig);
-	console.log(`Seeding a "${shape}" tree, expecting ~${expected} nodes for ${email}...`);
+	console.log(
+		`Seeding a "${shape}" tree (seed=${seed}), expecting ~${expected} nodes for ${email}...`,
+	);
 
 	const done = await insertRows(
 		(rows) => db.insert(nodes).values(rows),
