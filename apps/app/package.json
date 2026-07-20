@@ -21,7 +21,6 @@
     "db:studio": "drizzle-kit studio",
     "perf:seed": "node --env-file-if-exists=.env.local --import tsx/esm ./scripts/perf/seed.ts",
     "perf:query": "node --env-file-if-exists=.env.local --import tsx/esm ./scripts/perf/query-bench.ts",
-    "perf:move": "node --env-file-if-exists=.env.local --import tsx/esm ./scripts/perf/move-bench.ts",
     "perf:report": "node --env-file-if-exists=.env.local --import tsx/esm ./scripts/perf/report.ts"
   },
   "dependencies": {

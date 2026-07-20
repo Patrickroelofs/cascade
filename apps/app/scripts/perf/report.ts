@@ -15,12 +15,6 @@ const { values } = parseArgs({
 
 interface QueryBenchResult {
 	visibleTree: LatencySummary;
-	getNodeAncestors: LatencySummary;
-}
-
-interface MoveBenchResult {
-	moveNode: LatencySummary;
-	opsPerSec: number;
 }
 
 async function readJson<T>(filePath: string): Promise<T | null> {
@@ -62,12 +56,6 @@ async function main() {
 	const afterQuery = await readJson<QueryBenchResult>(
 		path.join(values.afterDir, "query-bench.json"),
 	);
-	const beforeMove = await readJson<MoveBenchResult>(
-		path.join(values.beforeDir, "move-bench.json"),
-	);
-	const afterMove = await readJson<MoveBenchResult>(
-		path.join(values.afterDir, "move-bench.json"),
-	);
 
 	const lines: string[] = [];
 	lines.push("<!-- perf-report -->");
@@ -83,37 +71,11 @@ async function main() {
 		lines.push(
 			row("visibleTree p95", beforeQuery?.visibleTree.p95Ms, afterQuery?.visibleTree.p95Ms, "ms"),
 		);
-		lines.push(
-			row(
-				"getNodeAncestors p50",
-				beforeQuery?.getNodeAncestors.p50Ms,
-				afterQuery?.getNodeAncestors.p50Ms,
-				"ms",
-			),
-		);
-		lines.push(
-			row(
-				"getNodeAncestors p95",
-				beforeQuery?.getNodeAncestors.p95Ms,
-				afterQuery?.getNodeAncestors.p95Ms,
-				"ms",
-			),
-		);
 	} else {
 		lines.push("| query-bench results missing | — | — | — |");
 	}
 
-	if (beforeMove || afterMove) {
-		lines.push(row("moveNode p50", beforeMove?.moveNode.p50Ms, afterMove?.moveNode.p50Ms, "ms"));
-		lines.push(row("moveNode p95", beforeMove?.moveNode.p95Ms, afterMove?.moveNode.p95Ms, "ms"));
-		lines.push(
-			row("moveNode throughput", beforeMove?.opsPerSec, afterMove?.opsPerSec, " ops/s"),
-		);
-	} else {
-		lines.push("| move-bench results missing | — | — | — |");
-	}
-
-	if (!beforeQuery || !beforeMove) {
+	if (!beforeQuery) {
 		lines.push("");
 		lines.push(
 			"_No 'Base' numbers yet — the base branch doesn't have `scripts/perf/` " +
@@ -123,7 +85,7 @@ async function main() {
 
 	lines.push("");
 	lines.push(
-		"_Lower is better for latency rows, higher is better for throughput. Measured against a fixed-size seeded tree " +
+		"_Lower is better. Measured against a fixed-size seeded tree " +
 			"(see `.github/workflows/perf.yml`) — this is a comparison, not a pass/fail gate. See " +
 			"[issue #304](https://github.com/Patrickroelofs/cascade/issues/304)._",
 	);

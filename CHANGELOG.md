@@ -2,7 +2,7 @@
 
 ## 2026-07-20
 - Fixed a bug where scrolling or loading further into a large, fully-expanded branch (paginating past the first page of visible rows) could throw a server error instead of loading more nodes. [#304](https://github.com/Patrickroelofs/cascade/issues/304)
-- Added a repeatable performance-testing harness for maintainers: large-tree seeding, query-latency and move-throughput benchmarks, a virtualized-tree render/scroll check, and a CI job that comments before/after numbers on each relevant PR. [#304](https://github.com/Patrickroelofs/cascade/issues/304)
+- Added a repeatable performance-testing harness for maintainers: large-tree seeding, a `visibleTree` query-latency benchmark, a virtualized-tree render/scroll check, and a CI job that comments before/after numbers on each relevant PR. [#304](https://github.com/Patrickroelofs/cascade/issues/304)
 
 ## 2026-07-19
 - Primary action buttons (submit, add node, save) now use their own color instead of borrowing the "danger" one, so they read as a clear call to action instead of a warning in every theme, with legible text everywhere. [#284](https://github.com/Patrickroelofs/cascade/issues/284)

@@ -1,10 +1,9 @@
 name: perf
 
-# Compares apps/app's API-level performance (visibleTree/getNodeAncestors
-# query latency, moveNode throughput — see scripts/perf/ and issue #304)
-# between the PR's base and head, then posts/updates a single comment on the
-# PR with the results. Scoped to paths that can actually affect this so
-# doc-only or apps/web-only PRs don't pay for it.
+# Compares apps/app's visibleTree query latency (see scripts/perf/ and issue
+# #304) between the PR's base and head, then posts/updates a single comment
+# on the PR with the results. Scoped to paths that can actually affect this
+# so doc-only or apps/web-only PRs don't pay for it.
 #
 # This is a comparison, not a pass/fail gate: it's meant to surface
 # regressions for a human to judge, not to block merges on noisy CI timing.
@@ -91,10 +90,9 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://localhost:3001/ >/dev/null && break; sleep 2; done
           pnpm --filter app perf:seed -- --count="$PERF_SEED_COUNT" --shape=balanced
           pnpm --filter app perf:query
-          pnpm --filter app perf:move
           kill "$server_pid"
           mkdir -p "$RUNNER_TEMP/perf-before"
-          cp apps/app/perf-results/query-bench.json apps/app/perf-results/move-bench.json "$RUNNER_TEMP/perf-before/"
+          cp apps/app/perf-results/query-bench.json "$RUNNER_TEMP/perf-before/"
 
       - name: Checkout PR head
         uses: actions/checkout@v4
@@ -113,10 +111,9 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://localhost:3001/ >/dev/null && break; sleep 2; done
           pnpm --filter app perf:seed -- --count="$PERF_SEED_COUNT" --shape=balanced
           pnpm --filter app perf:query
-          pnpm --filter app perf:move
           kill "$server_pid"
           mkdir -p "$RUNNER_TEMP/perf-after"
-          cp apps/app/perf-results/query-bench.json apps/app/perf-results/move-bench.json "$RUNNER_TEMP/perf-after/"
+          cp apps/app/perf-results/query-bench.json "$RUNNER_TEMP/perf-after/"
 
       - name: Build comparison report
         run: |
