@@ -99,9 +99,10 @@ export function useVisibleTree(rootId: string | null): VisibleTree {
 					? client.nodes.toggleExpanded({ id: expandParentId, expanded: true })
 					: null,
 			]);
-		} finally {
-			// Server-computed fractional order is authoritative; positions match,
-			// so this reconciliation is invisible unless a concurrent edit raced us.
+		} catch {
+			// Only reconcile with the server on failure — on success the optimistic
+			// moveSubtree already matches server order, and invalidating here would
+			// refetch just page 1, silently dropping loadMore-accumulated rows.
 			invalidate();
 		}
 	};

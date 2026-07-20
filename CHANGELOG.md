@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-20
+- Fix moving a node no longer refetches the whole visible tree (avoiding a round-trip per drag/keyboard move) or drops rows loaded via "load more". [#320](https://github.com/Patrickroelofs/cascade/issues/320)
+
 ## 2026-07-16
 - Nodes can now be tagged: add or create tags from the row's context menu or the node page, and delete a tag everywhere in one step. [#78](https://github.com/Patrickroelofs/cascade/issues/78)
 
