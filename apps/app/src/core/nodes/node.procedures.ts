@@ -19,7 +19,7 @@ import {
 } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
-import { nodeColumns, nodeTagNames } from "@/core/nodes/node.queries";
+import { nodeColumns } from "@/core/nodes/node.queries";
 import { nodes, nodeTags, tags as tagsTable } from "@/core/nodes/node.schema";
 import { updateNodeContentInputSchema } from "@/core/nodes/node-content-schema";
 import { setNodeTagsInputSchema } from "@/core/nodes/tag-name-schema";
@@ -100,22 +100,40 @@ export const visibleTree = authed
 				WHERE c.user_id = ${userId}
 					AND (${includeCollapsedDescendants} = true OR v.expanded = true)
 					AND v.depth < 64
-			)
-			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
-				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id AND ch.user_id = ${userId}) AS has_children,
-				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child,
-				${nodeTagNames(sql`v.id`)} AS tags
-			FROM visible v
-			${
-				cursor
-					? sql`WHERE v.path > ARRAY[${sql.join(
-							cursor.map((value) => sql`${value}`),
-							sql`, `,
-						)}]::text[]`
-					: sql``
-			}
-			ORDER BY v.path
-			LIMIT ${limit + 1}
+				),
+				page AS MATERIALIZED (
+					SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
+						(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
+					FROM visible v
+					${
+						cursor
+							? sql`WHERE v.path > ARRAY[${sql.join(
+									cursor.map((value) => sql`${value}`),
+									sql`, `,
+								)}]::text[]`
+							: sql``
+					}
+					ORDER BY v.path
+					LIMIT ${limit + 1}
+				)
+			SELECT p.id, p.parent_id, p.content, p.type, p.metadata, p.expanded, p."order", p.due_date, p.depth, p.path, p.is_last_child,
+				COALESCE(hc.has_children, false) AS has_children,
+				COALESCE(t.tags, '{}') AS tags
+			FROM page p
+			LEFT JOIN (
+				SELECT n.parent_id, true AS has_children
+				FROM nodes n
+				WHERE n.user_id = ${userId} AND n.parent_id IN (SELECT id FROM page)
+				GROUP BY n.parent_id
+			) hc ON hc.parent_id = p.id
+			LEFT JOIN (
+				SELECT nt.node_id, array_agg(tg.name ORDER BY tg.name) AS tags
+				FROM node_tags nt
+				JOIN tags tg ON tg.id = nt.tag_id
+				WHERE nt.node_id IN (SELECT id FROM page)
+				GROUP BY nt.node_id
+			) t ON t.node_id = p.id
+			ORDER BY p.path
 		`)) as unknown as VisibleTreeSqlRow[];
 
 		const page = result.slice(0, limit);
