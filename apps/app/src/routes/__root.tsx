@@ -1,5 +1,9 @@
-import { OutlinerLabelsProvider } from "@cascade/outliner/labels-context";
-import { defaultUiLabels, UiLabelsProvider } from "@cascade/ui/labels-context";
+import { fontAttribute } from "@cascade/theme/fonts";
+import {
+	isDarkTheme,
+	SYSTEM_THEME,
+	themeAttribute,
+} from "@cascade/theme/themes";
 import { Toaster } from "@cascade/ui/toast";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
@@ -11,151 +15,152 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
-import { m } from "#/paraglide/messages.js";
 import { getLocale } from "#/paraglide/runtime.js";
 import { getSession } from "@/auth/session";
+import type { SettingsPatch } from "@/core/settings/settings-patch-schema";
+import { AppLabelsProvider } from "@/lib/labels-provider";
+import { orpc } from "@/orpc/client";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
+import { AppHeader } from "@/ui/header/AppHeader";
 import { SettingsProvider } from "@/ui/settings-context";
-import { UserMenu } from "@/ui/user-menu";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+
+import "@fontsource-variable/bitter/index.css";
+import "@fontsource-variable/bitter/wght.css";
+import "@fontsource-variable/bitter/wght-italic.css";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
 }
 
-const webUrl = import.meta.env.VITE_WEB_URL ?? "https://cascadelist.com";
+const authPaths = new Set(["/login", "/register"]);
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: async () => {
+	beforeLoad: async ({ location }) => {
 		const session = await getSession();
-		if (!session) {
-			throw redirect({ href: `${webUrl}/login` });
+		const isAuthPath = authPaths.has(location.pathname);
+		if (!session && !isAuthPath) {
+			throw redirect({ to: "/login" });
 		}
-		return { user: session.user };
+		if (session && isAuthPath) {
+			throw redirect({ to: "/" });
+		}
+		return { user: session?.user };
 	},
-	head: () => ({
-		meta: [
-			{
-				charSet: "utf-8",
-			},
-			{
-				name: "viewport",
-				content: "width=device-width, initial-scale=1",
-			},
-			{
-				title: "Cascade",
-			},
-			{
-				name: "theme-color",
-				content: "#f9e4d6",
-			},
-		],
-		scripts: [
-			{
-				children:
-					'if(JSON.parse(localStorage.settings||"{}").dark??matchMedia("(prefers-color-scheme: dark)").matches)document.documentElement.classList.add("dark")',
-			},
-			...(import.meta.env.PROD
-				? [
-						{
-							defer: true,
-							src: "https://rybbit.patrickroelofs.com/api/script.js",
-							"data-site-id": "15be8ae7c0e2",
-						},
-					]
-				: []),
-		],
-		links: [
-			{
-				rel: "stylesheet",
-				href: appCss,
-			},
-			{
-				rel: "icon",
-				href: "/favicon.ico",
-			},
-			{
-				rel: "apple-touch-icon",
-				href: "/logo192.png",
-			},
-			{
-				rel: "manifest",
-				href: "/manifest.json",
-			},
-		],
-	}),
+	loader: async ({ context: { queryClient } }) => {
+		const settings = await queryClient
+			.ensureQueryData(orpc.settings.get.queryOptions())
+			.catch((): SettingsPatch => ({}));
+		return { settings };
+	},
+	head: ({ loaderData }) => {
+		const settings = loaderData?.settings ?? {};
+		const isSystemSync =
+			settings.theme === undefined || settings.theme === SYSTEM_THEME;
+		const lightThemeId = settings.lightTheme ?? "light";
+		const darkThemeId = settings.darkTheme ?? "dark";
+		return {
+			meta: [
+				{
+					charSet: "utf-8",
+				},
+				{
+					name: "viewport",
+					content: "width=device-width, initial-scale=1",
+				},
+				{
+					title: "Cascade",
+				},
+			],
+			scripts: [
+				...(isSystemSync
+					? [
+							{
+								// Runs before hydration to avoid a flash: mirrors
+								// resolveThemeId/themeAttribute/isDarkTheme in plain JS
+								// since those aren't reachable from an inline script.
+								children: `(function(){var d=matchMedia("(prefers-color-scheme: dark)").matches;var id=d?${JSON.stringify(darkThemeId)}:${JSON.stringify(lightThemeId)};if(id!=="light"&&id!=="dark")document.documentElement.setAttribute("data-theme",id);if(d)document.documentElement.classList.add("dark");})()`,
+							},
+						]
+					: []),
+				...(import.meta.env.PROD
+					? [
+							{
+								defer: true,
+								src: "https://rybbit.patrickroelofs.com/api/script.js",
+								"data-site-id": "15be8ae7c0e2",
+							},
+						]
+					: []),
+			],
+			links: [
+				{
+					rel: "stylesheet",
+					href: appCss,
+				},
+				{
+					rel: "icon",
+					href: "/favicon.ico",
+				},
+				{
+					rel: "apple-touch-icon",
+					href: "/logo192.png",
+				},
+				{
+					rel: "manifest",
+					href: "/manifest.json",
+				},
+			],
+		};
+	},
 	errorComponent: GenericErrorComponent,
 	shellComponent: RootDocument,
 });
 
+/**
+ * The SSR'd `class`/`data-theme` for a fixed theme selection, or both
+ * `undefined` when syncing with the OS preference — that case is handled by
+ * the blocking inline script instead, since the server doesn't know the
+ * client's `prefers-color-scheme`.
+ */
+function ssrThemeAttrs(settings: SettingsPatch) {
+	if (settings.theme === undefined || settings.theme === SYSTEM_THEME) {
+		return { dark: undefined, themeAttr: undefined };
+	}
+	return {
+		dark: isDarkTheme(settings.theme),
+		themeAttr: themeAttribute(settings.theme),
+	};
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const { settings } = Route.useLoaderData();
+	const { user } = Route.useRouteContext();
+	const { dark, themeAttr } = ssrThemeAttrs(settings);
 	return (
-		<html lang={getLocale()} suppressHydrationWarning>
+		<html
+			lang={getLocale()}
+			className={dark ? "dark" : undefined}
+			data-theme={themeAttr}
+			data-font={
+				settings.font !== undefined ? fontAttribute(settings.font) : undefined
+			}
+			suppressHydrationWarning
+		>
 			<head>
 				<HeadContent />
 			</head>
-			<body className="bg-super-ginger text-dark-grey dark:bg-dark-grey dark:text-super-ginger">
+			<body className="flex h-dvh flex-col font-app bg-canvas text-ink dark:bg-ink dark:text-canvas">
 				<NuqsAdapter>
-					<UiLabelsProvider
-						labels={{
-							...defaultUiLabels,
-							loading: m.ui_loading(),
-							dismissToast: m.ui_dismiss_toast(),
-							calendarToday: m.ui_calendar_today(),
-							calendarTomorrow: m.ui_calendar_tomorrow(),
-							calendarNextWeek: m.ui_calendar_next_week(),
-							calendarClear: m.ui_calendar_clear(),
-							calendarPreviousMonth: m.ui_calendar_previous_month(),
-							calendarNextMonth: m.ui_calendar_next_month(),
-						}}
-					>
-						<OutlinerLabelsProvider
-							labels={{
-								toggleExpand: m.outliner_toggle_expand(),
-								toggleCollapse: m.outliner_toggle_collapse(),
-								taskCompleted: m.outliner_task_completed(),
-								dragToReorder: m.outliner_drag_handle(),
-								editNodeText: m.outliner_edit_node_text(),
-								convertInto: m.outliner_convert_into(),
-								delete: m.outliner_delete(),
-								emptyTree: m.outliner_empty_tree(),
-								emptyFilterResults: m.outliner_empty_filter_results(),
-								addNode: m.outliner_add_node(),
-								setDueDate: m.outliner_set_due_date(),
-								changeDueDate: m.outliner_change_due_date(),
-								changeDueDateAria: m.outliner_change_due_date_aria(),
-								dueToday: m.outliner_due_today(),
-								dueTomorrow: m.outliner_due_tomorrow(),
-								dueYesterday: m.outliner_due_yesterday(),
-								addTag: m.outliner_add_tag(),
-								manageTags: m.outliner_manage_tags(),
-								tagsInputPlaceholder: m.outliner_tags_input_placeholder(),
-								tagHintNavigate: m.outliner_tag_hint_navigate(),
-								tagHintToggle: m.outliner_tag_hint_toggle(),
-								createTag: m.outliner_create_tag(),
-								deleteTagAria: m.outliner_delete_tag_aria(),
-								deleteTagConfirmBody: m.outliner_delete_tag_confirm_body(),
-								cancel: m.outliner_cancel(),
-								nodeTypeLabels: {
-									text: m.outliner_type_text(),
-									task: m.outliner_type_task(),
-								},
-								filtersTrigger: m.filters_bar_trigger(),
-								filtersDueDateGroup: m.filters_bar_due_date_group(),
-								filtersDueToday: m.filters_bar_due_today(),
-								filtersRemoveDueToday: m.filters_bar_remove_due_today(),
-								filtersClear: m.filters_bar_clear(),
-							}}
-						>
-							<SettingsProvider>
-								<Toaster>
-									{children}
-									<UserMenu />
-								</Toaster>
-							</SettingsProvider>
-						</OutlinerLabelsProvider>
-					</UiLabelsProvider>
+					<AppLabelsProvider>
+						<SettingsProvider>
+							<Toaster>
+								{user && <AppHeader />}
+								{children}
+							</Toaster>
+						</SettingsProvider>
+					</AppLabelsProvider>
 				</NuqsAdapter>
 				{import.meta.env.DEV && (
 					<TanStackDevtools

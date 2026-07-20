@@ -3,6 +3,7 @@ import { LanguageSwitcher } from "@cascade/ui/language-switcher";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { HeartIcon } from "@phosphor-icons/react/ssr";
 import { Link } from "@tanstack/react-router";
+import { appRegisterUrl } from "#/lib/app-url";
 import { m } from "#/paraglide/messages.js";
 import {
 	getLocale,
@@ -20,13 +21,13 @@ export function Footer() {
 			<div className="flex justify-center">
 				<Button
 					nativeButton={false}
-					render={<Link to="/register" />}
+					render={<a href={appRegisterUrl} />}
 					icon={<ArrowRightIcon className="size-4" weight="bold" />}
 				>
 					{m.footer_cta()}
 				</Button>
 			</div>
-			<div className="mt-18 flex flex-col-reverse items-center gap-4 border-t border-dark-grey/8 pt-6 text-base md:flex-row md:justify-between">
+			<div className="mt-18 flex flex-col-reverse items-center gap-4 border-t border-ink/8 pt-6 text-base md:flex-row md:justify-between">
 				<span className="font-serif text-base italic">cascade</span>
 				<div className="inline-flex items-center gap-4">
 					<Link to="/privacy" className="hover:underline focus:underline">
@@ -42,7 +43,7 @@ export function Footer() {
 					/>
 					<div className="inline-flex items-center gap-0.75">
 						<span>{m.footer_with()}</span>
-						<HeartIcon className="fill-redleather" weight="fill" />
+						<HeartIcon className="fill-danger" weight="fill" />
 						<span>{m.footer_from()}</span>
 						<a
 							href="https://patrickroelofs.com"

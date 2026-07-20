@@ -1,7 +1,10 @@
 import { createContext, type ReactNode, use } from "react";
+import { MAX_TAG_LENGTH } from "./node-tags";
 import { type NodeTypeName, nodeTypeDefs, nodeTypeNames } from "./node-types";
 
 export interface OutlinerLabels {
+	/** Accessible name for the tree's `role="tree"` container. */
+	treeLabel: string;
 	toggleExpand: string;
 	toggleCollapse: string;
 	taskCompleted: string;
@@ -24,18 +27,35 @@ export interface OutlinerLabels {
 	tagHintNavigate: string;
 	tagHintToggle: string;
 	createTag: string;
+	tagNameTooLong: string;
 	deleteTagAria: string;
 	deleteTagConfirmBody: string;
 	cancel: string;
+	linkEditTitle: string;
+	linkTextLabel: string;
+	linkUrlLabel: string;
+	linkOpen: string;
+	linkSave: string;
+	linkDelete: string;
 	nodeTypeLabels: Record<NodeTypeName, string>;
 	filtersTrigger: string;
 	filtersDueDateGroup: string;
 	filtersDueToday: string;
 	filtersRemoveDueToday: string;
+	filtersDueThisWeek: string;
+	filtersRemoveDueThisWeek: string;
+	filtersDueOnDate: string;
+	filtersDueOn: string;
+	filtersRemoveDueOnDate: string;
+	filtersRemoveDueDateRange: string;
+	filtersTasksGroup: string;
+	filtersHideCompleted: string;
+	filtersRemoveHideCompleted: string;
 	filtersClear: string;
 }
 
 export const defaultOutlinerLabels: OutlinerLabels = {
+	treeLabel: "Nodes",
 	toggleExpand: "Expand",
 	toggleCollapse: "Collapse",
 	taskCompleted: "Task completed",
@@ -58,10 +78,17 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	tagHintNavigate: "navigate",
 	tagHintToggle: "toggle",
 	createTag: "Create",
+	tagNameTooLong: `Tag name is too long (max ${MAX_TAG_LENGTH} characters)`,
 	deleteTagAria: "Delete tag",
 	deleteTagConfirmBody:
 		"This removes it from every node it's on. This can't be undone.",
 	cancel: "Cancel",
+	linkEditTitle: "Edit link",
+	linkTextLabel: "Text",
+	linkUrlLabel: "URL",
+	linkOpen: "Open link",
+	linkSave: "Save",
+	linkDelete: "Remove link",
 	nodeTypeLabels: Object.fromEntries(
 		nodeTypeNames.map((type) => [type, nodeTypeDefs[type].label]),
 	) as Record<NodeTypeName, string>,
@@ -69,6 +96,15 @@ export const defaultOutlinerLabels: OutlinerLabels = {
 	filtersDueDateGroup: "Due date",
 	filtersDueToday: "Due today",
 	filtersRemoveDueToday: "Remove Due today filter",
+	filtersDueThisWeek: "Due this week",
+	filtersRemoveDueThisWeek: "Remove Due this week filter",
+	filtersDueOnDate: "Due on date",
+	filtersDueOn: "Due",
+	filtersRemoveDueOnDate: "Remove due date filter",
+	filtersRemoveDueDateRange: "Remove due date range filter",
+	filtersTasksGroup: "Tasks",
+	filtersHideCompleted: "Hide completed",
+	filtersRemoveHideCompleted: "Remove Hide completed filter",
 	filtersClear: "Clear filters",
 };
 

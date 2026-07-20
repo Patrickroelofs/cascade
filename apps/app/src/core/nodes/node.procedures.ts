@@ -19,9 +19,10 @@ import {
 } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { z } from "zod";
-import { nodeColumns, nodeTagNames } from "@/core/nodes/node.queries";
+import { nodeColumns } from "@/core/nodes/node.queries";
 import { nodes, nodeTags, tags as tagsTable } from "@/core/nodes/node.schema";
 import { updateNodeContentInputSchema } from "@/core/nodes/node-content-schema";
+import { setNodeTagsInputSchema } from "@/core/nodes/tag-name-schema";
 import { db } from "@/db";
 import { authed } from "@/orpc/context";
 import {
@@ -74,37 +75,73 @@ export const visibleTree = authed
 		z.object({
 			rootId: z.string().nullable(),
 			cursor: z.array(z.string()).nullable().default(null),
+			includeCollapsedDescendants: z.boolean().default(false),
 			limit: z.number().int().min(1).max(2000).default(500),
 		}),
 	)
 	.handler(async ({ input, context }) => {
-		const { rootId, cursor, limit } = input;
+		const { rootId, cursor, includeCollapsedDescendants, limit } = input;
 		const userId = context.user.id;
+		const cursorArray = cursor
+			? sql`ARRAY[${sql.join(
+					cursor.map((value) => sql`${value}`),
+					sql`, `,
+				)}]::text[]`
+			: sql`NULL::text[]`;
 
 		const result = (await db.execute(sql`
-			WITH RECURSIVE visible AS (
+			WITH RECURSIVE params AS (
+				SELECT ${cursorArray} AS cursor
+				),
+				visible AS (
 				SELECT n.id, n.parent_id, n.content, n.type, n.metadata, n.expanded, n."order", n.due_date,
 					0 AS depth,
 					ARRAY[n."order"] AS path
-				FROM nodes n
+				FROM nodes n, params
 				WHERE n.user_id = ${userId}
 					AND ${rootId === null ? sql`n.parent_id IS NULL` : sql`n.parent_id = ${rootId}`}
+					AND (params.cursor IS NULL OR ARRAY[n."order"] >= params.cursor[1:1])
 				UNION ALL
 				SELECT c.id, c.parent_id, c.content, c.type, c.metadata, c.expanded, c."order", c.due_date,
 					v.depth + 1,
 					v.path || c."order"
 				FROM nodes c
 				JOIN visible v ON c.parent_id = v.id
-				WHERE c.user_id = ${userId} AND v.expanded = true AND v.depth < 64
-			)
-			SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
-				EXISTS (SELECT 1 FROM nodes ch WHERE ch.parent_id = v.id AND ch.user_id = ${userId}) AS has_children,
-				(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child,
-				${nodeTagNames(sql`v.id`)} AS tags
-			FROM visible v
-			${cursor ? sql`WHERE v.path > ${cursor}::text[]` : sql``}
-			ORDER BY v.path
-			LIMIT ${limit + 1}
+				CROSS JOIN params
+				WHERE c.user_id = ${userId}
+					AND (${includeCollapsedDescendants} = true OR v.expanded = true)
+					AND v.depth < 64
+					AND (
+						params.cursor IS NULL
+						OR (v.path || c."order") >= params.cursor[1:array_length(v.path, 1) + 1]
+					)
+				),
+				page AS MATERIALIZED (
+					SELECT v.id, v.parent_id, v.content, v.type, v.metadata, v.expanded, v."order", v.due_date, v.depth, v.path,
+						(lead(v.id) OVER (PARTITION BY v.parent_id ORDER BY v."order")) IS NULL AS is_last_child
+					FROM visible v
+					${cursor ? sql`WHERE v.path > (SELECT cursor FROM params)` : sql``}
+					ORDER BY v.path
+					LIMIT ${limit + 1}
+				)
+			SELECT p.id, p.parent_id, p.content, p.type, p.metadata, p.expanded, p."order", p.due_date, p.depth, p.path, p.is_last_child,
+				COALESCE(hc.has_children, false) AS has_children,
+				COALESCE(t.tags, '{}') AS tags
+			FROM page p
+			LEFT JOIN (
+				SELECT n.parent_id, true AS has_children
+				FROM nodes n
+				WHERE n.user_id = ${userId} AND n.parent_id IN (SELECT id FROM page)
+				GROUP BY n.parent_id
+			) hc ON hc.parent_id = p.id
+			LEFT JOIN (
+				SELECT nt.node_id, array_agg(tg.name ORDER BY tg.name) AS tags
+				FROM node_tags nt
+				JOIN tags tg ON tg.id = nt.tag_id
+				WHERE nt.node_id IN (SELECT id FROM page)
+				GROUP BY nt.node_id
+			) t ON t.node_id = p.id
+			ORDER BY p.path
 		`)) as unknown as VisibleTreeSqlRow[];
 
 		const page = result.slice(0, limit);
@@ -151,41 +188,45 @@ export const createNode = authed
 				: eq(nodes.parentId, input.parentId),
 		);
 
-		let order: string;
-		if (input.afterId) {
-			const [after] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(and(eq(nodes.id, input.afterId), eq(nodes.userId, userId)))
-				.limit(1);
-			if (!after) throw errors.NOT_FOUND();
-			const [next] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(and(parentFilter, gt(nodes.order, after.order)))
-				.orderBy(asc(nodes.order))
-				.limit(1);
-			order = generateKeyBetween(after.order, next?.order ?? null);
-		} else {
-			const [last] = await db
-				.select({ order: nodes.order })
-				.from(nodes)
-				.where(parentFilter)
-				.orderBy(desc(nodes.order))
-				.limit(1);
-			order = generateKeyBetween(last?.order ?? null, null);
-		}
+		return await db.transaction(async (tx) => {
+			await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`);
 
-		const [created] = await db
-			.insert(nodes)
-			.values({
-				parentId: input.parentId,
-				order,
-				userId,
-				dueDate: input.dueDate ?? null,
-			})
-			.returning(nodeColumns(userId));
-		return created;
+			let order: string;
+			if (input.afterId) {
+				const [after] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(and(eq(nodes.id, input.afterId), eq(nodes.userId, userId)))
+					.limit(1);
+				if (!after) throw errors.NOT_FOUND();
+				const [next] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(and(parentFilter, gt(nodes.order, after.order)))
+					.orderBy(asc(nodes.order))
+					.limit(1);
+				order = generateKeyBetween(after.order, next?.order ?? null);
+			} else {
+				const [last] = await tx
+					.select({ order: nodes.order })
+					.from(nodes)
+					.where(parentFilter)
+					.orderBy(desc(nodes.order))
+					.limit(1);
+				order = generateKeyBetween(last?.order ?? null, null);
+			}
+
+			const [created] = await tx
+				.insert(nodes)
+				.values({
+					parentId: input.parentId,
+					order,
+					userId,
+					dueDate: input.dueDate ?? null,
+				})
+				.returning(nodeColumns(userId));
+			return created;
+		});
 	});
 
 export const getNode = authed
@@ -329,7 +370,7 @@ export const setNodeTags = authed
 	.errors({
 		NOT_FOUND: { status: 404, message: "Node not found" },
 	})
-	.input(z.object({ id: z.string(), tags: z.array(z.string()) }))
+	.input(setNodeTagsInputSchema)
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
 		const names = normalizeTags(input.tags);

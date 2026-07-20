@@ -107,6 +107,7 @@
 	"oauth_generic_error": "Er is iets misgegaan bij het inloggen. Probeer het opnieuw.",
 	"untitled_node": "Naamloos",
 	"node_deleted": "Node verwijderd",
+	"outliner_tree_label": "Nodes",
 	"outliner_toggle_expand": "Uitklappen",
 	"outliner_toggle_collapse": "Inklappen",
 	"outliner_task_completed": "Taak voltooid",
@@ -131,6 +132,7 @@
 	"outliner_tag_hint_navigate": "navigeren",
 	"outliner_tag_hint_toggle": "wisselen",
 	"outliner_create_tag": "Aanmaken",
+	"outliner_tag_name_too_long": "Tagnaam is te lang (max {max} tekens)",
 	"outliner_delete_tag_aria": "Label verwijderen",
 	"outliner_delete_tag_confirm_body": "Dit verwijdert het label van elke node waar het aan toegevoegd is. Dit kan niet ongedaan worden gemaakt.",
 	"outliner_cancel": "Annuleren",
@@ -144,6 +146,14 @@
 	"filters_bar_status": "Status",
 	"filters_bar_soon": "Binnenkort",
 	"filters_bar_remove_due_today": "Filter 'Vervalt vandaag' verwijderen",
+	"filters_bar_remove_due_this_week": "Filter 'Vervalt deze week' verwijderen",
+	"filters_bar_due_on_date": "Vervalt op datum",
+	"filters_bar_due_on": "Vervalt",
+	"filters_bar_remove_due_on_date": "Filter 'Vervalt op datum' verwijderen",
+	"filters_bar_remove_due_date_range": "Filter 'Vervalt in periode' verwijderen",
+	"filters_bar_tasks_group": "Taken",
+	"filters_bar_hide_completed": "Voltooide taken verbergen",
+	"filters_bar_remove_hide_completed": "Filter 'Voltooide taken verbergen' verwijderen",
 	"filters_bar_clear": "Filters wissen",
 	"filters_bar_showing": "{shown} van {total} weergegeven",
 	"ui_pre_alpha_prefix": "Cascade bevindt zich in de",
@@ -154,5 +164,6 @@
 	"ui_calendar_next_week": "Volgende week",
 	"ui_calendar_clear": "Wissen",
 	"ui_calendar_previous_month": "Vorige maand",
-	"ui_calendar_next_month": "Volgende maand"
+	"ui_calendar_next_month": "Volgende maand",
+	"ui_calendar_range_select_end": "Selecteer nu een einddatum"
 }

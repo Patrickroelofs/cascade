@@ -1,7 +1,11 @@
 import { Calendar } from "@cascade/ui/calendar";
 import { cva } from "@cascade/ui/cva.config";
 import { Popover, PopoverContent, PopoverTrigger } from "@cascade/ui/popover";
-import { CalendarIcon } from "@phosphor-icons/react/ssr";
+import {
+	CalendarDotIcon,
+	CalendarDotsIcon,
+	CalendarIcon,
+} from "@phosphor-icons/react/ssr";
 import { dueBucket, startOfDay } from "./due-date-bucket";
 import { type OutlinerLabels, useOutlinerLabels } from "./labels-context";
 
@@ -39,6 +43,17 @@ function formatDuePill(
 	return formatter.format(dueDate);
 }
 
+function pillIcon(dueDate: Date) {
+	const diffDays = Math.round(
+		(startOfDay(dueDate).getTime() - startOfDay(new Date()).getTime()) /
+			86_400_000,
+	);
+
+	if (diffDays === 0) return <CalendarDotIcon size={11} weight="bold" />;
+	if (diffDays === 1) return <CalendarDotsIcon size={11} weight="bold" />;
+	return <CalendarIcon size={11} weight="bold" />;
+}
+
 const pill = cva({
 	base: [
 		"inline-flex min-w-0 max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium tabular-nums whitespace-nowrap outline-none",
@@ -47,13 +62,13 @@ const pill = cva({
 	variants: {
 		bucket: {
 			overdue:
-				"border-redleather/30 bg-redleather/10 text-redleather dark:border-redleather/35 dark:bg-redleather/15",
+				"border-danger/30 bg-danger/10 text-danger dark:border-danger/35 dark:bg-danger/15",
 			today:
-				"border-peach/50 bg-peach/25 text-dark-grey dark:border-peach/40 dark:bg-peach/20 dark:text-ginger",
+				"border-accent/50 bg-accent/25 text-ink dark:border-accent/40 dark:bg-accent/20 dark:text-surface",
 			upcoming:
-				"border-dark-grey/15 bg-transparent text-graphite dark:border-ginger/15 dark:text-ginger/60",
+				"border-ink/15 bg-transparent text-muted dark:border-surface/15 dark:text-surface/60",
 			completed:
-				"border-dark-grey/10 bg-transparent text-graphite opacity-70 dark:border-ginger/10 dark:text-super-ginger/30",
+				"border-ink/10 bg-transparent text-muted opacity-70 dark:border-surface/10 dark:text-canvas/30",
 		},
 	},
 });
@@ -73,9 +88,7 @@ export function NodeDueDatePill({
 				aria-label={labels.changeDueDateAria}
 				onClick={(e) => e.stopPropagation()}
 			>
-				<span className="shrink-0">
-					<CalendarIcon size={11} weight="bold" />
-				</span>
+				<span className="shrink-0">{pillIcon(dueDate)}</span>
 				<span className="truncate">{formatDuePill(dueDate, labels)}</span>
 			</PopoverTrigger>
 			<PopoverContent>

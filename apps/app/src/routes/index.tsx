@@ -1,5 +1,6 @@
 import { getRowVisibility } from "@cascade/outliner/filter-visibility";
 import { FiltersBar } from "@cascade/outliner/filters-bar";
+import { hasActiveDueDateFilter } from "@cascade/outliner/node-filters";
 import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
 import { createFileRoute } from "@tanstack/react-router";
@@ -15,7 +16,7 @@ import { useNodeFilters } from "@/ui/nodes/use-node-filters";
 import {
 	useVisibleTree,
 	visibleTreeOptions,
-} from "@/ui/nodes/virtual-tree/use-visible-tree";
+} from "@/ui/nodes/virtual-tree/data/use-visible-tree";
 import { useSettings } from "@/ui/settings-context";
 
 export const Route = createFileRoute("/")({
@@ -32,9 +33,9 @@ export const Route = createFileRoute("/")({
 });
 
 function RootTree() {
-	const tree = useVisibleTree(null);
 	const { settings } = useSettings();
 	const [filters, setFilters] = useNodeFilters();
+	const tree = useVisibleTree(null, hasActiveDueDateFilter(filters));
 	const visibility = getRowVisibility(tree.rows, filters);
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
@@ -42,6 +43,7 @@ function RootTree() {
 	return (
 		<VirtualTree
 			tree={tree}
+			className="h-full"
 			indentSize={settings.indentSize}
 			renderNodeLink={(node) => (
 				<NodeLink id={node.id} content={node.content} />
