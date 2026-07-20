@@ -100,13 +100,6 @@ export const visibleTree = authed
 				FROM nodes n, params
 				WHERE n.user_id = ${userId}
 					AND ${rootId === null ? sql`n.parent_id IS NULL` : sql`n.parent_id = ${rootId}`}
-					-- Seek predicate: skip root subtrees that sort entirely before
-					-- the cursor instead of expanding them and discarding the rows
-					-- afterwards. Comparing against a same-length slice of the
-					-- cursor keeps ancestors of the cursor node (their path is a
-					-- true prefix, so it compares equal here even though it's < the
-					-- full cursor) so recursion still descends into the branch that
-					-- actually contains the cursor.
 					AND (params.cursor IS NULL OR ARRAY[n."order"] >= params.cursor[1:1])
 				UNION ALL
 				SELECT c.id, c.parent_id, c.content, c.type, c.metadata, c.expanded, c."order", c.due_date,
