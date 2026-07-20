@@ -1,12 +1,9 @@
 name: perf
 
-# Compares apps/app's visibleTree query latency (see e2e-perf/ and issue
-# #304) between the PR's base and head, then posts/updates a single comment
+# Compares apps/app's visibleTree query latency 
+# between the PR's base and head, then posts/updates a single comment
 # on the PR with the results. Scoped to paths that can actually affect this
 # so doc-only or apps/web-only PRs don't pay for it.
-#
-# This is a comparison, not a pass/fail gate: it's meant to surface
-# regressions for a human to judge, not to block merges on noisy CI timing.
 on:
   pull_request:
     paths:
