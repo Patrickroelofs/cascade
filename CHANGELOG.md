@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-07-20
+- `visibleTree` no longer runs a per-row tags lookup and children-existence check against the full recursed tree before paginating; it now computes both with a single aggregating join scoped to just the page of rows being returned. Output is unchanged, but larger trees paginate noticeably faster. [#319](https://github.com/Patrickroelofs/cascade/issues/319)
 - Added a repeatable performance-testing harness for maintainers: large-tree seeding, a `visibleTree` query-latency benchmark, a virtualized-tree render/scroll check, and a CI job that comments before/after numbers on each relevant PR. [#304](https://github.com/Patrickroelofs/cascade/issues/304)
 
 ## 2026-07-19
