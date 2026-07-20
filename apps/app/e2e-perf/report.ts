@@ -86,7 +86,7 @@ async function main() {
 	lines.push("");
 	lines.push(
 		"_Lower is better. Measured against a fixed-size seeded tree " +
-			"(see `.github/workflows/perf.yml`) — this is a comparison, not a pass/fail gate.",
+			"(see `.github/workflows/perf.yml`) — this is a comparison, not a pass/fail gate._",
 	);
 
 	const markdown = lines.join("\n");
