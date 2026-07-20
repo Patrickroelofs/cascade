@@ -1,6 +1,7 @@
 import { Dialog, NumberField, Tabs } from "@base-ui/react";
 import { type FontId, fonts } from "@cascade/theme/fonts";
 import { SYSTEM_THEME, themes } from "@cascade/theme/themes";
+import { Button } from "@cascade/ui/button";
 import { LanguageSwitcher } from "@cascade/ui/language-switcher";
 import { Select } from "@cascade/ui/select";
 import {
@@ -22,7 +23,6 @@ import type { Settings } from "@/core/settings/settings-patch-schema";
 import { MAX_INDENT_SIZE, MIN_INDENT_SIZE } from "@/ui/settings-context";
 import { Avatar } from "./Avatar";
 import {
-	dangerMenuItem,
 	iconButton,
 	indentSizeInput,
 	quickLinkItem,
@@ -226,22 +226,26 @@ export function UserSettingsDialog({
 									</div>
 								</div>
 							</div>
-							<button
+							<Button
 								type="button"
+								size="sm"
+								variant="danger"
 								onClick={onSignOut}
-								className={dangerMenuItem({ spacing: "loose" })}
+								icon={<SignOutIcon size={14} weight="bold" />}
+								className="mt-4"
 							>
-								<SignOutIcon size={14} weight="bold" />
 								{m.user_menu_sign_out()}
-							</button>
-							<button
+							</Button>
+							<Button
 								type="button"
+								size="sm"
+								variant="danger"
 								onClick={onOpenDeleteDialog}
-								className={dangerMenuItem({ spacing: "tight" })}
+								icon={<TrashIcon size={14} weight="bold" />}
+								className="mt-2"
 							>
-								<TrashIcon size={14} weight="bold" />
 								{m.user_menu_delete_account()}
-							</button>
+							</Button>
 						</Tabs.Panel>
 					</Tabs.Root>
 				</Dialog.Popup>
