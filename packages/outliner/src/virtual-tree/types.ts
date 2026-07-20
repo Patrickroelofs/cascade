@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { OutlinerFeature } from "../features/types";
 import type { LexicalElementNode } from "../lexical/read/lexical-read-view";
 import type { FocusPoint } from "../node-editor";
 import type { TagSummary } from "../node-tags";
@@ -30,6 +31,9 @@ export interface VirtualTreeProps {
 	 * one node's use of it. Not a `VisibleTree` mutation since it isn't
 	 * scoped to this view's rows. Omit to hide the delete affordance. */
 	onDeleteTag?: (name: string) => void | Promise<void>;
+	/** Row/context-menu features to render, in order. Defaults to the
+	 * built-in task, due-date, and tags features (`defaultOutlinerFeatures`). */
+	features?: OutlinerFeature[];
 }
 
 export interface VirtualTreeRowProps {
@@ -40,6 +44,8 @@ export interface VirtualTreeRowProps {
 	indentSize: number;
 	renderNodeLink?: (node: Pick<VisibleNodeRow, "id" | "content">) => ReactNode;
 	measureElement: (element: HTMLElement | null) => void;
+	/** Row/context-menu features to render; see `VirtualTreeProps.features`. */
+	features?: OutlinerFeature[];
 	/** All of this user's tags with usage counts, for the tag editor. */
 	existingTags: TagSummary[];
 	/** Excluded by an active filter; rendered collapsed and out of the tab order. */

@@ -1,12 +1,12 @@
 "use no memo";
 
+import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
+import { defaultOutlinerFeatures } from "../features/default-features";
+import type { RowFeatureContext } from "../features/types";
 import { NodeActions } from "../node-actions";
-import { NodeCheckbox } from "../node-checkbox";
-import { NodeDueDatePill } from "../node-due-date-pill";
 import { NodeEditor } from "../node-editor";
 import { DefaultNodeLink } from "../node-link-slot";
-import { NodeTagPills } from "../node-tags-pills";
 import { NodeToggle } from "../node-toggle";
 import { RowDragAndDrop } from "./row-drag-drop";
 import type { VirtualTreeRowProps } from "./types";
@@ -16,12 +16,28 @@ export type { VirtualTreeRowProps } from "./types";
 
 export function VirtualTreeRow(props: VirtualTreeRowProps) {
 	const { row, start, index, measureElement } = props;
+	const features = props.features ?? defaultOutlinerFeatures;
 	const completed = row.type === "task" && (row.metadata?.completed ?? false);
 	// SSR hydration round-trips the query cache through JSON, which leaves
 	// dueDate as an ISO string instead of a Date; normalize it here so every
 	// consumer below can rely on a real Date | null.
 	const dueDate = row.dueDate ? new Date(row.dueDate) : null;
 	const position = siblingPosition(props.rows, index);
+
+	const featureCtx: RowFeatureContext = {
+		row,
+		dueDate,
+		completed,
+		existingTags: props.existingTags,
+		onSetDueDate: props.onSetDueDate,
+		onSetTags: props.onSetTags,
+		onDeleteTag: props.onDeleteTag,
+		onToggleTask: props.onToggleTask,
+	};
+	const menuItems = features.flatMap((feature) => {
+		const node = feature.renderContextMenuItem?.(featureCtx);
+		return node ? [{ id: feature.id, node }] : [];
+	});
 
 	return (
 		<div
@@ -53,14 +69,9 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 			>
 				<NodeActions
 					nodeType={row.type}
-					dueDate={dueDate}
-					tags={row.tags}
-					existingTags={props.existingTags}
 					onConvert={props.onConvert}
-					onSetDueDate={props.onSetDueDate}
-					onSetTags={props.onSetTags}
-					onDeleteTag={props.onDeleteTag}
 					onDelete={props.onDelete}
+					menuItems={menuItems}
 					viewTransitionName={`node-${row.id}`}
 				>
 					<NodeToggle
@@ -73,12 +84,11 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					) : (
 						<DefaultNodeLink />
 					)}
-					{row.type === "task" && (
-						<NodeCheckbox
-							metadata={row.metadata}
-							onToggle={props.onToggleTask}
-						/>
-					)}
+					{features.map((feature) => (
+						<Fragment key={feature.id}>
+							{feature.renderLeading?.(featureCtx)}
+						</Fragment>
+					))}
 					<div className="block w-full">
 						<NodeEditor
 							id={row.id}
@@ -100,14 +110,11 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 						/>
 					</div>
 					<div className="flex gap-1 pr-1">
-						{dueDate && (
-							<NodeDueDatePill
-								dueDate={dueDate}
-								completed={completed}
-								onChange={props.onSetDueDate}
-							/>
-						)}
-						<NodeTagPills tags={row.tags} />
+						{features.map((feature) => (
+							<Fragment key={feature.id}>
+								{feature.renderTrailing?.(featureCtx)}
+							</Fragment>
+						))}
 					</div>
 				</NodeActions>
 			</RowDragAndDrop>
