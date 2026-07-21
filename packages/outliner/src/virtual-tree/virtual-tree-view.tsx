@@ -6,7 +6,6 @@ import { twMerge } from "tailwind-merge";
 import type { OutlinerLabels } from "../labels-context";
 import { setBlockType } from "../lexical/lexical-content";
 import type { VisibleTree } from "../tree-types";
-import { BulkActionsBar } from "./bulk-actions-bar";
 import { SelectionMarquee } from "./selection-marquee";
 import type { VirtualTreeProps } from "./types";
 import type { useTreeInteractions } from "./use-tree-interactions";
@@ -177,6 +176,10 @@ export function VirtualTreeView({
 									onSelect={onRowSelect}
 									onClearSelection={selection.clear}
 									isMarqueeDragging={marqueeRect !== null}
+									onBulkRemove={onBulkRemove}
+									onBulkAddTag={onBulkAddTag}
+									onBulkRemoveTag={onBulkRemoveTag}
+									onBulkSetDueDate={onBulkSetDueDate}
 								/>
 							);
 						})}
@@ -191,15 +194,6 @@ export function VirtualTreeView({
 				</Button>
 			</div>
 			<SelectionMarquee rect={marqueeRect} />
-			<BulkActionsBar
-				count={selection.selectedIds.size}
-				existingTags={existingTags}
-				onAddTag={onBulkAddTag}
-				onRemoveTag={onBulkRemoveTag}
-				onSetDueDate={onBulkSetDueDate}
-				onDelete={onBulkRemove}
-				onClear={selection.clear}
-			/>
 		</div>
 	);
 }

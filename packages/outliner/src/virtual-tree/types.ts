@@ -84,4 +84,11 @@ export interface VirtualTreeRowProps {
 	/** A marquee drag is in progress; rows suppress text selection for its
 	 * duration so dragging across them doesn't also highlight their text. */
 	isMarqueeDragging: boolean;
+	/** Applied to the whole current selection, not just this row — used by
+	 * the context menu's bulk actions when this row is one of several
+	 * selected. */
+	onBulkRemove: () => void;
+	onBulkAddTag: (tag: string) => void;
+	onBulkRemoveTag: (tag: string) => void;
+	onBulkSetDueDate: (date: Date | null) => void;
 }

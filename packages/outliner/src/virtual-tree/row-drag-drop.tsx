@@ -242,6 +242,21 @@ export function RowDragAndDrop({
 			ref={rowRef}
 			{...{ [NODE_ROW_ATTRIBUTE]: row.id }}
 			onMouseDownCapture={(e) => {
+				// The row's context menu (and its bulk-mode submenus) render
+				// through a portal elsewhere in the DOM, but React still bubbles
+				// their events through the component tree, so a click inside them
+				// reaches this handler too. Bailing out for anything not actually
+				// inside the row's own DOM keeps that popup content — e.g. the
+				// bulk tag/due-date editors — from having a click read as "a
+				// plain click on the row" and clear the very selection its own
+				// menu depends on out from under it mid-click.
+				if (!rowRef.current?.contains(e.target as Node)) return;
+				// A right (or middle) click opens the context menu — which reads
+				// this row's selection state to decide whether to show the bulk
+				// actions — so it must never clear or otherwise touch the
+				// selection here. Only the primary button reaches the rest of
+				// this handler.
+				if (e.button !== 0) return;
 				// Dragging always starts from the handle: leave it alone so
 				// starting a drag on a selected row (with the selection intact)
 				// can carry the whole selection, instead of this handler dropping
@@ -267,6 +282,9 @@ export function RowDragAndDrop({
 				onSelect(row.id, e.shiftKey ? "range" : "toggle");
 			}}
 			onClickCapture={(e) => {
+				// Same reasoning as onMouseDownCapture above: ignore clicks that
+				// only reach here via portal-content event bubbling.
+				if (!rowRef.current?.contains(e.target as Node)) return;
 				// Stopping the mousedown above doesn't stop the separate, later
 				// "click" event the same gesture also fires on mouseup — without
 				// this, a modifier-click both toggled the row's selection *and*

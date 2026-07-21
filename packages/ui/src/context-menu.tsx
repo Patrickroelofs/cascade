@@ -32,6 +32,10 @@ const item = cva({
 
 const separator = cva({ base: "my-1 h-px bg-ink/10 dark:bg-surface/10" });
 
+const label = cva({
+	base: "px-3 py-1.5 text-xs font-medium text-muted dark:text-surface/60",
+});
+
 export const ContextMenu = BaseContextMenu.Root;
 
 const trigger = cva({ base: "outline-none" });
@@ -77,6 +81,14 @@ export function ContextMenuItem({
 			{children}
 		</BaseContextMenu.Item>
 	);
+}
+
+/** A non-interactive heading row, e.g. "3 selected" above a menu's bulk actions. */
+export function ContextMenuLabel({
+	className,
+	...props
+}: React.ComponentProps<"div">) {
+	return <div className={label({ className })} {...props} />;
 }
 
 export function ContextMenuSeparator({

@@ -44,6 +44,22 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 		return node ? [{ id: feature.id, node }] : [];
 	});
 
+	// Only once this row is part of an actual multi-selection (not just the
+	// lone row someone happened to right-click) does its context menu switch
+	// from its own single-row actions to the selection's bulk ones.
+	const bulkSelection =
+		props.selected && props.selectedIds.size > 1
+			? {
+					count: props.selectedIds.size,
+					existingTags: props.existingTags,
+					onDelete: props.onBulkRemove,
+					onAddTag: props.onBulkAddTag,
+					onRemoveTag: props.onBulkRemoveTag,
+					onSetDueDate: props.onBulkSetDueDate,
+					onClear: props.onClearSelection,
+				}
+			: undefined;
+
 	return (
 		<div
 			ref={measureElement}
@@ -86,6 +102,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 					onDelete={props.onDelete}
 					menuItems={menuItems}
 					viewTransitionName={`node-${row.id}`}
+					bulkSelection={bulkSelection}
 				>
 					<NodeToggle
 						hasChildren={row.hasChildren}
