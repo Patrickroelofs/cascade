@@ -101,6 +101,11 @@ export function VirtualTreeView({
 		<div
 			ref={scrollRef}
 			onPointerDown={onMarqueePointerDown}
+			// Tied directly to marqueeRect (cleared by useMarqueeSelection on
+			// pointerup/pointercancel) rather than an imperative DOM mutation, so
+			// this can never get stuck "none" and break text selection app-wide
+			// if a pointerup is ever missed mid-drag.
+			style={{ userSelect: marqueeRect ? "none" : undefined }}
 			className={twMerge("h-dvh overflow-auto", className)}
 		>
 			<div

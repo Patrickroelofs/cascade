@@ -66,30 +66,29 @@ export function useMarqueeSelection({
 			onSelect(ids);
 		};
 
-		const handlePointerUp = () => {
+		const handlePointerEnd = () => {
 			if (!originRef.current) return;
 			originRef.current = null;
 			setRect(null);
-			document.body.style.userSelect = "";
 		};
 
 		window.addEventListener("pointermove", handlePointerMove);
-		window.addEventListener("pointerup", handlePointerUp);
+		window.addEventListener("pointerup", handlePointerEnd);
+		window.addEventListener("pointercancel", handlePointerEnd);
 		return () => {
 			window.removeEventListener("pointermove", handlePointerMove);
-			window.removeEventListener("pointerup", handlePointerUp);
-			document.body.style.userSelect = "";
+			window.removeEventListener("pointerup", handlePointerEnd);
+			window.removeEventListener("pointercancel", handlePointerEnd);
 		};
 	}, [containerRef, onSelect]);
 
 	const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
 		if (e.button !== 0) return;
 		if ((e.target as HTMLElement).closest(NON_MARQUEE_SELECTOR)) return;
-		// Without these, the browser also starts its own native text selection
-		// from the same mousedown, which then visibly highlights whatever text
-		// the pointer crosses while the marquee rectangle is being dragged.
+		// Without this, the browser also starts its own native text selection
+		// from the same mousedown, which would otherwise visibly highlight
+		// whatever text the pointer crosses while the marquee is dragged.
 		e.preventDefault();
-		document.body.style.userSelect = "none";
 		originRef.current = { x: e.clientX, y: e.clientY };
 		setRect({ left: e.clientX, top: e.clientY, width: 0, height: 0 });
 	}, []);
