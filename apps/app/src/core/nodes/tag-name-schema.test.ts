@@ -1,6 +1,7 @@
 import { MAX_TAG_LENGTH } from "@cascade/outliner/node-tags";
 import { describe, expect, it } from "vitest";
 import {
+	MAX_TAGS_PER_NODE,
 	setNodeTagsInputSchema,
 	tagNameSchema,
 } from "@/core/nodes/tag-name-schema";
@@ -42,6 +43,22 @@ describe("setNodeTagsInputSchema", () => {
 		const result = setNodeTagsInputSchema.safeParse({
 			id: "node-1",
 			tags: ["urgent", "a".repeat(65)],
+		});
+		expect(result.success).toBe(false);
+	});
+
+	it("accepts a tag list at the size cap", () => {
+		const result = setNodeTagsInputSchema.safeParse({
+			id: "node-1",
+			tags: Array.from({ length: MAX_TAGS_PER_NODE }, (_, i) => `tag-${i}`),
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it("rejects a tag list over the size cap", () => {
+		const result = setNodeTagsInputSchema.safeParse({
+			id: "node-1",
+			tags: Array.from({ length: MAX_TAGS_PER_NODE + 1 }, (_, i) => `tag-${i}`),
 		});
 		expect(result.success).toBe(false);
 	});

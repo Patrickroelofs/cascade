@@ -8,7 +8,16 @@ export const tagNameSchema = z
 	.trim()
 	.max(MAX_TAG_LENGTH, `tag name exceeds ${MAX_TAG_LENGTH} characters`);
 
+// No UI flow needs anywhere near this many tags on a single node; the cap
+// keeps a single setNodeTags call from driving an unbounded bulk upsert.
+export const MAX_TAGS_PER_NODE = 50;
+
 export const setNodeTagsInputSchema = z.object({
 	id: z.string(),
-	tags: z.array(tagNameSchema),
+	tags: z
+		.array(tagNameSchema)
+		.max(
+			MAX_TAGS_PER_NODE,
+			`cannot set more than ${MAX_TAGS_PER_NODE} tags on a node`,
+		),
 });
