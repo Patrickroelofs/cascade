@@ -1,4 +1,8 @@
-import { applySecurityHeaders } from "@cascade/http/security-headers";
+import {
+	applySecurityHeaders,
+	getCspNonce,
+	issueCspNonce,
+} from "@cascade/http/security-headers";
 import {
 	createStartHandler,
 	defaultStreamHandler,
@@ -8,13 +12,20 @@ import { paraglideMiddleware } from "./paraglide/server.js";
 
 globalThis.Response = FastResponse;
 
-const startHandler = createStartHandler(defaultStreamHandler);
+const startHandler = createStartHandler((ctx) => {
+	const nonce = getCspNonce(ctx.request);
+	if (nonce) {
+		ctx.router.options.ssr = { ...ctx.router.options.ssr, nonce };
+	}
+	return defaultStreamHandler(ctx);
+});
 
 export default {
 	async fetch(request: Request): Promise<Response> {
+		const nonce = issueCspNonce(request);
 		const response = await paraglideMiddleware(request, () =>
 			startHandler(request),
 		);
-		return applySecurityHeaders(response);
+		return applySecurityHeaders(response, nonce);
 	},
 };

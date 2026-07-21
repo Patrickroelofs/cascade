@@ -1,31 +1,55 @@
 const isProd = process.env.NODE_ENV === "production";
 
-const contentSecurityPolicy = [
-	"default-src 'self'",
-	"script-src 'self' 'unsafe-inline' https://rybbit.patrickroelofs.com",
-	"style-src 'self' 'unsafe-inline'",
-	"img-src 'self' data: https:",
-	"font-src 'self' data:",
-	"connect-src 'self' https://rybbit.patrickroelofs.com",
-	"object-src 'none'",
-	"base-uri 'self'",
-	"form-action 'self'",
-	"frame-ancestors 'none'",
-].join("; ");
+function contentSecurityPolicy(nonce: string): string {
+	return [
+		"default-src 'self'",
+		`script-src 'self' 'nonce-${nonce}' https://rybbit.patrickroelofs.com`,
+		"style-src 'self' 'unsafe-inline'",
+		"img-src 'self' data: https:",
+		"font-src 'self' data:",
+		"connect-src 'self' https://rybbit.patrickroelofs.com",
+		"object-src 'none'",
+		"base-uri 'self'",
+		"form-action 'self'",
+		"frame-ancestors 'none'",
+	].join("; ");
+}
 
-export const securityHeaders: Record<string, string> = {
-	"X-Content-Type-Options": "nosniff",
-	"X-Frame-Options": "DENY",
-	"Referrer-Policy": "strict-origin-when-cross-origin",
-	"Content-Security-Policy": contentSecurityPolicy,
-	...(isProd
-		? { "Strict-Transport-Security": "max-age=63072000; includeSubDomains" }
-		: {}),
-};
+function securityHeaders(nonce: string): Record<string, string> {
+	return {
+		"X-Content-Type-Options": "nosniff",
+		"X-Frame-Options": "DENY",
+		"Referrer-Policy": "strict-origin-when-cross-origin",
+		"Content-Security-Policy": contentSecurityPolicy(nonce),
+		...(isProd
+			? { "Strict-Transport-Security": "max-age=63072000; includeSubDomains" }
+			: {}),
+	};
+}
 
-export function applySecurityHeaders(response: Response): Response {
-	for (const [key, value] of Object.entries(securityHeaders)) {
+export function applySecurityHeaders(
+	response: Response,
+	nonce: string,
+): Response {
+	for (const [key, value] of Object.entries(securityHeaders(nonce))) {
 		response.headers.set(key, value);
 	}
 	return response;
+}
+
+// Associates a per-request CSP nonce with the incoming Request object, so the
+// SSR handler (which only sees the router deep inside the framework's request
+// handling, not the outer fetch()) can pick up the same value issued here and
+// thread it onto `router.options.ssr.nonce` before the app renders.
+const nonceByRequest = new WeakMap<Request, string>();
+
+export function issueCspNonce(request: Request): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	const nonce = btoa(String.fromCharCode(...bytes));
+	nonceByRequest.set(request, nonce);
+	return nonce;
+}
+
+export function getCspNonce(request: Request): string | undefined {
+	return nonceByRequest.get(request);
 }
