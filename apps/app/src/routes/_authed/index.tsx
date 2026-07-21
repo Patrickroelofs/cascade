@@ -1,6 +1,9 @@
 import { getRowVisibility } from "@cascade/outliner/filter-visibility";
 import { FiltersBar } from "@cascade/outliner/filters-bar";
-import { hasActiveDueDateFilter } from "@cascade/outliner/node-filters";
+import {
+	activeDueDateRange,
+	hasActiveDueDateFilter,
+} from "@cascade/outliner/node-filters";
 import { VirtualTree } from "@cascade/outliner/virtual-tree";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
 import { createFileRoute } from "@tanstack/react-router";
@@ -35,7 +38,11 @@ export const Route = createFileRoute("/_authed/")({
 function RootTree() {
 	const { settings } = useSettings();
 	const [filters, setFilters] = useNodeFilters();
-	const tree = useVisibleTree(null, hasActiveDueDateFilter(filters));
+	const tree = useVisibleTree(
+		null,
+		hasActiveDueDateFilter(filters),
+		activeDueDateRange(filters),
+	);
 	const visibility = getRowVisibility(tree.rows, filters);
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
@@ -49,12 +56,28 @@ function RootTree() {
 				<NodeLink id={node.id} content={node.content} />
 			)}
 			contentClassName="rr-block"
-			header={<FiltersBar filters={filters} onFiltersChange={setFilters} />}
+			header={
+				<FiltersBar
+					filters={filters}
+					existingTags={existingTags}
+					onFiltersChange={setFilters}
+				/>
+			}
 			hiddenRowIds={visibility.hiddenIds}
 			contextRowIds={visibility.contextIds}
 			newNodeDueDate={filters.dueToday ? new Date() : undefined}
 			existingTags={existingTags}
 			onDeleteTag={deleteTag}
+			onTagClick={(tag) =>
+				setFilters({
+					...filters,
+					tags: filters.tags.some(
+						(name) => name.toLowerCase() === tag.toLowerCase(),
+					)
+						? filters.tags
+						: [...filters.tags, tag],
+				})
+			}
 		/>
 	);
 }
