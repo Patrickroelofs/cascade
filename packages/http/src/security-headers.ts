@@ -37,10 +37,6 @@ export function applySecurityHeaders(
 	return response;
 }
 
-// Associates a per-request CSP nonce with the incoming Request object, so the
-// SSR handler (which only sees the router deep inside the framework's request
-// handling, not the outer fetch()) can pick up the same value issued here and
-// thread it onto `router.options.ssr.nonce` before the app renders.
 const nonceByRequest = new WeakMap<Request, string>();
 
 export function issueCspNonce(request: Request): string {
