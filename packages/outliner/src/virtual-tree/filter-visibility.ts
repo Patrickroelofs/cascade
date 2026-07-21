@@ -115,7 +115,11 @@ function getCollapsedDescendantIds(rows: VisibleNodeRow[]): Set<string> {
 	const hidden = new Set<string>();
 	for (let i = 0; i < rows.length; i++) {
 		const row = rows[i];
-		if (row.expanded || !row.hasChildren) continue;
+		// Already inside a collapsed ancestor's subtree: that ancestor's scan
+		// already accounted for every row below it, this one included, so
+		// scanning again here would redo that work for each nested collapsed
+		// row and turn a deep collapsed chain into an O(n^2) pass.
+		if (hidden.has(row.id) || row.expanded || !row.hasChildren) continue;
 		let end = i + 1;
 		while (end < rows.length && rows[end].depth > row.depth) end++;
 		for (let j = i + 1; j < end; j++) hidden.add(rows[j].id);
