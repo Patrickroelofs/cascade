@@ -1,7 +1,6 @@
 # Changelog
 
 ## 2026-07-21
-- Tightened the Content-Security-Policy: `script-src` now allows only a per-response nonce (applied automatically to every server-rendered script) instead of `'unsafe-inline'`, restoring script-injection defense-in-depth. [#324](https://github.com/Patrickroelofs/cascade/issues/324)
 - Fixed the "Due in range" filter hiding nodes due on the range's end day whenever their due date carried a time later than midnight. [#315](https://github.com/Patrickroelofs/cascade/issues/315)
 
 ## 2026-07-19
