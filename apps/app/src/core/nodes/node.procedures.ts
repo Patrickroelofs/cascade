@@ -1,3 +1,7 @@
+import {
+	type CalendarDateString,
+	isValidCalendarDateString,
+} from "@cascade/outliner/calendar-date";
 import { normalizeTags } from "@cascade/outliner/node-tags";
 import {
 	type NodeMetadata,
@@ -31,6 +35,11 @@ import {
 	slugifyNodeContent,
 } from "@/ui/nodes/node-slug";
 
+/** A `YYYY-MM-DD` calendar date, as sent by the client's due-date picker. */
+const dueDateSchema = z
+	.string()
+	.refine(isValidCalendarDateString, { message: "Invalid calendar date" });
+
 export const listNodes = authed
 	.input(z.object({ parentId: z.string().nullable() }))
 	.handler(async ({ input, context }) => {
@@ -56,7 +65,7 @@ interface VisibleTreeSqlRow {
 	metadata: unknown;
 	expanded: boolean;
 	order: string;
-	due_date: Date | null;
+	due_date: CalendarDateString | null;
 	depth: number;
 	path: string[];
 	has_children: boolean;
@@ -124,7 +133,7 @@ export const visibleTree = authed
 					ORDER BY v.path
 					LIMIT ${limit + 1}
 				)
-			SELECT p.id, p.parent_id, p.content, p.type, p.metadata, p.expanded, p."order", p.due_date, p.depth, p.path, p.is_last_child,
+			SELECT p.id, p.parent_id, p.content, p.type, p.metadata, p.expanded, p."order", p.due_date::text AS due_date, p.depth, p.path, p.is_last_child,
 				COALESCE(hc.has_children, false) AS has_children,
 				COALESCE(t.tags, '{}') AS tags
 			FROM page p
@@ -176,7 +185,7 @@ export const createNode = authed
 		z.object({
 			parentId: z.string().nullable(),
 			afterId: z.string().nullable().optional(),
-			dueDate: z.coerce.date().nullable().optional(),
+			dueDate: dueDateSchema.nullable().optional(),
 		}),
 	)
 	.handler(async ({ input, context, errors }) => {
@@ -328,7 +337,7 @@ export const toggleNodeExpanded = authed
 	});
 
 export const setNodeDueDate = authed
-	.input(z.object({ id: z.string(), dueDate: z.coerce.date().nullable() }))
+	.input(z.object({ id: z.string(), dueDate: dueDateSchema.nullable() }))
 	.handler(async ({ input, context }) => {
 		await db
 			.update(nodes)

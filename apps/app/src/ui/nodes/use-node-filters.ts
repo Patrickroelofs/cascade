@@ -1,3 +1,8 @@
+import {
+	formatCalendarDate,
+	isValidCalendarDateString,
+	parseCalendarDate,
+} from "@cascade/outliner/calendar-date";
 import type { NodeFilters } from "@cascade/outliner/node-filters";
 import { createParser, parseAsStringLiteral, useQueryStates } from "nuqs";
 
@@ -7,20 +12,9 @@ import { createParser, parseAsStringLiteral, useQueryStates } from "nuqs";
  */
 const parseAsLocalDate = createParser<Date>({
 	parse(value) {
-		const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-		if (!match) return null;
-		const date = new Date(
-			Number(match[1]),
-			Number(match[2]) - 1,
-			Number(match[3]),
-		);
-		return Number.isNaN(date.getTime()) ? null : date;
+		return isValidCalendarDateString(value) ? parseCalendarDate(value) : null;
 	},
-	serialize(date) {
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const day = String(date.getDate()).padStart(2, "0");
-		return `${date.getFullYear()}-${month}-${day}`;
-	},
+	serialize: formatCalendarDate,
 	eq: (a, b) => a.getTime() === b.getTime(),
 });
 

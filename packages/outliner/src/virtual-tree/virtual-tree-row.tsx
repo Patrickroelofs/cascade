@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
+import { parseCalendarDate } from "../calendar-date";
 import { defaultOutlinerFeatures } from "../features/default-features";
 import { NodeActions } from "../node-actions";
 import { NodeEditor } from "../node-editor";
@@ -15,10 +16,10 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 	const { row, start, index, measureElement } = props;
 	const features = props.features ?? defaultOutlinerFeatures;
 	const completed = row.type === "task" && (row.metadata?.completed ?? false);
-	// SSR hydration round-trips the query cache through JSON, which leaves
-	// dueDate as an ISO string instead of a Date; normalize it here so every
-	// consumer below can rely on a real Date | null.
-	const dueDate = row.dueDate ? new Date(row.dueDate) : null;
+	// row.dueDate is a `YYYY-MM-DD` calendar date, not a Date; parse it here
+	// (in local time, not UTC) so every consumer below can rely on a real
+	// Date | null for display and day math.
+	const dueDate = row.dueDate ? parseCalendarDate(row.dueDate) : null;
 	const position = siblingPosition(props.rows, index);
 
 	// Built once per row and passed to every feature's slot/menu renderer,

@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@cascade/outliner/calendar-date";
 import {
 	isDueOnDate,
 	isDueThisWeek,
@@ -26,7 +27,7 @@ function row(
 		metadata,
 		expanded: true,
 		order: id,
-		dueDate,
+		dueDate: dueDate ? formatCalendarDate(dueDate) : null,
 		tags: [],
 		depth,
 		path: [id],

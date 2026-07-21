@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@cascade/outliner/calendar-date";
 import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
 import type { VisibleNodeRow } from "@cascade/outliner/node-types";
 import type { AddNodeOptions, VisibleTree } from "@cascade/outliner/tree-types";
@@ -133,7 +134,11 @@ export function useDemoTree(rootId: string | null) {
 	};
 
 	const setDueDate: VisibleTree["setDueDate"] = (id, dueDate) => {
-		setAllNodes((current) => patchRow(current, id, { dueDate }));
+		setAllNodes((current) =>
+			patchRow(current, id, {
+				dueDate: dueDate ? formatCalendarDate(dueDate) : null,
+			}),
+		);
 	};
 
 	const setTags: VisibleTree["setTags"] = (id, tags) => {
@@ -151,7 +156,7 @@ export function useDemoTree(rootId: string | null) {
 			parentId: rootId,
 			depth: parentDepth + 1,
 			isLastChild: true,
-			dueDate,
+			dueDate: dueDate ? formatCalendarDate(dueDate) : null,
 		});
 		setAllNodes((current) =>
 			rootId === null
@@ -169,7 +174,7 @@ export function useDemoTree(rootId: string | null) {
 			parentId: sibling.parentId,
 			depth: sibling.depth,
 			isLastChild: sibling.isLastChild,
-			dueDate,
+			dueDate: dueDate ? formatCalendarDate(dueDate) : null,
 		});
 		setAllNodes((current) => insertRowAfter(current, afterId, created));
 		return created.id;

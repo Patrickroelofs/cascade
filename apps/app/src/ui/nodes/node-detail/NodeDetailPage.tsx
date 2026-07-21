@@ -1,3 +1,4 @@
+import { parseCalendarDate } from "@cascade/outliner/calendar-date";
 import type { NodeMetadataOf } from "@cascade/outliner/node-types";
 import { CascadeLoader } from "@cascade/ui/cascade-loader";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -15,10 +16,9 @@ export function NodeDetailPage({ nodeId }: { nodeId: string }) {
 	const deleteTag = useDeleteTag();
 	const mutations = useNodeDetailMutations(nodeId, options.queryKey);
 
-	// SSR hydration round-trips the query cache through JSON, which leaves
-	// dueDate as an ISO string instead of a Date; normalize it here so
-	// NodeDueDatePill always gets a real Date | null (see virtual-tree-row.tsx).
-	const dueDate = node.dueDate ? new Date(node.dueDate) : null;
+	// node.dueDate is a `YYYY-MM-DD` calendar date, not a Date; parse it here
+	// so NodeDueDatePill always gets a real Date | null (see virtual-tree-row.tsx).
+	const dueDate = node.dueDate ? parseCalendarDate(node.dueDate) : null;
 	const completed =
 		node.type === "task" &&
 		((node.metadata as NodeMetadataOf<"task"> | null)?.completed ?? false);

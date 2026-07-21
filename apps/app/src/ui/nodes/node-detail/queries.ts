@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@cascade/outliner/calendar-date";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, orpc } from "#/orpc/client";
@@ -46,8 +47,15 @@ export function useNodeDetailMutations(nodeId: string, queryKey: QueryKey) {
 		NodeDetailData
 	>({
 		queryKey,
-		mutationFn: (dueDate) => client.nodes.setDueDate({ id: nodeId, dueDate }),
-		patch: (old, dueDate) => (old ? { ...old, dueDate } : old),
+		mutationFn: (dueDate) =>
+			client.nodes.setDueDate({
+				id: nodeId,
+				dueDate: dueDate ? formatCalendarDate(dueDate) : null,
+			}),
+		patch: (old, dueDate) =>
+			old
+				? { ...old, dueDate: dueDate ? formatCalendarDate(dueDate) : null }
+				: old,
 	});
 
 	const setTagsMutation = useOptimisticNodeMutation<
