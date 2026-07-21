@@ -5,17 +5,20 @@ import { cva } from "./cva.config";
 const variantRing = {
 	primary: "focus-visible:ring-primary/50",
 	dark: "focus-visible:ring-ink/50",
+	danger: "focus-visible:ring-danger/50",
 };
 
 const variantBg = {
 	primary: "bg-primary",
 	dark: "bg-ink",
+	danger: "bg-danger",
 };
 
 const root = cva({
 	base: [
 		"group relative inline-flex select-none items-center rounded-full outline-none cursor-pointer",
 		"focus-visible:ring-2",
+		"disabled:cursor-default disabled:opacity-40",
 	],
 	variants: {
 		variant: variantRing,
@@ -30,9 +33,15 @@ const spring =
 const slide = `${spring} group-hover:translate-x-4.75 group-active:translate-x-4.75`;
 const grow = `${spring} group-hover:scale-[1.05] group-active:scale-[1.05]`;
 
+const sizes = {
+	md: { height: "h-11", textPadding: "px-6", text: "font-semibold" },
+	sm: { height: "h-8", textPadding: "px-4", text: "text-sm font-semibold" },
+};
+
 export interface ButtonProps extends React.ComponentProps<typeof BaseButton> {
-	icon: React.ReactNode;
-	variant?: "primary" | "dark";
+	icon?: React.ReactNode;
+	variant?: "primary" | "dark" | "danger";
+	size?: "md" | "sm";
 }
 
 export function Button({
@@ -40,10 +49,31 @@ export function Button({
 	icon,
 	className,
 	variant = "primary",
+	size = "md",
 	...props
 }: ButtonProps) {
 	const filterId = useId();
 	const bg = variantBg[variant];
+	const { height, textPadding, text } = sizes[size];
+
+	/**
+	 * The blobby goo split needs two separate pieces to pull apart, so it only
+	 * applies to the default size with an icon. Small buttons (and any button
+	 * without an icon) just scale in place.
+	 */
+	if (size !== "md" || !icon) {
+		return (
+			<BaseButton className={root({ variant, className })} {...props}>
+				<span className={`absolute inset-0 rounded-full ${bg} ${grow}`} />
+				<span
+					className={`relative z-10 flex ${height} items-center justify-center gap-2 ${textPadding} ${text} text-canvas ${grow}`}
+				>
+					{children}
+					{icon}
+				</span>
+			</BaseButton>
+		);
+	}
 
 	return (
 		<BaseButton className={root({ variant, className })} {...props}>
@@ -69,8 +99,10 @@ export function Button({
 					className={`absolute inset-y-0 right-0 w-11 rounded-full ${bg} ${slide}`}
 				/>
 			</span>
-			<span className="relative z-10 flex h-11 items-center">
-				<span className={`origin-right px-6 font-semibold text-canvas ${grow}`}>
+			<span className={`relative z-10 flex ${height} items-center`}>
+				<span
+					className={`origin-right ${textPadding} ${text} text-canvas ${grow}`}
+				>
 					{children}
 				</span>
 				<span

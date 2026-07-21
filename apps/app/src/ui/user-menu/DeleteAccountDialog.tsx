@@ -1,6 +1,7 @@
 import { AlertDialog } from "@base-ui/react";
+import { Button } from "@cascade/ui/button";
 import { m } from "#/paraglide/messages.js";
-import { alertPopup, destructiveButton, secondaryButton } from "./styles";
+import { alertPopup } from "./styles";
 
 export interface DeleteAccountDialogProps {
 	open: boolean;
@@ -32,20 +33,21 @@ export function DeleteAccountDialog({
 					<div className="mt-6 flex justify-end gap-2">
 						<AlertDialog.Close
 							disabled={isDeleting}
-							className={secondaryButton()}
+							render={<Button type="button" size="sm" variant="dark" />}
 						>
 							{m.user_menu_cancel()}
 						</AlertDialog.Close>
-						<button
+						<Button
 							type="button"
+							size="sm"
+							variant="danger"
 							onClick={onDeleteAccount}
 							disabled={isDeleting}
-							className={destructiveButton()}
 						>
 							{isDeleting
 								? m.user_menu_deleting()
 								: m.user_menu_delete_account()}
-						</button>
+						</Button>
 					</div>
 				</AlertDialog.Popup>
 			</AlertDialog.Portal>

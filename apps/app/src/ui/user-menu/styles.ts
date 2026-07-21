@@ -51,17 +51,6 @@ export const iconButton = cva({
 	base: "cursor-pointer rounded-md p-1 outline-none hover:bg-surface/70 focus-visible:ring-2 focus-visible:ring-danger/50 dark:hover:bg-surface/20",
 });
 
-/** The sign-out / delete-account rows in the "user" settings tab — same look, different top spacing. */
-export const dangerMenuItem = cva({
-	base: "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm text-danger outline-none hover:bg-surface/70 focus-visible:ring-2 focus-visible:ring-danger/50 dark:hover:bg-surface/20",
-	variants: {
-		spacing: {
-			loose: "mt-4",
-			tight: "mt-1",
-		},
-	},
-});
-
 export const alertPopup = cva({
 	base: "fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg border border-ink/10 bg-white p-6 text-ink shadow-lg shadow-ink/15 outline-none dark:border-surface/15 dark:bg-ink dark:text-surface",
 });
@@ -69,14 +58,6 @@ export const alertPopup = cva({
 /** External "quick link" rows in the general settings tab. */
 export const quickLinkItem = cva({
 	base: "flex cursor-pointer items-center gap-2 rounded-md px-3 py-1.5 text-sm outline-none hover:bg-surface/70 focus-visible:ring-2 focus-visible:ring-danger/50 dark:hover:bg-surface/20",
-});
-
-export const secondaryButton = cva({
-	base: "cursor-pointer rounded-md px-3 py-1.5 text-sm outline-none hover:bg-surface/70 focus-visible:ring-2 focus-visible:ring-danger/50 disabled:cursor-default disabled:opacity-40 dark:hover:bg-surface/20",
-});
-
-export const destructiveButton = cva({
-	base: "cursor-pointer rounded-md bg-danger px-3 py-1.5 text-sm text-canvas outline-none hover:bg-danger/90 focus-visible:ring-2 focus-visible:ring-danger/50 disabled:cursor-default disabled:opacity-40",
 });
 
 export const indentSizeInput = cva({
