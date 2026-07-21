@@ -3,6 +3,7 @@ import {
 	draggable,
 	dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
 import {
 	attachInstruction,
 	extractInstruction,
@@ -55,11 +56,6 @@ export function RowDragAndDrop({
 	const handleRef = useRef<HTMLButtonElement>(null);
 	const [instruction, setInstruction] = useState<Instruction | null>(null);
 
-	// The drag-and-drop handlers below are wired up once (empty deps) and close
-	// over `latest` instead of `row`/`rows`/etc. directly, so this ref has to
-	// stay current across every render. Assigning it in a layout effect (not
-	// inline during render) keeps this component compatible with React
-	// Compiler, which forbids ref writes during render.
 	const latest = useRef({ row, rows, onMoveDrop, indentSize });
 	useLayoutEffect(() => {
 		latest.current = { row, rows, onMoveDrop, indentSize };
@@ -74,9 +70,19 @@ export function RowDragAndDrop({
 
 		return combine(
 			draggable({
-				element: rowElement,
-				dragHandle: handle,
+				element: handle,
 				getInitialData: (): DragData => ({ nodeId: id }),
+				onGenerateDragPreview: ({ nativeSetDragImage }) => {
+					setCustomNativeDragPreview({
+						nativeSetDragImage,
+						render: ({ container }) => {
+							const preview = rowElement.cloneNode(true) as HTMLElement;
+							preview.style.width = `${rowElement.offsetWidth}px`;
+							container.append(preview);
+							return () => preview.remove();
+						},
+					});
+				},
 			}),
 			dropTargetForElements({
 				element: rowElement,
