@@ -6,8 +6,8 @@ import {
 } from "@cascade/ui/context-menu";
 import { CalendarIcon } from "@phosphor-icons/react/ssr";
 import { useOutlinerLabels } from "../../labels-context";
-import { NodeDueDatePill } from "../../node-due-date-pill";
 import type { OutlinerFeature } from "../types";
+import { NodeDueDatePill } from "./node-due-date-pill";
 
 export interface DueDateFeatureContext {
 	dueDate: Date | null;

@@ -1,9 +1,9 @@
+import { NodeDueDatePill } from "@cascade/outliner/features/due-date/node-due-date-pill";
+import { NodeTagsControl } from "@cascade/outliner/features/tags/node-tags-pills";
+import { NodeCheckbox } from "@cascade/outliner/features/task/node-checkbox";
 import { LexicalReadView } from "@cascade/outliner/lexical/read/lexical-read-view";
 import { toLexicalContent } from "@cascade/outliner/lexical-content";
-import { NodeCheckbox } from "@cascade/outliner/node-checkbox";
-import { NodeDueDatePill } from "@cascade/outliner/node-due-date-pill";
 import type { TagSummary } from "@cascade/outliner/node-tags";
-import { NodeTagsControl } from "@cascade/outliner/node-tags-pills";
 import { Breadcrumbs } from "#/ui/nodes/breadcrumbs";
 import type { NodeDetailData } from "./types";
 

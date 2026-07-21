@@ -7,8 +7,8 @@ import { TagIcon } from "@phosphor-icons/react/ssr";
 import { useOutlinerLabels } from "../../labels-context";
 import type { TagSummary } from "../../node-tags";
 import { NodeTagsEditor } from "../../node-tags-editor/node-tags-editor";
-import { NodeTagPills } from "../../node-tags-pills";
 import type { OutlinerFeature } from "../types";
+import { NodeTagPills } from "./node-tags-pills";
 
 export interface TagsFeatureContext {
 	tags: string[];

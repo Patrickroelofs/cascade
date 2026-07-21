@@ -1,6 +1,6 @@
-import { NodeCheckbox } from "../../node-checkbox";
 import type { VisibleNodeRow } from "../../node-types";
 import type { OutlinerFeature } from "../types";
+import { NodeCheckbox } from "./node-checkbox";
 
 export interface TaskFeatureContext {
 	row: Pick<VisibleNodeRow, "type" | "metadata">;
