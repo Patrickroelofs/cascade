@@ -5,8 +5,8 @@ import {
 } from "@cascade/ui/context-menu";
 import { TagIcon } from "@phosphor-icons/react/ssr";
 import { useOutlinerLabels } from "../../labels-context";
-import { NodeTagsEditor } from "../../node-tags-editor/node-tags-editor";
 import type { TagsFeatureContext } from "./index";
+import { NodeTagsEditor } from "./node-tags-editor/node-tags-editor";
 
 export function TagsMenuItem({ ctx }: { ctx: TagsFeatureContext }) {
 	const labels = useOutlinerLabels();

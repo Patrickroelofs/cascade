@@ -1,7 +1,7 @@
 import { CheckIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react/ssr";
 import { useState } from "react";
-import { useOutlinerLabels } from "../labels-context";
-import { MAX_TAG_LENGTH } from "../node-tags";
+import { useOutlinerLabels } from "../../../labels-context";
+import { MAX_TAG_LENGTH } from "../../../node-tags";
 import { DeleteTagDialog } from "./delete-tag-dialog";
 import {
 	charCount,
