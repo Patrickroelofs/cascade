@@ -11,10 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as AuthedRouteImport } from './routes/_authed'
-import { Route as AuthedIndexRouteImport } from './routes/_authed.index'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
-import { Route as AuthedNodeSlugRouteImport } from './routes/_authed.$nodeSlug'
+import { Route as AuthedNodeSlugRouteImport } from './routes/_authed/$nodeSlug'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 
@@ -28,14 +28,14 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedRoute = AuthedRouteImport.update({
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthedRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
@@ -45,7 +45,7 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 const AuthedNodeSlugRoute = AuthedNodeSlugRouteImport.update({
   id: '/$nodeSlug',
   path: '/$nodeSlug',
-  getParentRoute: () => AuthedRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   id: '/api/rpc/$',
@@ -78,7 +78,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_authed': typeof AuthedRouteWithChildren
+  '/_authed': typeof AuthedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/_authed/$nodeSlug': typeof AuthedNodeSlugRoute
@@ -119,7 +119,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthedRoute: typeof AuthedRouteWithChildren
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ApiSplatRoute: typeof ApiSplatRoute
@@ -147,7 +147,7 @@ declare module '@tanstack/react-router' {
       id: '/_authed'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthedRouteImport
+      preLoaderRoute: typeof AuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/': {
@@ -155,7 +155,7 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthedIndexRouteImport
-      parentRoute: typeof AuthedRoute
+      parentRoute: typeof AuthedRouteRoute
     }
     '/api/$': {
       id: '/api/$'
@@ -169,7 +169,7 @@ declare module '@tanstack/react-router' {
       path: '/$nodeSlug'
       fullPath: '/$nodeSlug'
       preLoaderRoute: typeof AuthedNodeSlugRouteImport
-      parentRoute: typeof AuthedRoute
+      parentRoute: typeof AuthedRouteRoute
     }
     '/api/rpc/$': {
       id: '/api/rpc/$'
@@ -188,21 +188,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthedRouteChildren {
+interface AuthedRouteRouteChildren {
   AuthedNodeSlugRoute: typeof AuthedNodeSlugRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
 }
 
-const AuthedRouteChildren: AuthedRouteChildren = {
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedNodeSlugRoute: AuthedNodeSlugRoute,
   AuthedIndexRoute: AuthedIndexRoute,
 }
 
-const AuthedRouteWithChildren =
-  AuthedRoute._addFileChildren(AuthedRouteChildren)
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
-  AuthedRoute: AuthedRouteWithChildren,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ApiSplatRoute: ApiSplatRoute,
