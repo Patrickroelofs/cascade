@@ -1,3 +1,4 @@
+import { parseCalendarDate } from "../calendar-date";
 import {
 	isDueOnDate,
 	isDueThisWeek,
@@ -124,7 +125,7 @@ function getCollapsedDescendantIds(rows: VisibleNodeRow[]): Set<string> {
  */
 function rowMatchesFilters(row: VisibleNodeRow, filters: NodeFilters): boolean {
 	if (!row.dueDate) return false;
-	const dueDate = new Date(row.dueDate);
+	const dueDate = parseCalendarDate(row.dueDate);
 	if (filters.dueToday && !isDueToday(dueDate)) {
 		return false;
 	}

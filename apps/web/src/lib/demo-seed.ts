@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@cascade/outliner/calendar-date";
 import type {
 	NodeTypeName,
 	VisibleNodeRow,
@@ -45,7 +46,7 @@ function toRow(
 		metadata: type === "task" ? { completed: node.completed ?? false } : null,
 		expanded: node.expanded ?? true,
 		order: String(order),
-		dueDate: node.dueDate ?? null,
+		dueDate: node.dueDate ? formatCalendarDate(node.dueDate) : null,
 		tags: [],
 		depth,
 		path: [],

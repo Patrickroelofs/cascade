@@ -5,6 +5,7 @@ import {
 	type AnyPgColumn,
 	boolean,
 	customType,
+	date,
 	index,
 	jsonb,
 	pgTable,
@@ -43,7 +44,12 @@ export const nodes = pgTable(
 			.notNull()
 			.defaultNow()
 			.$onUpdate(() => new Date()),
-		dueDate: timestamp("due_date", { withTimezone: true }),
+		/**
+		 * A calendar date, not an instant: stored as Postgres `date` (no time or
+		 * timezone) and represented as a plain `YYYY-MM-DD` string everywhere in
+		 * the app, so the day it names never shifts under conversion. See #323.
+		 */
+		dueDate: date("due_date", { mode: "string" }),
 	},
 	(t) => [
 		index("nodes_parent_id_idx").on(t.parentId),

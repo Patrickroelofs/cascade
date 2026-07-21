@@ -50,6 +50,13 @@
       "when": 1784295623269,
       "tag": "0006_needy_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784636570638,
+      "tag": "0007_black_maestro",
+      "breakpoints": true
     }
   ]
 }

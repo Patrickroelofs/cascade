@@ -1,3 +1,4 @@
+import { formatCalendarDate } from "@cascade/outliner/calendar-date";
 import type { AddNodeOptions } from "@cascade/outliner/tree-types";
 import { appendRow, insertRowAfter } from "@cascade/outliner/visible-rows";
 import { toast } from "@cascade/ui/toast";
@@ -25,14 +26,17 @@ export function useCreateMutation(
 		mutationFn: (vars: {
 			parentId: string | null;
 			afterId?: string;
-			dueDate?: Date | null;
+			dueDate?: string | null;
 		}) => client.nodes.create(vars),
 	});
 
 	const add = async ({ dueDate = null }: AddNodeOptions = {}) => {
 		let created: Awaited<ReturnType<typeof mutation.mutateAsync>>;
 		try {
-			created = await mutation.mutateAsync({ parentId: rootId, dueDate });
+			created = await mutation.mutateAsync({
+				parentId: rootId,
+				dueDate: dueDate ? formatCalendarDate(dueDate) : null,
+			});
 		} catch {
 			toast.error(m.node_create_failed());
 			return null;
@@ -71,7 +75,7 @@ export function useCreateMutation(
 			created = await mutation.mutateAsync({
 				parentId: sibling.parentId,
 				afterId,
-				dueDate,
+				dueDate: dueDate ? formatCalendarDate(dueDate) : null,
 			});
 		} catch {
 			toast.error(m.node_create_failed());
