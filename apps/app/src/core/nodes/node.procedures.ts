@@ -506,7 +506,7 @@ export const moveNode = authed
 				const [target] = await tx
 					.select({ order: nodes.order })
 					.from(nodes)
-					.where(and(eq(nodes.id, input.targetId), eq(nodes.userId, userId)))
+					.where(and(parentFilter, eq(nodes.id, input.targetId)))
 					.limit(1)
 					.for("update");
 				if (!target) {
