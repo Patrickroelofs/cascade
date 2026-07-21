@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useOutlinerLabels } from "./labels-context";
 import { LexicalEditView } from "./lexical/edit/lexical-edit-view";
 import { toLexicalContent } from "./lexical/lexical-content";
@@ -51,6 +52,7 @@ export function NodeEditor({
 	onFocusPrevious,
 }: NodeEditorProps) {
 	const labels = useOutlinerLabels();
+	const mouseDownPointRef = useRef<{ x: number; y: number } | null>(null);
 	if (editing) {
 		return (
 			<LexicalEditView
@@ -77,7 +79,34 @@ export function NodeEditor({
 			aria-label={labels.editNodeText}
 			data-node-focus-target
 			className={`cursor-text text-left flex-1 min-w-0 rr-block ${completed ? "line-through text-muted dark:text-canvas/30" : ""}`}
-			onClick={(event) => onStartEdit({ x: event.clientX, y: event.clientY })}
+			onMouseDown={(event) => {
+				mouseDownPointRef.current = { x: event.clientX, y: event.clientY };
+			}}
+			onClick={(event) => {
+				// A click-drag to select (or copy) this row's text ends with a
+				// "click" event too. Entering edit mode right then would swap this
+				// read view out for the editable one, tearing down the very DOM
+				// nodes the browser's selection anchors to and silently clearing
+				// it — so a click whose mousedown was measurably far from where it
+				// ended (an actual drag, not just a click) skips edit mode as long
+				// as it left behind a real selection. A plain click always skips
+				// this check and enters edit mode regardless of any selection made
+				// by an earlier, unrelated drag — the selection API doesn't
+				// reliably report an old selection as collapsed by the time a
+				// later plain click's own "click" event fires.
+				const start = mouseDownPointRef.current;
+				const dragged =
+					start !== null &&
+					(Math.abs(event.clientX - start.x) > 5 ||
+						Math.abs(event.clientY - start.y) > 5);
+				if (dragged) {
+					const selection = window.getSelection();
+					if (selection && !selection.isCollapsed && selection.toString()) {
+						return;
+					}
+				}
+				onStartEdit({ x: event.clientX, y: event.clientY });
+			}}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {
 					event.preventDefault();

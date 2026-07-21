@@ -176,6 +176,7 @@ export function VirtualTreeView({
 									selected={selection.selectedIds.has(row.id)}
 									onSelect={onRowSelect}
 									onClearSelection={selection.clear}
+									isMarqueeDragging={marqueeRect !== null}
 								/>
 							);
 						})}

@@ -76,6 +76,7 @@ export function VirtualTreeRow(props: VirtualTreeRowProps) {
 				selected={props.selected}
 				onSelect={props.onSelect}
 				onClearSelection={props.onClearSelection}
+				isMarqueeDragging={props.isMarqueeDragging}
 			>
 				<NodeActions
 					nodeType={row.type}

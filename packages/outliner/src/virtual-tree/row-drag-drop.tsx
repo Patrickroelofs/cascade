@@ -37,6 +37,7 @@ interface RowDragAndDropProps {
 	selected: boolean;
 	onSelect: (id: string, mode: "toggle" | "range") => void;
 	onClearSelection: () => void;
+	isMarqueeDragging: boolean;
 	children: ReactNode;
 }
 
@@ -72,6 +73,7 @@ export function RowDragAndDrop({
 	selected,
 	onSelect,
 	onClearSelection,
+	isMarqueeDragging,
 	children,
 }: RowDragAndDropProps) {
 	const rowRef = useRef<HTMLDivElement>(null);
@@ -109,22 +111,48 @@ export function RowDragAndDrop({
 
 		const id = latest.current.row.id;
 
-		return combine(
-			draggable({
+		const getInitialData = (): DragData => {
+			const { rows: currentRows, selectedIds: currentSelection } =
+				latest.current;
+			const nodeIds =
+				currentSelection.has(id) && currentSelection.size > 1
+					? currentRows
+							.filter((r) => currentSelection.has(r.id))
+							.map((r) => r.id)
+					: [id];
+			return { nodeIds };
+		};
+
+		// `draggable()` marks the whole row draggable="true" for as long as it's
+		// registered — but that alone (regardless of the dragHandle option, which
+		// only cancels a dragstart that didn't begin on the handle) makes
+		// Chromium treat *any* mousedown anywhere in the row as a potential
+		// element drag instead of a text selection, so a plain click-drag over
+		// the row's text would select nothing. Only registering it for the
+		// brief window between a pointerdown on the handle and the matching
+		// pointerup keeps the row selectable everywhere else.
+		let unregisterDraggable: (() => void) | null = null;
+		const arm = () => {
+			unregisterDraggable ??= draggable({
 				element: rowElement,
 				dragHandle: handle,
-				getInitialData: (): DragData => {
-					const { rows: currentRows, selectedIds: currentSelection } =
-						latest.current;
-					const nodeIds =
-						currentSelection.has(id) && currentSelection.size > 1
-							? currentRows
-									.filter((r) => currentSelection.has(r.id))
-									.map((r) => r.id)
-							: [id];
-					return { nodeIds };
-				},
-			}),
+				getInitialData,
+			});
+		};
+		const disarm = () => {
+			unregisterDraggable?.();
+			unregisterDraggable = null;
+		};
+
+		handle.addEventListener("pointerdown", arm);
+		window.addEventListener("pointerup", disarm);
+		window.addEventListener("pointercancel", disarm);
+
+		return combine(
+			() => handle.removeEventListener("pointerdown", arm),
+			() => window.removeEventListener("pointerup", disarm),
+			() => window.removeEventListener("pointercancel", disarm),
+			disarm,
 			dropTargetForElements({
 				element: rowElement,
 				canDrop: ({ source }) => {
@@ -238,8 +266,30 @@ export function RowDragAndDrop({
 				e.stopPropagation();
 				onSelect(row.id, e.shiftKey ? "range" : "toggle");
 			}}
+			onClickCapture={(e) => {
+				// Stopping the mousedown above doesn't stop the separate, later
+				// "click" event the same gesture also fires on mouseup — without
+				// this, a modifier-click both toggled the row's selection *and*
+				// still reached the text's own onClick, entering edit mode.
+				if (!(e.ctrlKey || e.metaKey || e.shiftKey)) return;
+				if ((e.target as HTMLElement).closest(ROW_INTERACTIVE_SELECTOR)) return;
+				e.preventDefault();
+				e.stopPropagation();
+			}}
 			className={twMerge(
 				"group/node py-1 flex items-center gap-2 relative rounded-md has-data-popup-open:bg-accent/25 has-data-popup-open:ring-1 has-data-popup-open:ring-inset has-data-popup-open:ring-accent/60",
+				// Chromium (and other browsers) implicitly set user-select: none on
+				// any draggable="true" element, to keep a native drag gesture from
+				// also starting a text selection. That's exactly what we want for
+				// the drag handle, but this whole row carries draggable="true" (so
+				// pragmatic-drag-and-drop's dragHandle restriction has an element
+				// to attach to), and user-select inherits down — silently making
+				// every row's text unselectable the rest of the time. select-text
+				// overrides that back, except while a marquee is being dragged
+				// across rows, where we want the opposite: select-none, so the
+				// drag reports which rows it crosses instead of also highlighting
+				// their text.
+				isMarqueeDragging ? "select-none" : "select-text",
 				selected && "bg-accent/15 ring-1 ring-inset ring-accent/50",
 			)}
 		>

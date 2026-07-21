@@ -81,4 +81,7 @@ export interface VirtualTreeRowProps {
 	selected: boolean;
 	onSelect: (id: string, mode: "toggle" | "range") => void;
 	onClearSelection: () => void;
+	/** A marquee drag is in progress; rows suppress text selection for its
+	 * duration so dragging across them doesn't also highlight their text. */
+	isMarqueeDragging: boolean;
 }
