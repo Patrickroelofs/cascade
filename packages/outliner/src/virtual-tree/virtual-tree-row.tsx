@@ -1,5 +1,3 @@
-"use no memo";
-
 import { Fragment } from "react";
 import { twMerge } from "tailwind-merge";
 import { defaultOutlinerFeatures } from "../features/default-features";

@@ -1,5 +1,3 @@
-"use no memo";
-
 import { Button } from "@cascade/ui/button";
 import { PlusIcon } from "@phosphor-icons/react";
 import type { VirtualItem, Virtualizer } from "@tanstack/react-virtual";
