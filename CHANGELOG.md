@@ -9,6 +9,7 @@
 - Creating a node now shows an error notification instead of failing silently if the request doesn't reach the server, and no longer risks losing the newly created row if another change refreshes the outline at the same moment. [#328](https://github.com/Patrickroelofs/cascade/issues/328)
 - Fixed the login and register pages triggering an unauthenticated settings request that logged a spurious 401 error in the browser console and server logs. [#357](https://github.com/Patrickroelofs/cascade/issues/357)
 - Fixed the "Due in range" filter hiding nodes due on the range's end day whenever their due date carried a time later than midnight. [#315](https://github.com/Patrickroelofs/cascade/issues/315)
+- Toggling a node's expanded state, setting its due date or type, and editing its content now return a proper error instead of silently succeeding when the node id doesn't exist or belongs to another user. [#295](https://github.com/Patrickroelofs/cascade/issues/295)
 
 ## 2026-07-19
 - Primary action buttons (submit, add node, save) now use their own color instead of borrowing the "danger" one, so they read as a clear call to action instead of a warning in every theme, with legible text everywhere. [#284](https://github.com/Patrickroelofs/cascade/issues/284)

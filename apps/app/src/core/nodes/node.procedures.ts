@@ -329,21 +329,31 @@ export const getNodeAncestors = authed
 	});
 
 export const toggleNodeExpanded = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
 	.input(z.object({ id: z.string(), expanded: z.boolean() }))
-	.handler(async ({ input, context }) => {
-		await db
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ expanded: input.expanded })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
 
 export const setNodeDueDate = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
 	.input(z.object({ id: z.string(), dueDate: dueDateSchema.nullable() }))
-	.handler(async ({ input, context }) => {
-		await db
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ dueDate: input.dueDate })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
 
 /** This user's tags with how many nodes each is on, sorted by name. */
@@ -418,12 +428,17 @@ export const setNodeTags = authed
 	});
 
 export const setNodeType = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
 	.input(z.object({ id: z.string() }).and(typedMetadataSchema))
-	.handler(async ({ input, context }) => {
-		await db
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ type: input.type, metadata: input.metadata })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
 
 const moveNodeBase = {
@@ -564,10 +579,15 @@ export const deleteNode = authed
 	});
 
 export const updateNodeContent = authed
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
 	.input(updateNodeContentInputSchema)
-	.handler(async ({ input, context }) => {
-		await db
+	.handler(async ({ input, context, errors }) => {
+		const updated = await db
 			.update(nodes)
 			.set({ content: input.content })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)));
+			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
+			.returning({ id: nodes.id });
+		if (updated.length === 0) throw errors.NOT_FOUND();
 	});
