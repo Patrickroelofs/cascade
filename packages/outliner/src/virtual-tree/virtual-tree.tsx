@@ -1,5 +1,3 @@
-"use no memo";
-
 import { useOutlinerLabels } from "../labels-context";
 import type { VirtualTreeProps } from "./types";
 import { useTreeInteractions } from "./use-tree-interactions";

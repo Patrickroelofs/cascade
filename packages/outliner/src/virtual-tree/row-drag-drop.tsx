@@ -1,5 +1,3 @@
-"use no memo";
-
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import {
 	draggable,
@@ -10,7 +8,13 @@ import {
 	extractInstruction,
 	type Instruction,
 } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import {
+	type ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 import { NodeDragHandle } from "../node-drag-handle";
 import { NodeDropIndicator } from "../node-drop-indicator";
 import type { VisibleNodeRow } from "../node-types";
@@ -51,8 +55,15 @@ export function RowDragAndDrop({
 	const handleRef = useRef<HTMLButtonElement>(null);
 	const [instruction, setInstruction] = useState<Instruction | null>(null);
 
+	// The drag-and-drop handlers below are wired up once (empty deps) and close
+	// over `latest` instead of `row`/`rows`/etc. directly, so this ref has to
+	// stay current across every render. Assigning it in a layout effect (not
+	// inline during render) keeps this component compatible with React
+	// Compiler, which forbids ref writes during render.
 	const latest = useRef({ row, rows, onMoveDrop, indentSize });
-	latest.current = { row, rows, onMoveDrop, indentSize };
+	useLayoutEffect(() => {
+		latest.current = { row, rows, onMoveDrop, indentSize };
+	});
 
 	useEffect(() => {
 		const rowElement = rowRef.current;
