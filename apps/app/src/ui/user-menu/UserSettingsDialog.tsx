@@ -226,7 +226,7 @@ export function UserSettingsDialog({
 									</div>
 								</div>
 							</div>
-							<div className="mt-4 flex flex-col items-start gap-2">
+							<div className="mt-4 flex items-center justify-between">
 								<Button
 									type="button"
 									size="sm"
