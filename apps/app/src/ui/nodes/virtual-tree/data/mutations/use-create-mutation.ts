@@ -1,7 +1,9 @@
 import type { AddNodeOptions } from "@cascade/outliner/tree-types";
 import { appendRow, insertRowAfter } from "@cascade/outliner/visible-rows";
+import { toast } from "@cascade/ui/toast";
 import type { QueryKey } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { m } from "#/paraglide/messages.js";
 import { client } from "@/orpc/client";
 import { makeSetRows } from "../cache-helpers";
 import type { VisibleTreeData } from "../types";
@@ -28,7 +30,15 @@ export function useCreateMutation(
 	});
 
 	const add = async ({ dueDate = null }: AddNodeOptions = {}) => {
-		const created = await mutation.mutateAsync({ parentId: rootId, dueDate });
+		let created: Awaited<ReturnType<typeof mutation.mutateAsync>>;
+		try {
+			created = await mutation.mutateAsync({ parentId: rootId, dueDate });
+		} catch {
+			toast.error(m.node_create_failed());
+			return null;
+		}
+
+		await queryClient.cancelQueries({ queryKey });
 		setRows((currentRows) =>
 			appendRow(currentRows, {
 				id: created.id,
@@ -51,13 +61,23 @@ export function useCreateMutation(
 
 	const addAfter = async (afterId: string, addOptions: AddNodeOptions = {}) => {
 		const { dueDate = null } = addOptions;
-		const sibling = rows.find((r) => r.id === afterId);
+		const liveRows =
+			queryClient.getQueryData<VisibleTreeData>(queryKey)?.rows ?? rows;
+		const sibling = liveRows.find((r) => r.id === afterId);
 		if (!sibling) return add(addOptions);
-		const created = await mutation.mutateAsync({
-			parentId: sibling.parentId,
-			afterId,
-			dueDate,
-		});
+
+		let created: Awaited<ReturnType<typeof mutation.mutateAsync>>;
+		try {
+			created = await mutation.mutateAsync({
+				parentId: sibling.parentId,
+				afterId,
+				dueDate,
+			});
+		} catch {
+			toast.error(m.node_create_failed());
+			return null;
+		}
+		await queryClient.cancelQueries({ queryKey });
 		setRows((currentRows) =>
 			insertRowAfter(currentRows, afterId, {
 				id: created.id,
