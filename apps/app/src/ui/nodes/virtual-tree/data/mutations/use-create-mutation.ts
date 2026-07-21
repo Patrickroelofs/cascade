@@ -37,9 +37,7 @@ export function useCreateMutation(
 			toast.error(m.node_create_failed());
 			return null;
 		}
-		// Cancel any in-flight refetch for this entry first, so it can't resolve
-		// after the append below and clobber the just-created row with a
-		// snapshot fetched before the create landed server-side.
+
 		await queryClient.cancelQueries({ queryKey });
 		setRows((currentRows) =>
 			appendRow(currentRows, {
@@ -63,9 +61,6 @@ export function useCreateMutation(
 
 	const addAfter = async (afterId: string, addOptions: AddNodeOptions = {}) => {
 		const { dueDate = null } = addOptions;
-		// Read the sibling from the live cache rather than the `rows` this hook
-		// was rendered with, so a create triggered late (e.g. after a concurrent
-		// move re-parented or re-depthed the sibling) still inserts correctly.
 		const liveRows =
 			queryClient.getQueryData<VisibleTreeData>(queryKey)?.rows ?? rows;
 		const sibling = liveRows.find((r) => r.id === afterId);
