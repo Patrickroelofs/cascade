@@ -34,13 +34,6 @@ interface AuthedLoaderData {
 	settings: SettingsPatch;
 }
 
-/**
- * Settings are only fetched by the `/_authed` layout (see
- * routes/_authed.tsx), so guest pages like login/register never issue the
- * authed-only settings request. Reading them here via `matches` (rather than
- * this route's own loader) lets the shell still apply the signed-in user's
- * theme/font without the root route depending on auth state itself.
- */
 function authedSettings(
 	matches: ReadonlyArray<{ routeId: string; loaderData?: unknown }>,
 ): SettingsPatch {
