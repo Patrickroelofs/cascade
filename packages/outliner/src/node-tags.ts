@@ -10,7 +10,7 @@ export const MAX_TAG_LENGTH = 64;
 
 /** Small set of hues tag pills can be tinted with; each needs a hand-tuned
  * dark-mode variant, so keep this list in sync with the `hue` cva variant in
- * node-tags-pills.tsx. */
+ * features/tags/node-tags-pills.tsx. */
 export const TAG_HUES = [
 	"amber",
 	"emerald",

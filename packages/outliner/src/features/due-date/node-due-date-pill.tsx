@@ -6,8 +6,8 @@ import {
 	CalendarDotsIcon,
 	CalendarIcon,
 } from "@phosphor-icons/react/ssr";
-import { dueBucket, startOfDay } from "./due-date-bucket";
-import { type OutlinerLabels, useOutlinerLabels } from "./labels-context";
+import { dueBucket, startOfDay } from "../../due-date-bucket";
+import { type OutlinerLabels, useOutlinerLabels } from "../../labels-context";
 
 interface NodeDueDatePillProps {
 	dueDate: Date;

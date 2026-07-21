@@ -1,5 +1,9 @@
 import { type KeyboardEvent, useMemo, useRef, useState } from "react";
-import { MAX_TAG_LENGTH, normalizeTags, type TagSummary } from "../node-tags";
+import {
+	MAX_TAG_LENGTH,
+	normalizeTags,
+	type TagSummary,
+} from "../../../node-tags";
 
 interface UseTagEditorOptions {
 	tags: string[];

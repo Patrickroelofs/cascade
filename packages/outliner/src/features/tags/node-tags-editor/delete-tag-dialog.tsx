@@ -1,6 +1,6 @@
 import { AlertDialog } from "@base-ui/react";
 import { useState } from "react";
-import { useOutlinerLabels } from "../labels-context";
+import { useOutlinerLabels } from "../../../labels-context";
 import {
 	dialogActions,
 	dialogBackdrop,
