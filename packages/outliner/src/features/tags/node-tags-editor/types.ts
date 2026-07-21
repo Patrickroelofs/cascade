@@ -1,4 +1,4 @@
-import type { TagSummary } from "../node-tags";
+import type { TagSummary } from "../../../node-tags";
 
 export interface NodeTagsEditorProps {
 	tags: string[];

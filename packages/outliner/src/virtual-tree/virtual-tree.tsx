@@ -19,6 +19,7 @@ export function VirtualTree({
 	newNodeDueDate,
 	existingTags,
 	onDeleteTag,
+	features,
 }: VirtualTreeProps) {
 	const labels = useOutlinerLabels();
 	const {
@@ -60,6 +61,7 @@ export function VirtualTree({
 			contextRowIds={contextRowIds}
 			existingTags={existingTags}
 			onDeleteTag={onDeleteTag}
+			features={features}
 			onAddRoot={handleAddRoot}
 			onMoveDrop={handleMoveDrop}
 			onCreateBelow={handleCreateBelow}

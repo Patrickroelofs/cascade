@@ -1,6 +1,6 @@
 import { Checkbox } from "@cascade/ui/checkbox";
-import { useOutlinerLabels } from "./labels-context";
-import type { NodeMetadata } from "./node-types";
+import { useOutlinerLabels } from "../../labels-context";
+import type { NodeMetadata } from "../../node-types";
 
 interface NodeCheckboxProps {
 	metadata: NodeMetadata;
