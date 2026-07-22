@@ -1,7 +1,6 @@
 # Changelog
 
 ## 2026-07-22
-- Fixed a filtered tree hiding the children of a matching node when they didn't themselves match the active tag or due-date filter; they now stay visible alongside their matching ancestor. [#375](https://github.com/Patrickroelofs/cascade/issues/375)
 - Fixed `createNode` silently inserting a node into the wrong sibling list when `afterId` referenced a node that wasn't actually a child of the requested parent (e.g. a stale anchor after a concurrent move); it now rejects the create instead. [#317](https://github.com/Patrickroelofs/cascade/issues/317)
 
 ## 2026-07-21
