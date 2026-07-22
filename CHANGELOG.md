@@ -6,7 +6,8 @@
 - [fix] Fixed `createNode` silently inserting a node into the wrong sibling list when `afterId` referenced a node that wasn't actually a child of the requested parent (e.g. a stale anchor after a concurrent move); it now rejects the create instead. [#317](https://github.com/Patrickroelofs/cascade/issues/317)
 - [feat] Changelog entries are now labeled Feature, Fix, or Chore, making it easier to scan what changed at a glance. [#406](https://github.com/Patrickroelofs/cascade/issues/406)
 - [feat] Added a "Premium" tab in Settings where you can request (and remove) a premium seat, granted immediately, with a preview of what premium unlocks (starting with node version history) — the first step toward upcoming paid features. Premium users also get a small crown badge on their avatar. [#404](https://github.com/Patrickroelofs/cascade/issues/404)
-- 
+- [fix] Fixed converting an empty node into a heading (Heading 1 through Heading 6) making its text area disappear and impossible to click into: an empty heading rendered with no visible height, unlike an untouched empty node. [#415](https://github.com/Patrickroelofs/cascade/issues/415)
+
 ## 2026-07-21
 - [fix] Fixed the tag and due-date filters taking seconds to apply on deeply nested outlines with many collapsed nodes: resolving which rows a collapsed ancestor hides re-scanned the same descendants for every collapsed node in a chain instead of skipping rows already known hidden. [#374](https://github.com/Patrickroelofs/cascade/issues/374)
 - [fix] Fixed node text being impossible to select with the mouse in Firefox: the whole row (not just its drag handle) was marked as a native drag source, and Firefox refuses to let you select text inside any draggable element. [#379](https://github.com/Patrickroelofs/cascade/issues/379)
