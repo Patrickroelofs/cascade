@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-07-22
+- [chore] Removed the per-node version history feature entirely — the "Version history" context-menu action, its premium upsell, the `node_versions` table, and the `listVersions`/`restoreVersion` API are all gone. [#413](https://github.com/Patrickroelofs/cascade/issues/413)
 - [feat] Non-Cascade themes (Catppuccin, Nord, Dracula) now require a premium seat: the theme picker in Settings shows them as locked for non-premium users, and the server rejects saving one of them without an active seat. [#411](https://github.com/Patrickroelofs/cascade/issues/411)
 - [feat] Added a "Premium" tab in Settings where you can request (and remove) a premium seat, granted immediately, with a preview of what premium unlocks (starting with node version history) — the first step toward upcoming paid features. Premium users also get a small crown badge on their avatar. [#404](https://github.com/Patrickroelofs/cascade/issues/404)
 - [feat] Added a "Version history" node context-menu action, gated behind a premium seat: every content edit is now kept as a retrievable prior version with a timestamp, and you can restore any of them, which itself becomes a new entry so the rest of the timeline is never lost. Non-premium users see an upsell in place of the version list. [#392](https://github.com/Patrickroelofs/cascade/issues/392)
