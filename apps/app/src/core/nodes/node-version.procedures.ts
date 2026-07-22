@@ -53,10 +53,13 @@ export const restoreNodeVersion = requirePremium
 			.limit(1);
 		if (!version) throw errors.NOT_FOUND();
 
+		// `restoreNodeVersion` is itself premium-gated (`requirePremium`
+		// above), so the caller is always a premium user here.
 		const ok = await snapshotAndSetContent(
 			userId,
 			version.nodeId,
 			version.content,
+			true,
 		);
 		if (!ok) throw errors.NOT_FOUND();
 

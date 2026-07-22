@@ -1,11 +1,14 @@
 import { call } from "@orpc/server";
+import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createNode, updateNodeContent } from "@/core/nodes/node.procedures";
+import { nodeVersions } from "@/core/nodes/node.schema";
 import {
 	listNodeVersions,
 	restoreNodeVersion,
 } from "@/core/nodes/node-version.procedures";
 import { requestPremiumSeat } from "@/core/premium/premium.procedures";
+import { db } from "@/db";
 import type { ORPCContext } from "@/orpc/context";
 import { createTestUser, deleteTestUser } from "@/test-db/harness";
 
@@ -170,9 +173,6 @@ describe("premium gate", () => {
 				{ parentId: null },
 				{ context: nonPremium.context },
 			);
-			// Content is still snapshotted regardless of premium status (see
-			// updateNodeContent), so there'd be a version to see if the gate
-			// weren't in the way.
 			await call(
 				updateNodeContent,
 				{ id: node.id, content: content("first") },
@@ -201,6 +201,74 @@ describe("premium gate", () => {
 			).rejects.toMatchObject({ code: "PREMIUM_REQUIRED" });
 		} finally {
 			await deleteTestUser(nonPremium.user.id);
+		}
+	});
+
+	it("does not write any node_versions rows for a user without a seat", async () => {
+		const nonPremium = await createTestUser();
+		try {
+			const node = await call(
+				createNode,
+				{ parentId: null },
+				{ context: nonPremium.context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("first") },
+				{ context: nonPremium.context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("second") },
+				{ context: nonPremium.context },
+			);
+
+			const rows = await db
+				.select({ id: nodeVersions.id })
+				.from(nodeVersions)
+				.where(eq(nodeVersions.nodeId, node.id));
+			expect(rows).toHaveLength(0);
+		} finally {
+			await deleteTestUser(nonPremium.user.id);
+		}
+	});
+
+	it("starts writing node_versions rows as soon as a seat is granted", async () => {
+		const upgrader = await createTestUser();
+		try {
+			const node = await call(
+				createNode,
+				{ parentId: null },
+				{ context: upgrader.context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("before upgrade") },
+				{ context: upgrader.context },
+			);
+
+			const rowsBeforeUpgrade = await db
+				.select({ id: nodeVersions.id })
+				.from(nodeVersions)
+				.where(eq(nodeVersions.nodeId, node.id));
+			expect(rowsBeforeUpgrade).toHaveLength(0);
+
+			await call(requestPremiumSeat, undefined, { context: upgrader.context });
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("after upgrade") },
+				{ context: upgrader.context },
+			);
+
+			const versions = await call(
+				listNodeVersions,
+				{ id: node.id },
+				{ context: upgrader.context },
+			);
+			expect(versions).toHaveLength(1);
+			expect(versions[0].content).toEqual(content("before upgrade"));
+		} finally {
+			await deleteTestUser(upgrader.user.id);
 		}
 	});
 });

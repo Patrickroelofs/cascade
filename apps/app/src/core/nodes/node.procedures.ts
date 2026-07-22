@@ -35,6 +35,7 @@ import {
 import { updateNodeContentInputSchema } from "@/core/nodes/node-content-schema";
 import { ancestorsOf, descendantsOf } from "@/core/nodes/node-tree-cte";
 import { setNodeTagsInputSchema } from "@/core/nodes/tag-name-schema";
+import { isPremiumUser } from "@/core/premium/premium.access";
 import { db } from "@/db";
 import { authed } from "@/orpc/context";
 import {
@@ -734,18 +735,25 @@ export const deleteNode = authed
 	});
 
 /**
- * Snapshots a node's current content into `node_versions` (unless it's
- * `null` — a node's initial, never-edited state — which would otherwise
- * leave a meaningless empty entry at the top of every node's first edit),
- * then overwrites it with `content`. Shared by `updateNodeContent` and
- * `restoreNodeVersion` (`node-version.procedures.ts`), which both need the
- * same "preserve then overwrite" behavior. Returns `false` if the node
- * doesn't exist or isn't owned by `userId`.
+ * Overwrites a node's content, first snapshotting the current value into
+ * `node_versions` when `snapshotFirst` is true — unless that current value
+ * is `null` (a node's initial, never-edited state), which would otherwise
+ * leave a meaningless empty entry at the top of every node's first edit.
+ * Shared by `updateNodeContent` and `restoreNodeVersion`
+ * (`node-version.procedures.ts`), which both need the same "preserve then
+ * overwrite" behavior. Returns `false` if the node doesn't exist or isn't
+ * owned by `userId`.
+ *
+ * `snapshotFirst` is the caller's job to decide: version history is a
+ * premium feature (see `isPremiumUser`), so non-premium edits should pass
+ * `false` and skip writing history nobody can see or restore, rather than
+ * quietly accumulating it in case they upgrade later.
  */
 export async function snapshotAndSetContent(
 	userId: string,
 	nodeId: string,
 	content: unknown,
+	snapshotFirst: boolean,
 ): Promise<boolean> {
 	return await db.transaction(async (tx) => {
 		const [current] = await tx
@@ -755,7 +763,7 @@ export async function snapshotAndSetContent(
 			.for("update");
 		if (!current) return false;
 
-		if (current.content !== null) {
+		if (snapshotFirst && current.content !== null) {
 			await tx.insert(nodeVersions).values({
 				nodeId,
 				userId,
@@ -777,10 +785,12 @@ export const updateNodeContent = authed
 	})
 	.input(updateNodeContentInputSchema)
 	.handler(async ({ input, context, errors }) => {
+		const isPremium = await isPremiumUser(context.user.id);
 		const ok = await snapshotAndSetContent(
 			context.user.id,
 			input.id,
 			input.content,
+			isPremium,
 		);
 		if (!ok) throw errors.NOT_FOUND();
 	});
