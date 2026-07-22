@@ -9,6 +9,7 @@ import {
 } from "@/core/nodes/node.procedures";
 import { nodeVersions } from "@/core/nodes/node.schema";
 import {
+	getDeletedSubtreePreview,
 	listNodeVersions,
 	listTreeVersions,
 	restoreNodeVersion,
@@ -422,6 +423,55 @@ describe("deleting and restoring a node", () => {
 			call(createNode, { parentId: parentNode.id, afterId: a.id }, { context }),
 		).resolves.toBeDefined();
 	});
+
+	it("previews a deleted subtree's structure and content as it stood at delete time", async () => {
+		const parent = await call(createNode, { parentId: null }, { context });
+		const child = await call(createNode, { parentId: parent.id }, { context });
+		await call(
+			updateNodeContent,
+			{ id: parent.id, content: content("parent-text") },
+			{ context },
+		);
+		await call(
+			updateNodeContent,
+			{ id: child.id, content: content("child-text") },
+			{ context },
+		);
+
+		await call(deleteNode, { id: parent.id }, { context });
+
+		const preview = await call(
+			getDeletedSubtreePreview,
+			{ nodeId: parent.id },
+			{ context },
+		);
+		expect(preview).toEqual([
+			{
+				id: parent.id,
+				content: content("parent-text"),
+				type: "text",
+				depth: 0,
+			},
+			{ id: child.id, content: content("child-text"), type: "text", depth: 1 },
+		]);
+	});
+
+	it("rejects previewing a node that isn't currently deleted", async () => {
+		const node = await call(createNode, { parentId: null }, { context });
+		await expect(
+			call(getDeletedSubtreePreview, { nodeId: node.id }, { context }),
+		).rejects.toMatchObject({ code: "NOT_FOUND" });
+	});
+
+	it("rejects previewing an unknown or another user's node", async () => {
+		await expect(
+			call(
+				getDeletedSubtreePreview,
+				{ nodeId: crypto.randomUUID() },
+				{ context },
+			),
+		).rejects.toMatchObject({ code: "NOT_FOUND" });
+	});
 });
 
 describe("premium gate", () => {
@@ -462,6 +512,14 @@ describe("premium gate", () => {
 
 			await expect(
 				call(listTreeVersions, undefined, { context: nonPremium.context }),
+			).rejects.toMatchObject({ code: "PREMIUM_REQUIRED" });
+
+			await expect(
+				call(
+					getDeletedSubtreePreview,
+					{ nodeId: node.id },
+					{ context: nonPremium.context },
+				),
 			).rejects.toMatchObject({ code: "PREMIUM_REQUIRED" });
 		} finally {
 			await deleteTestUser(nonPremium.user.id);

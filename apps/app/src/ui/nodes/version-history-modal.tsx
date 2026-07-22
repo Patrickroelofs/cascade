@@ -1,6 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { m } from "#/paraglide/messages.js";
+import { DeletedSubtreePreview } from "@/ui/nodes/deleted-subtree-preview";
 import {
 	useNodeVersions,
 	useRestoreNodeVersion,
@@ -71,6 +72,9 @@ export function VersionHistoryModal({
 					restore(versionId, nodeId, version.content as { root: unknown });
 				}}
 				restoringId={restoringId}
+				renderDeletedPreview={() =>
+					nodeId ? <DeletedSubtreePreview nodeId={nodeId} /> : null
+				}
 			/>
 		</Suspense>
 	);

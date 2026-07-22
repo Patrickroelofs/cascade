@@ -40,8 +40,8 @@ export interface NodeVersionSummary {
 	/** Set only on the single marker entry a whole-subtree deletion writes
 	 * (the count of descendants deleted alongside it, 0 for a leaf) —
 	 * `undefined`/`null` for a normal content-edit entry. Deletion didn't
-	 * change `content`, so this entry is shown as a plain summary instead of
-	 * a diff. */
+	 * change `content`, so this entry is shown via `renderDeletedPreview`
+	 * (falling back to a plain summary) instead of a diff. */
 	descendantsDeleted?: number | null;
 }
 
@@ -66,6 +66,12 @@ export interface NodeVersionHistoryDialogProps {
 	/** Renders a link to a version's owning node. Required for tree-wide
 	 * history (where `versions` entries carry `nodeId`); unused otherwise. */
 	renderNodeLink?: (node: { id: string; content: unknown }) => ReactNode;
+	/** Renders a preview of a `descendantsDeleted` marker entry in place of
+	 * the diff viewer — typically a read-only recreation of the deleted
+	 * subtree as it looked in the outliner (see `DeletedTreePreview`),
+	 * fetched by the consumer since this package doesn't do data fetching
+	 * itself. Falls back to a plain text summary when omitted. */
+	renderDeletedPreview?: (version: NodeVersionSummary) => ReactNode;
 }
 
 const timestampFormatter = new Intl.DateTimeFormat(undefined, {
@@ -108,6 +114,7 @@ export function NodeVersionHistoryDialog({
 	onRestore,
 	restoringId,
 	renderNodeLink,
+	renderDeletedPreview,
 }: NodeVersionHistoryDialogProps) {
 	const labels = useOutlinerLabels();
 	const isDarkMode = useIsDarkMode();
@@ -266,12 +273,18 @@ export function NodeVersionHistoryDialog({
 										</Button>
 									</div>
 									{selected.descendantsDeleted != null ? (
-										<div className="flex min-h-0 flex-1 items-center justify-center rounded-md border border-ink/10 p-4 text-center text-sm text-muted dark:border-surface/15 dark:text-canvas/50">
-											{selected.descendantsDeleted > 0
-												? labels.versionHistoryDeletedSummaryWithDescendants(
-														selected.descendantsDeleted,
-													)
-												: labels.versionHistoryDeletedSummary}
+										<div className="min-h-0 flex-1 overflow-auto rounded-md border border-ink/10 dark:border-surface/15">
+											{renderDeletedPreview ? (
+												renderDeletedPreview(selected)
+											) : (
+												<div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted dark:text-canvas/50">
+													{selected.descendantsDeleted > 0
+														? labels.versionHistoryDeletedSummaryWithDescendants(
+																selected.descendantsDeleted,
+															)
+														: labels.versionHistoryDeletedSummary}
+												</div>
+											)}
 										</div>
 									) : (
 										<div className="min-h-0 flex-1 overflow-auto rounded-md border border-ink/10 dark:border-surface/15">

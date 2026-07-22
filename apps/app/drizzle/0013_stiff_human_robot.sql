@@ -1,0 +1,1 @@
+ALTER TABLE "node_versions" ADD COLUMN "descendants_deleted" integer;

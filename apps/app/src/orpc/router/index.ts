@@ -17,6 +17,7 @@ import {
 	visibleTree,
 } from "@/core/nodes/node.procedures";
 import {
+	getDeletedSubtreePreview,
 	listNodeVersions,
 	listTreeVersions,
 	restoreNodeVersion,
@@ -47,6 +48,7 @@ export default {
 		listVersions: listNodeVersions,
 		listTreeVersions,
 		restoreVersion: restoreNodeVersion,
+		deletedSubtreePreview: getDeletedSubtreePreview,
 		setType: setNodeType,
 		setDueDate: setNodeDueDate,
 		setTags: setNodeTags,

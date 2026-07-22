@@ -2,6 +2,7 @@ import { lexicalToPlainText } from "@cascade/outliner/lexical-content";
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { m } from "#/paraglide/messages.js";
+import { DeletedSubtreePreview } from "@/ui/nodes/deleted-subtree-preview";
 import { toNodeSlug } from "@/ui/nodes/node-slug";
 import {
 	useRestoreTreeVersion,
@@ -78,6 +79,11 @@ export function TreeVersionHistoryModal({
 						{lexicalToPlainText(node.content) || m.breadcrumbs_untitled()}
 					</Link>
 				)}
+				renderDeletedPreview={(version) =>
+					version.nodeId ? (
+						<DeletedSubtreePreview nodeId={version.nodeId} />
+					) : null
+				}
 			/>
 		</Suspense>
 	);

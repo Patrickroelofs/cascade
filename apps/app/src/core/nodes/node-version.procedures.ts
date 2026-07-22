@@ -1,4 +1,5 @@
-import { and, desc, eq, isNotNull, isNull, or } from "drizzle-orm";
+import type { NodeTypeName } from "@cascade/outliner/node-types";
+import { and, desc, eq, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
 	restoreDeletedSubtree,
@@ -143,4 +144,67 @@ export const restoreNodeVersion = requirePremium
 			.limit(1);
 		if (!updated) throw errors.NOT_FOUND();
 		return updated;
+	});
+
+export interface DeletedSubtreePreviewRow {
+	id: string;
+	content: unknown;
+	type: NodeTypeName;
+	depth: number;
+}
+
+/**
+ * A flat, depth-first snapshot of a deleted node's subtree exactly as it
+ * stood at delete time — used to preview a `descendantsDeleted` version
+ * history marker (see the schema) as it actually looked in the outliner,
+ * instead of a content diff (deletion never changed any node's `content`,
+ * so there'd be nothing to diff). Deleted rows aren't purged until the
+ * retention window passes (see `purge-deleted-nodes.ts`), so their real
+ * `content`/`type`/`parentId`/`order` are still there to read directly —
+ * nothing needs to have been snapshotted specifically for this.
+ *
+ * Rejects with NOT_FOUND unless `nodeId` is owned by the caller and
+ * currently deleted, so this can't be used as a side door to preview an
+ * unrelated *active* node's subtree.
+ */
+export const getDeletedSubtreePreview = requirePremium
+	.errors({
+		NOT_FOUND: { status: 404, message: "Node not found" },
+	})
+	.input(z.object({ nodeId: z.string() }))
+	.handler(async ({ input, context, errors }) => {
+		const userId = context.user.id;
+		const [target] = await db
+			.select({ deletedAt: nodes.deletedAt })
+			.from(nodes)
+			.where(and(eq(nodes.id, input.nodeId), eq(nodes.userId, userId)))
+			.limit(1);
+		if (!target || target.deletedAt === null) throw errors.NOT_FOUND();
+
+		const rows = (await db.execute(sql`
+			WITH RECURSIVE subtree AS (
+				SELECT id, content, type, 0 AS depth, ARRAY["order"] AS path
+				FROM nodes WHERE id = ${input.nodeId} AND user_id = ${userId}
+				UNION ALL
+				SELECT c.id, c.content, c.type, s.depth + 1, s.path || c."order"
+				FROM nodes c
+				JOIN subtree s ON c.parent_id = s.id
+				WHERE c.user_id = ${userId}
+			)
+			SELECT id, content, type, depth FROM subtree ORDER BY path
+		`)) as unknown as {
+			id: string;
+			content: unknown;
+			type: NodeTypeName;
+			depth: number;
+		}[];
+
+		return rows.map(
+			(row): DeletedSubtreePreviewRow => ({
+				id: row.id,
+				content: row.content,
+				type: row.type,
+				depth: Number(row.depth),
+			}),
+		);
 	});
