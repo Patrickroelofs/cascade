@@ -58,7 +58,9 @@ export const nodes = pgTable(
 		 * are excluded from every normal read (`visibleTree`, `listNodes`,
 		 * `getNode`, `resolveNodeSlug`) and from sibling-order lookups
 		 * (`createNode`/`moveNode`/`duplicateNode`), so they're fully invisible
-		 * until restored.
+		 * until restored. Rows older than the retention window are permanently
+		 * removed by `purge-deleted-nodes.ts` (run periodically, e.g. via cron
+		 * — see CLAUDE.md), not by any request-time code path.
 		 */
 		deletedAt: timestamp("deleted_at", { withTimezone: true }),
 	},
@@ -67,6 +69,12 @@ export const nodes = pgTable(
 		index("nodes_parent_order_idx").on(t.parentId, t.order),
 		index("nodes_user_id_idx").on(t.userId),
 		index("nodes_user_due_date_idx").on(t.userId, t.dueDate),
+		// Partial: only deleted rows are ever looked up by this column (the
+		// retention purge in `purge-deleted-nodes.ts`), and most rows are never
+		// deleted.
+		index("nodes_deleted_at_idx")
+			.on(t.deletedAt)
+			.where(sql`${t.deletedAt} IS NOT NULL`),
 		// Deleted nodes keep their row (and `order`) around, but the
 		// top-of-subtree node being deleted gets its `order` rewritten to a
 		// value derived from its own id (see `deleteNode`) precisely so it

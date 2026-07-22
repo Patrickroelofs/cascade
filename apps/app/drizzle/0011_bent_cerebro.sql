@@ -1,0 +1,1 @@
+CREATE INDEX "nodes_deleted_at_idx" ON "nodes" USING btree ("deleted_at") WHERE "nodes"."deleted_at" IS NOT NULL;

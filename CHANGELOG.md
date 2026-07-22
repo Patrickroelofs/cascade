@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-07-22
+- [feat] Soft-deleted nodes are now permanently purged 30 days after deletion by a new `pnpm db:purge-deleted:app` script (self-hosted deployments run it periodically, e.g. via cron), instead of being kept forever. [#408](https://github.com/Patrickroelofs/cascade/issues/408)
 - [feat] Deleting a node no longer erases its version history: the node (and everything under it) is now soft-deleted, so it still shows up in tree-wide and per-node version history — flagged with a "Deleted" badge — and restoring any of its versions brings back the whole subtree exactly as it was, reattaching it under its original parent or at the root if that parent is gone too. [#408](https://github.com/Patrickroelofs/cascade/issues/408)
 - [fix] Version history (both per-node and tree-wide) now includes a node's creation as its earliest entry — previously only edits after the first one were kept, so a node's original content vanished from its history the moment it had only been edited once. [#408](https://github.com/Patrickroelofs/cascade/issues/408)
 - [feat] Added a "Tree history" item to the user menu, gated behind the same premium seat as per-node version history: it lists every content edit across your entire tree in one place, newest first, each linking back to its node. Picking an entry shows a diff of what changed against the node's current content, with Restore right next to it. [#408](https://github.com/Patrickroelofs/cascade/issues/408)

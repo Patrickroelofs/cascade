@@ -43,6 +43,7 @@ pnpm db:generate:app    # generate a drizzle migration from schema changes
 pnpm db:migrate:app     # run drizzle migrations
 pnpm db:seed:app        # seed dev data
 pnpm db:studio:app      # open Drizzle Studio
+pnpm db:purge-deleted:app -- --days=30 --dry-run  # permanently remove nodes past the soft-delete retention window (see below)
 
 pnpm perf:seed:app      # seed a large tree for perf testing (see below)
 pnpm perf:query:app     # benchmark visibleTree latency
@@ -81,6 +82,12 @@ Requires Node 22+, pnpm, and Postgres (`docker compose up -d` starts one on `:54
 `nodes` (`apps/app/src/db/schema.ts`) is a self-referencing tree table (`parent_id` FK to `nodes.id`, cascade delete). Sibling order is a fractional index string (`order`, via `fractional-indexing`'s `generateKeyBetween`), stored with a custom `COLLATE "C"` text type so that byte-order comparison matches the fractional-indexing library's ordering. Because of that, moves and inserts only ever need to touch the moved/inserted row.
 
 Reads for the tree view go through a single recursive CTE (`visibleTree` in `apps/app/src/core/nodes/node.procedures.ts`) that walks expanded nodes depth-first server-side, building a `path` array of `order` values per row for cursor pagination (`WHERE path > cursor`) and correct DFS ordering. `moveNode` takes a `pg_advisory_xact_lock` keyed on the user id to serialize concurrent reorders, and validates the destination isn't inside the moved node's own subtree via another recursive CTE before recomputing the fractional index.
+
+### Soft-delete and retention
+
+`deleteNode` doesn't remove rows — it stamps the target node and its whole subtree with a shared `deletedAt` (nodes.deletedAt), so a deleted node's `node_versions` survive and it stays restorable from version history (`restoreNodeVersion`/`restoreDeletedSubtree`, both in `node.procedures.ts`). Every normal read/write path (`listNodes`, `visibleTree`, `getNode`, `createNode`, `moveNode`, `duplicateNode`, slug resolution) filters out `deletedAt IS NOT NULL` rows, so deleted nodes are invisible everywhere except version history until restored.
+
+Soft-deleted rows aren't kept forever: `apps/app/src/db/purge-deleted-nodes.ts` (`pnpm db:purge-deleted:app`) permanently removes any node whose `deletedAt` is older than a retention window (30 days by default, override with `--days=N`; `--dry-run` reports what would be purged without deleting). FK cascades take `node_versions` and `node_tags` with it — that's the point at which a deleted node's history is actually gone for good. This is a standalone script, not a request-time code path or a built-in scheduler — a self-hosted deployment is expected to invoke it periodically (e.g. a host cron job or systemd timer running `pnpm db:purge-deleted:app` daily).
 
 ### API: oRPC, not REST
 

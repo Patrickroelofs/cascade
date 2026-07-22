@@ -24,6 +24,7 @@
     "db:seed:prod:app": "pnpm --filter app db:seed:prod",
     "start:seeded:app": "pnpm --filter app start:seeded",
     "db:studio:app": "pnpm --filter app db:studio",
+    "db:purge-deleted:app": "pnpm --filter app db:purge-deleted",
     "perf:seed:app": "pnpm --filter app perf:seed",
     "perf:query:app": "pnpm --filter app perf:query",
     "perf:mutate:app": "pnpm --filter app perf:mutate",
