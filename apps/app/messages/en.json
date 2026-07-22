@@ -63,6 +63,7 @@
 	"user_menu_premium_request_button": "Request premium seat",
 	"user_menu_premium_request_success": "Premium seat granted!",
 	"user_menu_premium_request_failed": "Failed to request premium seat",
+	"user_menu_premium_free_notice": "Premium is free to request for now. In the future, access will be restricted and this will become a paid feature.",
 	"breadcrumbs_nav_label": "Breadcrumb",
 	"breadcrumbs_home_label": "Home",
 	"breadcrumbs_untitled": "Untitled",

@@ -28,40 +28,43 @@ export function PremiumTab() {
 		}),
 	);
 
-	if (data?.isPremium) {
-		return (
-			<div className="flex items-center gap-3 text-sm">
-				<CheckCircleIcon
-					size={20}
-					weight="fill"
-					className="shrink-0 text-primary"
-				/>
-				<div>
-					<div className="font-semibold">{m.user_menu_premium_active()}</div>
-					{data.grantedAt && (
-						<div className="text-ink/60 dark:text-surface/60">
-							{m.user_menu_premium_granted_on({
-								date: grantedDateFormatter.format(new Date(data.grantedAt)),
-							})}
-						</div>
-					)}
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="flex flex-col gap-3 text-sm">
-			<p>{m.user_menu_premium_description()}</p>
-			<Button
-				type="button"
-				size="sm"
-				variant="primary"
-				disabled={isPending}
-				onClick={() => mutate(undefined)}
-			>
-				{m.user_menu_premium_request_button()}
-			</Button>
+			{data?.isPremium ? (
+				<div className="flex items-center gap-3">
+					<CheckCircleIcon
+						size={20}
+						weight="fill"
+						className="shrink-0 text-primary"
+					/>
+					<div>
+						<div className="font-semibold">{m.user_menu_premium_active()}</div>
+						{data.grantedAt && (
+							<div className="text-ink/60 dark:text-surface/60">
+								{m.user_menu_premium_granted_on({
+									date: grantedDateFormatter.format(new Date(data.grantedAt)),
+								})}
+							</div>
+						)}
+					</div>
+				</div>
+			) : (
+				<>
+					<p>{m.user_menu_premium_description()}</p>
+					<Button
+						type="button"
+						size="sm"
+						variant="primary"
+						disabled={isPending}
+						onClick={() => mutate(undefined)}
+					>
+						{m.user_menu_premium_request_button()}
+					</Button>
+				</>
+			)}
+			<p className="text-ink/60 dark:text-surface/60">
+				{m.user_menu_premium_free_notice()}
+			</p>
 		</div>
 	);
 }
