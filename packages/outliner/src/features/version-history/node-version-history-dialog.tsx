@@ -190,25 +190,28 @@ export function NodeVersionHistoryDialog({
 													transform: `translateY(${virtualItem.start}px)`,
 												}}
 											>
-												{/* A real <button> can't contain the <a> that
-												 * renderNodeLink renders (invalid nesting of
-												 * interactive content), so the link is a plain
-												 * sibling below it rather than overlapping it —
-												 * each has its own non-overlapping click target,
-												 * so there's no ambiguity about which one a click
-												 * lands on. The button's accessible name comes
-												 * from its own text, not a separate aria-label. */}
+												{/* The whole row selects this version, but a real
+												 * <button> can't contain the <a> that renderNodeLink
+												 * renders (invalid nesting of interactive content).
+												 * So selection is a full-row overlay button instead:
+												 * the link (and the plain timestamp text, via
+												 * pointer-events-none) sit visually on top of it via
+												 * z-index and remain independently clickable — the
+												 * browser hit-tests whichever sits on top at the
+												 * clicked point, so there's no double-firing. */}
 												<button
 													type="button"
+													aria-label={timestamp}
 													onClick={() => setSelectedId(version.id)}
-													className="w-full cursor-pointer select-none text-left outline-none"
+													className="absolute inset-0 cursor-pointer bg-transparent outline-none"
+												/>
+												<span
+													className={`${versionTimestamp()} relative z-10 select-none pointer-events-none`}
 												>
-													<span className={versionTimestamp()}>
-														{timestamp}
-													</span>
-												</button>
+													{timestamp}
+												</span>
 												{version.nodeId !== undefined && renderNodeLink && (
-													<span className="truncate text-xs">
+													<span className="relative z-10 truncate text-xs">
 														{renderNodeLink({
 															id: version.nodeId,
 															content: version.nodeContent,
