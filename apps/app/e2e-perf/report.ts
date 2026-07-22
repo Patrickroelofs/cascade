@@ -23,6 +23,11 @@ interface MutationBenchResult {
 	duplicateNode?: LatencySummary;
 }
 
+interface FilterBenchResult {
+	tagFilter: LatencySummary;
+	dueTodayFilter: LatencySummary;
+}
+
 async function readJson<T>(filePath: string): Promise<T | null> {
 	try {
 		return JSON.parse(await readFile(filePath, "utf-8")) as T;
@@ -67,6 +72,12 @@ async function main() {
 	);
 	const afterMutation = await readJson<MutationBenchResult>(
 		path.join(values.afterDir, "mutation-bench.json"),
+	);
+	const beforeFilter = await readJson<FilterBenchResult>(
+		path.join(values.beforeDir, "filter-bench.json"),
+	);
+	const afterFilter = await readJson<FilterBenchResult>(
+		path.join(values.afterDir, "filter-bench.json"),
 	);
 
 	const lines: string[] = [];
@@ -128,6 +139,43 @@ async function main() {
 		);
 	} else {
 		lines.push("| mutation-bench results missing | — | — | — |");
+	}
+
+	if (beforeFilter || afterFilter) {
+		lines.push(
+			row(
+				"tagFilter p50",
+				beforeFilter?.tagFilter.p50Ms,
+				afterFilter?.tagFilter.p50Ms,
+				"ms",
+			),
+		);
+		lines.push(
+			row(
+				"tagFilter p95",
+				beforeFilter?.tagFilter.p95Ms,
+				afterFilter?.tagFilter.p95Ms,
+				"ms",
+			),
+		);
+		lines.push(
+			row(
+				"dueTodayFilter p50",
+				beforeFilter?.dueTodayFilter.p50Ms,
+				afterFilter?.dueTodayFilter.p50Ms,
+				"ms",
+			),
+		);
+		lines.push(
+			row(
+				"dueTodayFilter p95",
+				beforeFilter?.dueTodayFilter.p95Ms,
+				afterFilter?.dueTodayFilter.p95Ms,
+				"ms",
+			),
+		);
+	} else {
+		lines.push("| filter-bench results missing | — | — | — |");
 	}
 
 	if (!beforeQuery) {
