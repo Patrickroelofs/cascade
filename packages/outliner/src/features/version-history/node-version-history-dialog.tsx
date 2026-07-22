@@ -26,11 +26,24 @@ export interface NodeVersionSummary {
 	id: string;
 	content: unknown;
 	createdAt: Date;
+	/** Set only for tree-wide history, where a single list spans every
+	 * node: which node this version belongs to, plus that node's *current*
+	 * content (for the link label — not what this version holds). Omit
+	 * both for the single-node view, which has no need for a link back to
+	 * the node it's already open on. */
+	nodeId?: string;
+	nodeContent?: unknown;
 }
 
 export interface NodeVersionHistoryDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
+	/** Overrides the dialog title; defaults to the single-node label. */
+	title?: string;
+	/** Overrides the close button's aria-label; defaults to the single-node label. */
+	closeAriaLabel?: string;
+	/** Overrides the empty-state message; defaults to the single-node label. */
+	emptyLabel?: string;
 	/** Replaces the version list/loading/empty states with arbitrary
 	 * content, e.g. an upsell notice when the viewer doesn't have access
 	 * to this feature. Leave unset to render the normal `versions` flow. */
@@ -40,6 +53,9 @@ export interface NodeVersionHistoryDialogProps {
 	onRestore: (versionId: string) => void;
 	/** The version currently being restored, if any (disables its button). */
 	restoringId?: string | null;
+	/** Renders a link to a version's owning node. Required for tree-wide
+	 * history (where `versions` entries carry `nodeId`); unused otherwise. */
+	renderNodeLink?: (node: { id: string; content: unknown }) => ReactNode;
 }
 
 const timestampFormatter = new Intl.DateTimeFormat(undefined, {
@@ -60,10 +76,14 @@ const caret = cva({
 export function NodeVersionHistoryDialog({
 	open,
 	onOpenChange,
+	title,
+	closeAriaLabel,
+	emptyLabel,
 	locked,
 	versions,
 	onRestore,
 	restoringId,
+	renderNodeLink,
 }: NodeVersionHistoryDialogProps) {
 	const labels = useOutlinerLabels();
 	const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -75,10 +95,10 @@ export function NodeVersionHistoryDialog({
 				<Dialog.Popup className={dialogPopup()}>
 					<div className="mb-4 flex items-center justify-between">
 						<Dialog.Title className={dialogTitle()}>
-							{labels.versionHistory}
+							{title ?? labels.versionHistory}
 						</Dialog.Title>
 						<Dialog.Close
-							aria-label={labels.versionHistoryCloseAria}
+							aria-label={closeAriaLabel ?? labels.versionHistoryCloseAria}
 							className={iconButton()}
 						>
 							<XIcon size={16} weight="bold" />
@@ -94,7 +114,9 @@ export function NodeVersionHistoryDialog({
 							/>
 						</div>
 					) : versions.length === 0 ? (
-						<p className={emptyState()}>{labels.versionHistoryEmpty}</p>
+						<p className={emptyState()}>
+							{emptyLabel ?? labels.versionHistoryEmpty}
+						</p>
 					) : (
 						<div className="flex flex-col gap-2">
 							{versions.map((version) => {
@@ -119,6 +141,14 @@ export function NodeVersionHistoryDialog({
 													{timestampFormatter.format(version.createdAt)}
 												</span>
 											</button>
+											{version.nodeId !== undefined && renderNodeLink && (
+												<span className="shrink-0 truncate text-sm">
+													{renderNodeLink({
+														id: version.nodeId,
+														content: version.nodeContent,
+													})}
+												</span>
+											)}
 											<Button
 												type="button"
 												size="sm"

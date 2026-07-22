@@ -10,6 +10,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, useState } from "react";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
 import { NodeLink } from "@/ui/nodes/node-link";
+import { TreeVersionHistory } from "@/ui/nodes/tree-version-history";
 import {
 	existingTagsOptions,
 	useDeleteTag,
@@ -60,11 +61,16 @@ function RootTree() {
 				)}
 				contentClassName="rr-block"
 				header={
-					<FiltersBar
-						filters={filters}
-						existingTags={existingTags}
-						onFiltersChange={setFilters}
-					/>
+					<>
+						<div className="mb-2 flex justify-end">
+							<TreeVersionHistory />
+						</div>
+						<FiltersBar
+							filters={filters}
+							existingTags={existingTags}
+							onFiltersChange={setFilters}
+						/>
+					</>
 				}
 				hiddenRowIds={visibility.hiddenIds}
 				contextRowIds={visibility.contextIds}

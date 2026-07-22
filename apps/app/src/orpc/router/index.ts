@@ -18,6 +18,7 @@ import {
 } from "@/core/nodes/node.procedures";
 import {
 	listNodeVersions,
+	listTreeVersions,
 	restoreNodeVersion,
 } from "@/core/nodes/node-version.procedures";
 import {
@@ -44,6 +45,7 @@ export default {
 		duplicate: duplicateNode,
 		updateContent: updateNodeContent,
 		listVersions: listNodeVersions,
+		listTreeVersions,
 		restoreVersion: restoreNodeVersion,
 		setType: setNodeType,
 		setDueDate: setNodeDueDate,

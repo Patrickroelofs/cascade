@@ -5,6 +5,7 @@ import { createNode, updateNodeContent } from "@/core/nodes/node.procedures";
 import { nodeVersions } from "@/core/nodes/node.schema";
 import {
 	listNodeVersions,
+	listTreeVersions,
 	restoreNodeVersion,
 } from "@/core/nodes/node-version.procedures";
 import { requestPremiumSeat } from "@/core/premium/premium.procedures";
@@ -164,8 +165,84 @@ describe("restoreNodeVersion", () => {
 	});
 });
 
+describe("listTreeVersions", () => {
+	it("lists versions across every node in the tree, newest first", async () => {
+		const nodeA = await call(createNode, { parentId: null }, { context });
+		const nodeB = await call(createNode, { parentId: null }, { context });
+		// A node's first edit never snapshots (see `snapshotAndSetContent`), so
+		// each node needs a second edit before a version shows up here.
+		await call(
+			updateNodeContent,
+			{ id: nodeA.id, content: content("a0") },
+			{ context },
+		);
+		await call(
+			updateNodeContent,
+			{ id: nodeB.id, content: content("b0") },
+			{ context },
+		);
+		await call(
+			updateNodeContent,
+			{ id: nodeA.id, content: content("a1") },
+			{ context },
+		);
+		await call(
+			updateNodeContent,
+			{ id: nodeB.id, content: content("b1") },
+			{ context },
+		);
+
+		const versions = await call(listTreeVersions, undefined, { context });
+		expect(versions.map((v) => v.content)).toEqual([
+			content("b0"),
+			content("a0"),
+		]);
+		expect(versions.map((v) => v.nodeId)).toEqual([nodeB.id, nodeA.id]);
+	});
+
+	it("does not include another user's versions", async () => {
+		const other = await createTestUser();
+		try {
+			await call(requestPremiumSeat, undefined, { context: other.context });
+			const otherNode = await call(
+				createNode,
+				{ parentId: null },
+				{ context: other.context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: otherNode.id, content: content("first") },
+				{ context: other.context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: otherNode.id, content: content("second") },
+				{ context: other.context },
+			);
+
+			const node = await call(createNode, { parentId: null }, { context });
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("mine-first") },
+				{ context },
+			);
+			await call(
+				updateNodeContent,
+				{ id: node.id, content: content("mine-second") },
+				{ context },
+			);
+
+			const versions = await call(listTreeVersions, undefined, { context });
+			expect(versions).toHaveLength(1);
+			expect(versions[0].nodeId).toBe(node.id);
+		} finally {
+			await deleteTestUser(other.user.id);
+		}
+	});
+});
+
 describe("premium gate", () => {
-	it("rejects listNodeVersions/restoreNodeVersion with PREMIUM_REQUIRED for a user without a seat", async () => {
+	it("rejects listNodeVersions/restoreNodeVersion/listTreeVersions with PREMIUM_REQUIRED for a user without a seat", async () => {
 		const nonPremium = await createTestUser();
 		try {
 			const node = await call(
@@ -198,6 +275,10 @@ describe("premium gate", () => {
 					{ id: crypto.randomUUID() },
 					{ context: nonPremium.context },
 				),
+			).rejects.toMatchObject({ code: "PREMIUM_REQUIRED" });
+
+			await expect(
+				call(listTreeVersions, undefined, { context: nonPremium.context }),
 			).rejects.toMatchObject({ code: "PREMIUM_REQUIRED" });
 		} finally {
 			await deleteTestUser(nonPremium.user.id);

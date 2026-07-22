@@ -8,6 +8,10 @@ import { db } from "@/db";
 /** Bounds the response size; version history isn't paginated for this pass. */
 const MAX_LISTED_VERSIONS = 200;
 
+/** Same bound as `MAX_LISTED_VERSIONS`, kept separate since this lists
+ * across every node in the tree rather than one. */
+const MAX_LISTED_TREE_VERSIONS = 200;
+
 /** Version history is a premium feature (see `requirePremium`); content
  * edits are still snapshotted for every user regardless of seat status
  * (see `updateNodeContent`), so history is already there the moment
@@ -31,6 +35,28 @@ export const listNodeVersions = requirePremium
 			.orderBy(desc(nodeVersions.createdAt))
 			.limit(MAX_LISTED_VERSIONS);
 	});
+
+/** Every content version across the whole tree, newest first, joined with
+ * each owning node's current content so the UI can link to it and show a
+ * title without a second round trip. Lets a user browse and restore recent
+ * edits anywhere in the tree instead of opening each node's history one at
+ * a time. */
+export const listTreeVersions = requirePremium.handler(async ({ context }) => {
+	const userId = context.user.id;
+	return await db
+		.select({
+			id: nodeVersions.id,
+			nodeId: nodeVersions.nodeId,
+			content: nodeVersions.content,
+			createdAt: nodeVersions.createdAt,
+			nodeContent: nodes.content,
+		})
+		.from(nodeVersions)
+		.innerJoin(nodes, eq(nodes.id, nodeVersions.nodeId))
+		.where(and(eq(nodeVersions.userId, userId), eq(nodes.userId, userId)))
+		.orderBy(desc(nodeVersions.createdAt))
+		.limit(MAX_LISTED_TREE_VERSIONS);
+});
 
 /**
  * Restores a node's content to a prior version. The node's current content
