@@ -43,7 +43,7 @@ pnpm db:generate:app    # generate a drizzle migration from schema changes
 pnpm db:migrate:app     # run drizzle migrations
 pnpm db:seed:app        # seed dev data
 pnpm db:studio:app      # open Drizzle Studio
-pnpm db:purge-deleted:app -- --days=30 --dry-run  # permanently remove nodes past the soft-delete retention window (see below)
+pnpm db:purge-deleted:app -- --dry-run  # permanently remove every currently soft-deleted node (see below)
 
 pnpm perf:seed:app      # seed a large tree for perf testing (see below)
 pnpm perf:query:app     # benchmark visibleTree latency
@@ -89,9 +89,9 @@ Reads for the tree view go through a single recursive CTE (`visibleTree` in `app
 
 `deleteNode` also inserts one `node_versions` marker row for the directly-targeted node only (`descendantsDeleted`, the count of descendants deleted alongside it — `NULL` on every normal content-edit row). `listTreeVersions` shows this marker but hides every other version belonging to a currently-deleted node, so a whole-subtree deletion collapses into a single tree-wide history entry instead of one per affected node; `listNodeVersions` (a specific node's own history) is unaffected and still lists everything. Restoring a marker (vs. an ordinary version) skips `snapshotAndSetContent` entirely — deletion never touched `content`, so there's nothing to roll back there, only `deletedAt`/`parentId`/`order` to undo.
 
-Selecting a marker in the version history dialog shows `getDeletedSubtreePreview`'s result instead of a content diff: a flat, depth-first read of the deleted subtree's real rows (`id`/`content`/`type`/`depth`, still sitting in `nodes` until the retention purge removes them), rendered read-only via `DeletedTreePreview` (`packages/outliner`) exactly as the outliner itself would — there's nothing to diff since deletion never changed any node's content.
+Selecting a marker in the version history dialog shows `getDeletedSubtreePreview`'s result instead of a content diff: a flat, depth-first read of the deleted subtree's real rows (`id`/`content`/`type`/`depth`, still sitting in `nodes` until purged), rendered read-only via `NodeContentPreview` (`packages/outliner`) exactly as the outliner itself would — there's nothing to diff since deletion never changed any node's content.
 
-Soft-deleted rows aren't kept forever: `apps/app/src/db/purge-deleted-nodes.ts` (`pnpm db:purge-deleted:app`) permanently removes any node whose `deletedAt` is older than a retention window (30 days by default, override with `--days=N`; `--dry-run` reports what would be purged without deleting). FK cascades take `node_versions` and `node_tags` with it — that's the point at which a deleted node's history is actually gone for good. This is a standalone script, not a request-time code path or a built-in scheduler — a self-hosted deployment is expected to invoke it periodically (e.g. a host cron job or systemd timer running `pnpm db:purge-deleted:app` daily).
+Soft-deleted rows aren't kept forever: `apps/app/src/db/purge-deleted-nodes.ts` (`pnpm db:purge-deleted:app`) permanently removes every currently soft-deleted node — no retention window, no grace period — as soon as it's run (`--dry-run` reports what would be purged without deleting). FK cascades take `node_versions` and `node_tags` with it — that's the point at which a deleted node's history is actually gone for good. This is a standalone script, not a request-time code path or a built-in scheduler — a self-hosted deployment decides its own cadence for how long deleted nodes stay restorable by choosing how often it invokes this (e.g. a host cron job or systemd timer running `pnpm db:purge-deleted:app` daily, weekly, or on demand).
 
 ### API: oRPC, not REST
 

@@ -158,10 +158,10 @@ export interface DeletedSubtreePreviewRow {
  * stood at delete time — used to preview a `descendantsDeleted` version
  * history marker (see the schema) as it actually looked in the outliner,
  * instead of a content diff (deletion never changed any node's `content`,
- * so there'd be nothing to diff). Deleted rows aren't purged until the
- * retention window passes (see `purge-deleted-nodes.ts`), so their real
- * `content`/`type`/`parentId`/`order` are still there to read directly —
- * nothing needs to have been snapshotted specifically for this.
+ * so there'd be nothing to diff). Deleted rows stay in place until
+ * `purge-deleted-nodes.ts` is next run, so their real `content`/`type`/
+ * `parentId`/`order` are still there to read directly — nothing needs to
+ * have been snapshotted specifically for this.
  *
  * Rejects with NOT_FOUND unless `nodeId` is owned by the caller and
  * currently deleted, so this can't be used as a side door to preview an
