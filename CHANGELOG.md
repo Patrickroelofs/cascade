@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-07-22
+- [fix] Version history (both per-node and tree-wide) now includes a node's creation as its earliest entry — previously only edits after the first one were kept, so a node's original content vanished from its history the moment it had only been edited once. [#408](https://github.com/Patrickroelofs/cascade/issues/408)
 - [feat] Added a "Tree history" item to the user menu, gated behind the same premium seat as per-node version history: it lists every content edit across your entire tree in one place, newest first, each linking back to its node. Picking an entry shows a diff of what changed against the node's current content, with Restore right next to it. [#408](https://github.com/Patrickroelofs/cascade/issues/408)
 - [feat] Added a "Premium" tab in Settings where you can request (and remove) a premium seat, granted immediately, with a preview of what premium unlocks (starting with node version history) — the first step toward upcoming paid features. Premium users also get a small crown badge on their avatar. [#404](https://github.com/Patrickroelofs/cascade/issues/404)
 - [feat] Added a "Version history" node context-menu action, gated behind a premium seat: every content edit is now kept as a retrievable prior version with a timestamp, and you can restore any of them, which itself becomes a new entry so the rest of the timeline is never lost. Non-premium users see an upsell in place of the version list. [#392](https://github.com/Patrickroelofs/cascade/issues/392)

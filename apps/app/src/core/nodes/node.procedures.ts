@@ -736,10 +736,11 @@ export const deleteNode = authed
 
 /**
  * Overwrites a node's content, first snapshotting the current value into
- * `node_versions` when `snapshotFirst` is true — unless that current value
- * is `null` (a node's initial, never-edited state), which would otherwise
- * leave a meaningless empty entry at the top of every node's first edit.
- * Shared by `updateNodeContent` and `restoreNodeVersion`
+ * `node_versions` when `snapshotFirst` is true — including when that value
+ * is `null` (a node's state before it was ever given content), so a node's
+ * very first edit shows up in its history as a "created" entry (an empty
+ * "before" diffed against its first typed content) rather than being
+ * invisible. Shared by `updateNodeContent` and `restoreNodeVersion`
  * (`node-version.procedures.ts`), which both need the same "preserve then
  * overwrite" behavior. Returns `false` if the node doesn't exist or isn't
  * owned by `userId`.
@@ -763,7 +764,7 @@ export async function snapshotAndSetContent(
 			.for("update");
 		if (!current) return false;
 
-		if (snapshotFirst && current.content !== null) {
+		if (snapshotFirst) {
 			await tx.insert(nodeVersions).values({
 				nodeId,
 				userId,

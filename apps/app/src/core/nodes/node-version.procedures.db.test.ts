@@ -44,7 +44,7 @@ function content(text: string) {
 }
 
 describe("updateNodeContent snapshotting", () => {
-	it("does not snapshot a node's initial null content on its first edit", async () => {
+	it("snapshots a node's creation (null content) on its first edit", async () => {
 		const node = await call(createNode, { parentId: null }, { context });
 		await call(
 			updateNodeContent,
@@ -53,10 +53,11 @@ describe("updateNodeContent snapshotting", () => {
 		);
 
 		const versions = await call(listNodeVersions, { id: node.id }, { context });
-		expect(versions).toHaveLength(0);
+		expect(versions).toHaveLength(1);
+		expect(versions[0].content).toBeNull();
 	});
 
-	it("snapshots the prior content on every subsequent edit", async () => {
+	it("snapshots the prior content on every edit, including creation", async () => {
 		const node = await call(createNode, { parentId: null }, { context });
 		await call(
 			updateNodeContent,
@@ -70,8 +71,8 @@ describe("updateNodeContent snapshotting", () => {
 		);
 
 		const versions = await call(listNodeVersions, { id: node.id }, { context });
-		expect(versions).toHaveLength(1);
-		expect(versions[0].content).toEqual(content("first"));
+		expect(versions).toHaveLength(2);
+		expect(versions.map((v) => v.content)).toEqual([content("first"), null]);
 	});
 
 	it("rejects an unknown node id with NOT_FOUND", async () => {
@@ -104,7 +105,9 @@ describe("restoreNodeVersion", () => {
 			{ id: node.id },
 			{ context },
 		);
-		expect(versionsBeforeRestore).toHaveLength(1);
+		// [content("first") (from the "first" -> "second" edit), null (from
+		// creation, the "first" edit)].
+		expect(versionsBeforeRestore).toHaveLength(2);
 		const firstVersion = versionsBeforeRestore[0];
 
 		const restored = await call(
@@ -119,9 +122,9 @@ describe("restoreNodeVersion", () => {
 			{ id: node.id },
 			{ context },
 		);
-		expect(versionsAfterRestore).toHaveLength(2);
+		expect(versionsAfterRestore).toHaveLength(3);
 		expect(versionsAfterRestore.map((v) => v.content)).toEqual(
-			expect.arrayContaining([content("first"), content("second")]),
+			expect.arrayContaining([null, content("first"), content("second")]),
 		);
 	});
 
@@ -169,18 +172,8 @@ describe("listTreeVersions", () => {
 	it("lists versions across every node in the tree, newest first", async () => {
 		const nodeA = await call(createNode, { parentId: null }, { context });
 		const nodeB = await call(createNode, { parentId: null }, { context });
-		// A node's first edit never snapshots (see `snapshotAndSetContent`), so
-		// each node needs a second edit before a version shows up here.
-		await call(
-			updateNodeContent,
-			{ id: nodeA.id, content: content("a0") },
-			{ context },
-		);
-		await call(
-			updateNodeContent,
-			{ id: nodeB.id, content: content("b0") },
-			{ context },
-		);
+		// A node's first edit now snapshots its creation (null content), so a
+		// single edit per node is enough to produce a version.
 		await call(
 			updateNodeContent,
 			{ id: nodeA.id, content: content("a1") },
@@ -193,10 +186,7 @@ describe("listTreeVersions", () => {
 		);
 
 		const versions = await call(listTreeVersions, undefined, { context });
-		expect(versions.map((v) => v.content)).toEqual([
-			content("b0"),
-			content("a0"),
-		]);
+		expect(versions.map((v) => v.content)).toEqual([null, null]);
 		expect(versions.map((v) => v.nodeId)).toEqual([nodeB.id, nodeA.id]);
 	});
 
@@ -233,8 +223,8 @@ describe("listTreeVersions", () => {
 			);
 
 			const versions = await call(listTreeVersions, undefined, { context });
-			expect(versions).toHaveLength(1);
-			expect(versions[0].nodeId).toBe(node.id);
+			expect(versions).toHaveLength(2);
+			expect(versions.every((v) => v.nodeId === node.id)).toBe(true);
 		} finally {
 			await deleteTestUser(other.user.id);
 		}
