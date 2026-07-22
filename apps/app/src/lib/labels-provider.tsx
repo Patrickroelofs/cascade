@@ -105,6 +105,7 @@ function createOutlinerLabels(): OutlinerLabels {
 		versionHistoryDeletedSummaryWithDescendants: (count) =>
 			m.outliner_version_history_deleted_summary_with_descendants({ count }),
 		versionHistoryCreatedSummary: m.outliner_version_history_created_summary(),
+		versionHistoryEmptyContent: m.outliner_version_history_empty_content(),
 	};
 }
 
