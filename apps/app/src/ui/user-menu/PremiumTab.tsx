@@ -43,7 +43,7 @@ export function PremiumTab() {
 	return (
 		<div className="flex flex-col gap-3 text-sm">
 			{data?.isPremium ? (
-				<>
+				<div className="flex items-center justify-between gap-3">
 					<div className="flex items-center gap-3">
 						<CheckCircleIcon
 							size={20}
@@ -69,11 +69,10 @@ export function PremiumTab() {
 						variant="dark"
 						disabled={isRevoking}
 						onClick={() => revokeSeat(undefined)}
-						className="self-start"
 					>
 						{m.user_menu_premium_remove_button()}
 					</Button>
-				</>
+				</div>
 			) : (
 				<>
 					<p>{m.user_menu_premium_description()}</p>
