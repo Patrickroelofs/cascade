@@ -72,6 +72,7 @@ export function TreeVersionHistoryModal({
 						to="/$nodeSlug"
 						params={{ nodeSlug: toNodeSlug(node) }}
 						search={true}
+						onClick={() => onOpenChange(false)}
 						className="text-danger underline decoration-danger/40 underline-offset-2 hover:decoration-danger dark:text-accent dark:decoration-accent/40 dark:hover:decoration-accent"
 					>
 						{lexicalToPlainText(node.content) || m.breadcrumbs_untitled()}

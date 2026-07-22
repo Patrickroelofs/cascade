@@ -37,7 +37,7 @@ export const listPane = cva({
 
 export const listRow = cva({
 	base: [
-		"absolute top-0 left-0 flex w-full flex-col gap-0.5 border-ink/5 border-b px-4 py-3",
+		"absolute top-0 left-0 flex items-start w-full flex-col gap-0.5 border-ink/5 border-b px-4 py-3",
 		"hover:bg-surface/70 has-[button:focus-visible]:ring-2 has-[button:focus-visible]:ring-danger/50 has-[button:focus-visible]:ring-inset",
 		"dark:border-surface/10 dark:hover:bg-surface/10",
 	],
