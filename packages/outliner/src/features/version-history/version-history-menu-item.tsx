@@ -17,7 +17,9 @@ export function VersionHistoryMenuItem({
 		<ContextMenuItem
 			icon={<ClockCounterClockwiseIcon size={14} weight="bold" />}
 			trailingIcon={
-				<CrownIcon size={12} weight="fill" className="text-primary" />
+				ctx.isPremium ? undefined : (
+					<CrownIcon size={12} weight="fill" className="text-primary" />
+				)
 			}
 			onClick={() => ctx.onOpenVersionHistory?.(ctx.row.id)}
 		>

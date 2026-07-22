@@ -14,6 +14,7 @@ import {
 	useVisibleTree,
 	visibleTreeOptions,
 } from "#/ui/nodes/virtual-tree/data/use-visible-tree";
+import { usePremiumStatus } from "#/ui/premium/use-premium";
 import { useSettings } from "#/ui/settings-context";
 
 export function NodeTree({
@@ -36,6 +37,7 @@ export function NodeTree({
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
 	const [historyNodeId, setHistoryNodeId] = useState<string | null>(null);
+	const { data: premiumStatus } = usePremiumStatus();
 
 	return (
 		<>
@@ -72,6 +74,7 @@ export function NodeTree({
 					})
 				}
 				onOpenVersionHistory={setHistoryNodeId}
+				isPremium={premiumStatus?.isPremium}
 			/>
 			<VersionHistoryModal
 				nodeId={historyNodeId}

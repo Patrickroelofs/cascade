@@ -21,6 +21,7 @@ import {
 	useVisibleTree,
 	visibleTreeOptions,
 } from "@/ui/nodes/virtual-tree/data/use-visible-tree";
+import { usePremiumStatus } from "@/ui/premium/use-premium";
 import { useSettings } from "@/ui/settings-context";
 
 export const Route = createFileRoute("/_authed/")({
@@ -46,6 +47,7 @@ function RootTree() {
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
 	const [historyNodeId, setHistoryNodeId] = useState<string | null>(null);
+	const { data: premiumStatus } = usePremiumStatus();
 
 	return (
 		<>
@@ -80,6 +82,7 @@ function RootTree() {
 					})
 				}
 				onOpenVersionHistory={setHistoryNodeId}
+				isPremium={premiumStatus?.isPremium}
 			/>
 			<VersionHistoryModal
 				nodeId={historyNodeId}

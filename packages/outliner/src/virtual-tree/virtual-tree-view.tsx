@@ -31,6 +31,7 @@ export function VirtualTreeView({
 	onDeleteTag,
 	onTagClick,
 	onOpenVersionHistory,
+	isPremium,
 	features,
 	onAddRoot,
 	onMoveDrop,
@@ -58,6 +59,7 @@ export function VirtualTreeView({
 	| "onDeleteTag"
 	| "onTagClick"
 	| "onOpenVersionHistory"
+	| "isPremium"
 	| "features"
 > & {
 	tree: VisibleTree;
@@ -117,6 +119,7 @@ export function VirtualTreeView({
 									onDeleteTag={onDeleteTag}
 									onTagClick={onTagClick}
 									onOpenVersionHistory={onOpenVersionHistory}
+									isPremium={isPremium}
 									features={features}
 									isHidden={hiddenRowIds?.has(row.id) ?? false}
 									isContext={contextRowIds?.has(row.id) ?? false}

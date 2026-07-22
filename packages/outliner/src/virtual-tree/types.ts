@@ -37,6 +37,9 @@ export interface VirtualTreeProps {
 	/** Opens the version-history modal for a node. Omit to hide the "Version
 	 * history" context-menu item. */
 	onOpenVersionHistory?: (nodeId: string) => void;
+	/** Whether the current user has premium access, for features (like
+	 * version history) that show a badge on premium-gated affordances. */
+	isPremium?: boolean;
 	/** Row/context-menu features to render, in order. Defaults to the
 	 * built-in task, due-date, and tags features (`defaultOutlinerFeatures`). */
 	features?: OutlinerFeature[];
@@ -71,6 +74,7 @@ export interface VirtualTreeRowProps {
 	onTagClick?: (tag: string) => void;
 	onDeleteTag?: (name: string) => void | Promise<void>;
 	onOpenVersionHistory?: (nodeId: string) => void;
+	isPremium?: boolean;
 	onDuplicate: () => void;
 	onDelete: () => void;
 	onSaveContent: (content: { root: LexicalElementNode }) => void;
