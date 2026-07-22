@@ -37,11 +37,11 @@ export function Avatar({
 				</span>
 			)}
 			{isPremium && (
-				<span className="absolute -right-1 -bottom-1 flex size-4 items-center justify-center rounded-full bg-canvas ring-2 ring-canvas dark:bg-ink dark:ring-ink">
+				<span className="absolute -right-3 -bottom-2 flex size-6 items-center justify-center rounded-full  bg-white dark:bg-ink shadow-md">
 					<CrownIcon
 						aria-hidden="true"
 						weight="fill"
-						size={10}
+						size={14}
 						className="text-primary"
 					/>
 				</span>
