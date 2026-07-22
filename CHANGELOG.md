@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-22
+- Added undo/redo for node edits, moves, and deletes: press Cmd/Ctrl+Z to undo the last change and Shift+Cmd/Ctrl+Z to redo it. Undoing a delete restores the node and its full subtree, including content, tags, due date, and type, to its prior position. [#269](https://github.com/Patrickroelofs/cascade/issues/269)
+
 ## 2026-07-21
 - Fixed node text being impossible to select with the mouse in Firefox: the whole row (not just its drag handle) was marked as a native drag source, and Firefox refuses to let you select text inside any draggable element. [#379](https://github.com/Patrickroelofs/cascade/issues/379)
 - Added a "Duplicate" action to the node context menu: it copies a node's content, tags, due date, and type, recursively copies its entire subtree preserving structure and order, and inserts the copy as the next sibling. [#272](https://github.com/Patrickroelofs/cascade/issues/272)

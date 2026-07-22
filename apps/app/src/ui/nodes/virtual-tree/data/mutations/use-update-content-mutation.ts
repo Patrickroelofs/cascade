@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { m } from "#/paraglide/messages.js";
 import { client, orpc } from "@/orpc/client";
 import { useOptimisticNodeMutation } from "@/ui/nodes/use-optimistic-node-mutation";
+import { undoStore } from "@/ui/undo/undo-store";
 import { patchRows } from "../cache-helpers";
 import type { VisibleTreeData } from "../types";
 
@@ -37,6 +38,22 @@ export function useUpdateContentMutation(queryKey: QueryKey) {
 		},
 	});
 
-	return (id: string, content: { root: unknown }) =>
+	const rawUpdateContent = (id: string, content: { root: unknown }) =>
 		mutation.mutate({ id, content });
+
+	return (id: string, content: { root: unknown }) => {
+		const rows = queryClient.getQueryData<VisibleTreeData>(queryKey)?.rows;
+		const previousContent = rows?.find((row) => row.id === id)?.content as
+			| { root: unknown }
+			| undefined;
+
+		rawUpdateContent(id, content);
+
+		if (previousContent !== undefined) {
+			undoStore.push({
+				undo: () => rawUpdateContent(id, previousContent),
+				redo: () => rawUpdateContent(id, content),
+			});
+		}
+	};
 }
