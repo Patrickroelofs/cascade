@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { db } from "@/db";
+import {
+	captureSubtree,
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 import { dueDateSchema } from "../../model/due-date.schema";
 import { nodeColumns } from "../persistence/node-columns";
@@ -28,6 +33,7 @@ export const createNode = authed
 		const userId = context.user.id;
 		return db.transaction(async (transaction) => {
 			await lockNodeOrdering(transaction, userId);
+			const history = await createHistoryRecorder(transaction, userId);
 			const target = input.afterId
 				? { position: "after" as const, targetId: input.afterId }
 				: { position: "append" as const };
@@ -48,6 +54,18 @@ export const createNode = authed
 					dueDate: input.dueDate ?? null,
 				})
 				.returning(nodeColumns(userId));
+			if (created) {
+				await history.record({
+					nodeId: created.id,
+					payload: {
+						kind: "node_created",
+						label: historyNodeLabel(created.content),
+					},
+					snapshots: history.enabled
+						? await captureSubtree(transaction, created.id, userId, "after")
+						: [],
+				});
+			}
 			return created;
 		});
 	});

@@ -12,6 +12,11 @@ import {
 	insertSubtreeCopy,
 	prepareSubtreeCopy,
 } from "@/features/nodes/server/persistence/subtree-copy";
+import {
+	captureSubtree,
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 
 /**
@@ -32,6 +37,7 @@ export const duplicateNode = authed
 
 		return await db.transaction(async (tx) => {
 			await lockNodeOrdering(tx, userId);
+			const history = await createHistoryRecorder(tx, userId);
 
 			const [original] = await tx
 				.select({ parentId: nodes.parentId, order: nodes.order })
@@ -59,6 +65,20 @@ export const duplicateNode = authed
 				.from(nodes)
 				.where(eq(nodes.id, prepared.newRootId))
 				.limit(1);
+			if (created) {
+				await history.record({
+					nodeId: created.id,
+					payload: {
+						kind: "subtree_duplicated",
+						label: historyNodeLabel(created.content),
+						sourceNodeId: input.id,
+						count: prepared.rows.length,
+					},
+					snapshots: history.enabled
+						? await captureSubtree(tx, created.id, userId, "after")
+						: [],
+				});
+			}
 			return created;
 		});
 	});

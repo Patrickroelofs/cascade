@@ -26,6 +26,11 @@ import {
 	getSettings,
 	updateSettings,
 } from "@/features/settings/server/settings-procedures";
+import {
+	getTreeHistoryEntry,
+	listTreeHistory,
+	restoreTreeHistoryEntry,
+} from "@/features/tree-history/server/tree-history-procedures";
 
 export default {
 	nodes: {
@@ -55,5 +60,10 @@ export default {
 		get: getPremiumStatus,
 		requestSeat: requestPremiumSeat,
 		revokeSeat: revokePremiumSeat,
+	},
+	treeHistory: {
+		list: listTreeHistory,
+		get: getTreeHistoryEntry,
+		restore: restoreTreeHistoryEntry,
 	},
 };

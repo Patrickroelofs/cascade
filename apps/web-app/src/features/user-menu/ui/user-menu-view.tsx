@@ -1,4 +1,5 @@
 import type { Settings } from "@/features/settings/model/settings.schema";
+import { TreeHistoryDialog } from "@/features/tree-history/ui/tree-history-dialog";
 import type { UserMenuUser } from "../model/user-menu.types";
 import { DeleteAccountDialog } from "./delete-account-dialog";
 import { UserMenuTrigger } from "./user-menu-trigger";
@@ -11,6 +12,9 @@ export interface UserMenuViewProps {
 	settingsOpen: boolean;
 	onSettingsOpenChange: (open: boolean) => void;
 	onOpenSettings: () => void;
+	treeHistoryOpen: boolean;
+	onTreeHistoryOpenChange: (open: boolean) => void;
+	onOpenTreeHistory: () => void;
 	deleteDialogOpen: boolean;
 	onDeleteDialogOpenChange: (open: boolean) => void;
 	onOpenDeleteDialog: () => void;
@@ -26,6 +30,9 @@ export function UserMenuView({
 	settingsOpen,
 	onSettingsOpenChange,
 	onOpenSettings,
+	treeHistoryOpen,
+	onTreeHistoryOpenChange,
+	onOpenTreeHistory,
 	deleteDialogOpen,
 	onDeleteDialogOpenChange,
 	onOpenDeleteDialog,
@@ -38,7 +45,12 @@ export function UserMenuView({
 			<UserMenuTrigger
 				user={user}
 				onOpenSettings={onOpenSettings}
+				onOpenTreeHistory={onOpenTreeHistory}
 				onSignOut={onSignOut}
+			/>
+			<TreeHistoryDialog
+				open={treeHistoryOpen}
+				onOpenChange={onTreeHistoryOpenChange}
 			/>
 			<UserSettingsDialog
 				user={user}

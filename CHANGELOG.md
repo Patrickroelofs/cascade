@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-07-23
+- [feat] Added a premium Tree history timeline that keeps 30 days of node creation, editing, moving, deletion, type, due-date, and tag changes across the entire outline. Restorable entries roll back only the affected field, while deleted subtrees can be recreated with their original structure and metadata. [#408](https://github.com/cascade-outliner/cascade/issues/408)
 - [chore] Reorganized the web app around feature boundaries, split node operations into focused modules, and extracted shared ordering, subtree, settings, authentication, and app-shell responsibilities. No behavior change.
 - [chore] Renamed `apps/app` to `apps/web-app` and `apps/web` to `apps/website` for clearer app names. No behavior change. [#426](https://github.com/Patrickroelofs/cascade/issues/426)
 - [chore] Added a combined end-to-end perf benchmark (`pnpm perf:workflow:app`) that times a single realistic workflow — create, edit, retype, set due date, tag, move, duplicate, query, and delete — as one unit, and wired its `fullWorkflow` p50/p95 numbers into the `perf.yml` PR comment alongside the existing query/mutation/filter benchmarks. [#425](https://github.com/Patrickroelofs/cascade/issues/425)
