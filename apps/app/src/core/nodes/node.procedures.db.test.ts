@@ -1,17 +1,17 @@
 import type { VisibleNodeRow } from "@cascade/outliner/node-types";
 import { call } from "@orpc/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createNode, deleteNode } from "@/core/nodes/node-crud.procedures";
 import {
-	createNode,
-	deleteNode,
-	deleteTag,
-	listNodes,
-	listTags,
 	moveNode,
-	setNodeTags,
 	toggleNodeExpanded,
-	visibleTree,
-} from "@/core/nodes/node.procedures";
+} from "@/core/nodes/node-structure.procedures";
+import {
+	deleteTag,
+	listTags,
+	setNodeTags,
+} from "@/core/nodes/node-tags.procedures";
+import { listNodes, visibleTree } from "@/core/nodes/node-tree-read.procedures";
 import type { ORPCContext } from "@/orpc/context";
 import { createTestUser, deleteTestUser } from "@/test-db/harness";
 
