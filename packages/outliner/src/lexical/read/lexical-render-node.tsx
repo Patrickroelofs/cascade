@@ -46,10 +46,6 @@ export function renderNode(
 			return renderTextNode(node as LexicalTextNode, key);
 
 		case "paragraph": {
-			// A block with no children renders no line box at all (zero height,
-			// not just no visible glyph), collapsing its click target to
-			// nothing — the same &nbsp; fallback LexicalReadView uses for
-			// null content, needed here for a block emptied by "Convert into".
 			return (
 				<p key={key}>
 					{node.children?.length ? renderChildren(node.children) : " "}
