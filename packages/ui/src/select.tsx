@@ -77,8 +77,12 @@ export function Select<Value extends string>({
 				</BaseSelect.Icon>
 			</BaseSelect.Trigger>
 			<BaseSelect.Portal>
-				{/* z-60: must outrank the app's z-50 dialogs/menus when nested inside one */}
-				<BaseSelect.Positioner sideOffset={6} align="end" className="z-[60]">
+				<BaseSelect.Positioner
+					sideOffset={6}
+					align="end"
+					alignItemWithTrigger={false}
+					className="z-[60]"
+				>
 					<BaseSelect.Popup className={popup()}>
 						<BaseSelect.List>
 							{options.map((option) => (
