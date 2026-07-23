@@ -3,6 +3,10 @@ import { z } from "zod";
 import { db } from "@/db";
 import { dueDateSchema } from "@/features/nodes/model/due-date.schema";
 import { nodes } from "@/features/nodes/server/persistence/node-tables";
+import {
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 
 export const setNodeDueDate = authed
@@ -11,10 +15,32 @@ export const setNodeDueDate = authed
 	})
 	.input(z.object({ id: z.string(), dueDate: dueDateSchema.nullable() }))
 	.handler(async ({ input, context, errors }) => {
-		const updated = await db
-			.update(nodes)
-			.set({ dueDate: input.dueDate })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
-			.returning({ id: nodes.id });
-		if (updated.length === 0) throw errors.NOT_FOUND();
+		const userId = context.user.id;
+		await db.transaction(async (transaction) => {
+			const [before] = await transaction
+				.select({
+					id: nodes.id,
+					content: nodes.content,
+					dueDate: nodes.dueDate,
+				})
+				.from(nodes)
+				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)))
+				.for("update");
+			if (!before) throw errors.NOT_FOUND();
+			if (before.dueDate === input.dueDate) return;
+			const history = await createHistoryRecorder(transaction, userId);
+			await transaction
+				.update(nodes)
+				.set({ dueDate: input.dueDate })
+				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)));
+			await history.record({
+				nodeId: input.id,
+				payload: {
+					kind: "due_date_changed",
+					label: historyNodeLabel(before.content),
+					before: before.dueDate,
+					after: input.dueDate,
+				},
+			});
+		});
 	});

@@ -42,6 +42,7 @@ pnpm db:push:app        # apply schema changes to the database (no migration fil
 pnpm db:generate:app    # generate a drizzle migration from schema changes
 pnpm db:migrate:app     # run drizzle migrations
 pnpm db:seed:app        # seed dev data
+pnpm db:purge-tree-history:app # purge tree-history events older than 30 days
 pnpm db:studio:app      # open Drizzle Studio
 
 pnpm perf:seed:app      # seed a large tree for perf testing (see below)
@@ -85,6 +86,16 @@ Requires Node 22+, pnpm, and Postgres (`docker compose up -d` starts one on `:54
 Reads for the tree view go through a single recursive CTE (`visibleTree` in `apps/web-app/src/features/nodes/server/procedures/visible-tree.ts`) that walks expanded nodes depth-first server-side, building a `path` array of `order` values per row for cursor pagination (`WHERE path > cursor`) and correct DFS ordering. `moveNode` (`move-node.ts`) uses the shared sibling-order persistence helpers to take a `pg_advisory_xact_lock` keyed on the user id, validate that the destination isn't inside the moved node's own subtree, and recompute the fractional index.
 
 Node procedures live one operation per file under `apps/web-app/src/features/nodes/server/procedures/` and are exported through that folder's `index.ts`. Shared transaction-level behavior—sibling ordering, recursive CTEs, batched inserts, and subtree copy/restore persistence—lives under `features/nodes/server/persistence/`.
+
+Premium users' semantic node mutations are also recorded atomically in
+`tree_history_events`; large create/delete/duplicate previews use normalized
+`tree_history_snapshots` rows rather than one oversized JSON payload. History is
+visible for 30 days and should be purged periodically by a deployment cron or
+systemd timer with `pnpm db:purge-tree-history:app` (pass `-- --dry-run` to
+preview or `-- --days=N` to override the maintenance cutoff). Deployments can
+instead set a 32+ character `TREE_HISTORY_PURGE_TOKEN` and schedule an
+authenticated `POST /api/maintenance/purge-tree-history` request with JSON
+`{"days":30,"dryRun":false}`; `days: 0` removes all existing history.
 
 ### API: oRPC, not REST
 

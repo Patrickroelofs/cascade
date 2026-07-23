@@ -1,5 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import {
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 import { updateNodeContentInputSchema } from "../../model/node-content.schema";
 import { nodes } from "../persistence/node-tables";
@@ -10,10 +14,30 @@ export const updateNodeContent = authed
 	})
 	.input(updateNodeContentInputSchema)
 	.handler(async ({ input, context, errors }) => {
-		const [result] = await db
-			.update(nodes)
-			.set({ content: input.content })
-			.where(and(eq(nodes.id, input.id), eq(nodes.userId, context.user.id)))
-			.returning({ id: nodes.id });
-		if (!result) throw errors.NOT_FOUND();
+		const userId = context.user.id;
+		await db.transaction(async (transaction) => {
+			const [before] = await transaction
+				.select({ id: nodes.id, content: nodes.content })
+				.from(nodes)
+				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)))
+				.for("update");
+			if (!before) throw errors.NOT_FOUND();
+			if (JSON.stringify(before.content) === JSON.stringify(input.content))
+				return;
+
+			const history = await createHistoryRecorder(transaction, userId);
+			await transaction
+				.update(nodes)
+				.set({ content: input.content })
+				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)));
+			await history.record({
+				nodeId: input.id,
+				payload: {
+					kind: "content_changed",
+					label: historyNodeLabel(input.content ?? before.content),
+					before: before.content,
+					after: input.content,
+				},
+			});
+		});
 	});

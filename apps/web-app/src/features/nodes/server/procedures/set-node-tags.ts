@@ -1,6 +1,10 @@
 import { normalizeTags } from "@cascade/outliner/node-tags";
-import { and, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
+import {
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 import { setNodeTagsInputSchema } from "../../model/tag-name.schema";
 import { nodes, nodeTags, tags } from "../persistence/node-tables";
@@ -12,15 +16,29 @@ export const setNodeTags = authed
 	.input(setNodeTagsInputSchema)
 	.handler(async ({ input, context, errors }) => {
 		const userId = context.user.id;
-		const names = normalizeTags(input.tags);
+		const names = normalizeTags(input.tags).sort((a, b) => a.localeCompare(b));
 
 		await db.transaction(async (transaction) => {
 			const [node] = await transaction
-				.select({ id: nodes.id })
+				.select({ id: nodes.id, content: nodes.content })
 				.from(nodes)
 				.where(and(eq(nodes.id, input.id), eq(nodes.userId, userId)))
 				.limit(1);
 			if (!node) throw errors.NOT_FOUND();
+			const before = (
+				await transaction
+					.select({ name: tags.name })
+					.from(nodeTags)
+					.innerJoin(tags, eq(tags.id, nodeTags.tagId))
+					.where(eq(nodeTags.nodeId, input.id))
+					.orderBy(asc(tags.name))
+			).map(({ name }) => name);
+			if (
+				before.length === names.length &&
+				before.every((name) => names.includes(name))
+			)
+				return;
+			const history = await createHistoryRecorder(transaction, userId);
 
 			const tagIds =
 				names.length === 0
@@ -42,5 +60,14 @@ export const setNodeTags = authed
 					.insert(nodeTags)
 					.values(tagIds.map((tagId) => ({ nodeId: input.id, tagId })));
 			}
+			await history.record({
+				nodeId: input.id,
+				payload: {
+					kind: "tags_changed",
+					label: historyNodeLabel(node.content),
+					before,
+					after: names,
+				},
+			});
 		});
 	});

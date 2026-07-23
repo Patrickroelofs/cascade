@@ -8,6 +8,7 @@ export const env = createEnv({
 		BETTER_AUTH_SECRET: z.string().min(32),
 		BETTER_AUTH_URL: z.url(),
 		COOKIE_DOMAIN: z.string().optional(),
+		TREE_HISTORY_PURGE_TOKEN: z.string().min(32).optional(),
 	},
 	runtimeEnv: process.env,
 	emptyStringAsUndefined: true,

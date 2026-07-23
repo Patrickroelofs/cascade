@@ -1,8 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
+import { createHistoryRecorder } from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
-import { tags } from "../persistence/node-tables";
+import { nodeTags, tags } from "../persistence/node-tables";
 
 /** Deletes a tag outright, cascading to every node association. */
 export const deleteTag = authed
@@ -11,9 +12,30 @@ export const deleteTag = authed
 	})
 	.input(z.object({ name: z.string() }))
 	.handler(async ({ input, context, errors }) => {
-		const deleted = await db
-			.delete(tags)
-			.where(and(eq(tags.userId, context.user.id), eq(tags.name, input.name)))
-			.returning({ id: tags.id });
-		if (deleted.length === 0) throw errors.NOT_FOUND();
+		const userId = context.user.id;
+		await db.transaction(async (transaction) => {
+			const [tag] = await transaction
+				.select({ id: tags.id })
+				.from(tags)
+				.where(and(eq(tags.userId, userId), eq(tags.name, input.name)))
+				.for("update");
+			if (!tag) throw errors.NOT_FOUND();
+			const nodeIds = (
+				await transaction
+					.select({ nodeId: nodeTags.nodeId })
+					.from(nodeTags)
+					.where(eq(nodeTags.tagId, tag.id))
+			).map(({ nodeId }) => nodeId);
+			const history = await createHistoryRecorder(transaction, userId);
+			await transaction.delete(tags).where(eq(tags.id, tag.id));
+			await history.record({
+				nodeId: null,
+				payload: {
+					kind: "tag_deleted",
+					label: input.name,
+					name: input.name,
+					nodeIds,
+				},
+			});
+		});
 	});

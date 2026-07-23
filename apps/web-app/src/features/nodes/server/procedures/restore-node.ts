@@ -9,6 +9,11 @@ import {
 	siblingScope,
 } from "@/features/nodes/server/persistence/sibling-order";
 import { restoreSubtree } from "@/features/nodes/server/persistence/subtree-restore";
+import {
+	captureSubtree,
+	createHistoryRecorder,
+	historyNodeLabel,
+} from "@/features/tree-history/server/history-persistence";
 import { authed } from "@/orpc/context";
 
 /**
@@ -32,6 +37,7 @@ export const restoreNode = authed
 
 		return await db.transaction(async (tx) => {
 			await lockNodeOrdering(tx, userId);
+			const history = await createHistoryRecorder(tx, userId);
 
 			if (parentId !== null) {
 				const [parent] = await tx
@@ -62,6 +68,19 @@ export const restoreNode = authed
 				.from(nodes)
 				.where(eq(nodes.id, root.id))
 				.limit(1);
+			if (created) {
+				await history.record({
+					nodeId: created.id,
+					payload: {
+						kind: "subtree_restored",
+						label: historyNodeLabel(created.content),
+						count: descendants.length + 1,
+					},
+					snapshots: history.enabled
+						? await captureSubtree(tx, created.id, userId, "after")
+						: [],
+				});
+			}
 			return created;
 		});
 	});
