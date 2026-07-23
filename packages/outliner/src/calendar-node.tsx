@@ -75,8 +75,9 @@ function CalendarRow({
 			role="treeitem"
 			// Focus lives on the nested toggle button, same as VirtualTreeRow.
 			tabIndex={-1}
+			aria-level={depth + 1}
 			aria-expanded={hasChildren ? expanded : undefined}
-			className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-ink dark:text-surface"
+			className="flex items-center gap-1.5 px-2 py-1.5 text-ink dark:text-surface"
 			style={{ paddingLeft: depth * indentSize + 8 }}
 		>
 			<NodeToggle
@@ -150,7 +151,10 @@ function CalendarDayRow({
 				dueNodes?.map((node) => (
 					<div
 						key={node.id}
-						className="flex items-center gap-2 px-2 py-1.5 text-sm text-ink dark:text-surface"
+						role="treeitem"
+						tabIndex={-1}
+						aria-level={depth + 2}
+						className="flex items-center gap-2 px-2 py-1.5 text-ink dark:text-surface"
 						style={{ paddingLeft: (depth + 1) * indentSize + 8 }}
 					>
 						{renderNodeLink(node)}
@@ -305,6 +309,10 @@ function CalendarYearRow({
  * alternate projection over the same rows, not a second copy, so clicking
  * a node here navigates to it via `renderNodeLink` rather than editing it
  * in place.
+ *
+ * Meant to be passed as `VirtualTreeProps.treeLeading`, not rendered
+ * standalone: it has no `role="tree"`/wrapper of its own so its rows read
+ * as the first entries of the outline's own tree, not a separate panel.
  */
 export function CalendarNode({
 	loadYears,
@@ -332,11 +340,7 @@ export function CalendarNode({
 	}
 
 	return (
-		<div
-			role="tree"
-			aria-label={labels.calendarTitle}
-			className="border-b border-ink/10 dark:border-surface/10"
-		>
+		<>
 			<CalendarRow
 				depth={0}
 				indentSize={indentSize}
@@ -369,6 +373,6 @@ export function CalendarNode({
 						renderNodeLink={renderNodeLink}
 					/>
 				))}
-		</div>
+		</>
 	);
 }

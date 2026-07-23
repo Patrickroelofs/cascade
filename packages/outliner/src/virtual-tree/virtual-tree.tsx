@@ -10,6 +10,7 @@ export function VirtualTree({
 	indentSize,
 	renderNodeLink,
 	header,
+	treeLeading,
 	className,
 	contentClassName,
 	hiddenRowIds,
@@ -54,6 +55,7 @@ export function VirtualTree({
 			indentSize={indentSize}
 			renderNodeLink={renderNodeLink}
 			header={header}
+			treeLeading={treeLeading}
 			className={className}
 			contentClassName={contentClassName}
 			hiddenRowIds={hiddenRowIds}

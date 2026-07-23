@@ -23,6 +23,7 @@ export function VirtualTreeView({
 	indentSize,
 	renderNodeLink,
 	header,
+	treeLeading,
 	className,
 	contentClassName,
 	hiddenRowIds,
@@ -49,6 +50,7 @@ export function VirtualTreeView({
 	| "indentSize"
 	| "renderNodeLink"
 	| "header"
+	| "treeLeading"
 	| "className"
 	| "contentClassName"
 	| "hiddenRowIds"
@@ -88,72 +90,75 @@ export function VirtualTreeView({
 				className={twMerge("max-w-6xl mx-auto px-4 py-16", contentClassName)}
 			>
 				{header}
-				{tree.rows.length === 0 ? (
-					<p className="text-sm py-4">{labels.emptyTree}</p>
-				) : hiddenRowIds?.size === tree.rows.length ? (
-					<p className="text-sm py-4">{labels.emptyFilterResults}</p>
-				) : (
-					<div
-						role="tree"
-						aria-label={labels.treeLabel}
-						style={{
-							height: virtualizer.getTotalSize(),
-							position: "relative",
-						}}
-					>
-						{virtualItems.map((virtualItem) => {
-							const row = tree.rows[virtualItem.index];
-							if (!row) return null;
-							return (
-								<VirtualTreeRow
-									key={virtualItem.key}
-									row={row}
-									rows={tree.rows}
-									start={virtualItem.start}
-									index={virtualItem.index}
-									indentSize={indentSize ?? 16}
-									renderNodeLink={renderNodeLink}
-									measureElement={virtualizer.measureElement}
-									existingTags={existingTags}
-									onDeleteTag={onDeleteTag}
-									onTagClick={onTagClick}
-									features={features}
-									isHidden={hiddenRowIds?.has(row.id) ?? false}
-									isContext={contextRowIds?.has(row.id) ?? false}
-									editing={editingNodeId === row.id}
-									focusPoint={editingNodeId === row.id ? focusPoint : null}
-									onStartEdit={(point) => onStartEdit(row.id, point)}
-									onExitEdit={() => onExitEdit(row.id)}
-									onToggle={(expanded) => tree.toggle(row.id, expanded)}
-									onConvert={(type) => onConvert(row.id, type)}
-									onTurnInto={(blockType) =>
-										tree.updateContent(
-											row.id,
-											setBlockType(row.content, blockType),
-										)
-									}
-									onToggleTask={(completed) => onToggleTask(row.id, completed)}
-									onSetDueDate={(date) => tree.setDueDate(row.id, date)}
-									onSetTags={(tags) => tree.setTags(row.id, tags)}
-									onDuplicate={() => tree.duplicate(row.id)}
-									onDelete={() => tree.remove(row.id)}
-									onSaveContent={(content) =>
-										tree.updateContent(row.id, content)
-									}
-									onCreateBelow={() => onCreateBelow(row.id)}
-									onDeleteEmpty={() => onDeleteEmpty(row.id)}
-									onIndent={() => onIndent(row.id)}
-									onOutdent={() => onOutdent(row.id)}
-									onMoveUp={() => onMoveUp(row.id)}
-									onMoveDown={() => onMoveDown(row.id)}
-									onFocusNext={() => onFocusNeighbor(row.id, 1)}
-									onFocusPrevious={() => onFocusNeighbor(row.id, -1)}
-									onMoveDrop={onMoveDrop}
-								/>
-							);
-						})}
-					</div>
-				)}
+				<div role="tree" aria-label={labels.treeLabel}>
+					{treeLeading}
+					{tree.rows.length === 0 ? (
+						<p className="text-sm py-4">{labels.emptyTree}</p>
+					) : hiddenRowIds?.size === tree.rows.length ? (
+						<p className="text-sm py-4">{labels.emptyFilterResults}</p>
+					) : (
+						<div
+							style={{
+								height: virtualizer.getTotalSize(),
+								position: "relative",
+							}}
+						>
+							{virtualItems.map((virtualItem) => {
+								const row = tree.rows[virtualItem.index];
+								if (!row) return null;
+								return (
+									<VirtualTreeRow
+										key={virtualItem.key}
+										row={row}
+										rows={tree.rows}
+										start={virtualItem.start}
+										index={virtualItem.index}
+										indentSize={indentSize ?? 16}
+										renderNodeLink={renderNodeLink}
+										measureElement={virtualizer.measureElement}
+										existingTags={existingTags}
+										onDeleteTag={onDeleteTag}
+										onTagClick={onTagClick}
+										features={features}
+										isHidden={hiddenRowIds?.has(row.id) ?? false}
+										isContext={contextRowIds?.has(row.id) ?? false}
+										editing={editingNodeId === row.id}
+										focusPoint={editingNodeId === row.id ? focusPoint : null}
+										onStartEdit={(point) => onStartEdit(row.id, point)}
+										onExitEdit={() => onExitEdit(row.id)}
+										onToggle={(expanded) => tree.toggle(row.id, expanded)}
+										onConvert={(type) => onConvert(row.id, type)}
+										onTurnInto={(blockType) =>
+											tree.updateContent(
+												row.id,
+												setBlockType(row.content, blockType),
+											)
+										}
+										onToggleTask={(completed) =>
+											onToggleTask(row.id, completed)
+										}
+										onSetDueDate={(date) => tree.setDueDate(row.id, date)}
+										onSetTags={(tags) => tree.setTags(row.id, tags)}
+										onDuplicate={() => tree.duplicate(row.id)}
+										onDelete={() => tree.remove(row.id)}
+										onSaveContent={(content) =>
+											tree.updateContent(row.id, content)
+										}
+										onCreateBelow={() => onCreateBelow(row.id)}
+										onDeleteEmpty={() => onDeleteEmpty(row.id)}
+										onIndent={() => onIndent(row.id)}
+										onOutdent={() => onOutdent(row.id)}
+										onMoveUp={() => onMoveUp(row.id)}
+										onMoveDown={() => onMoveDown(row.id)}
+										onFocusNext={() => onFocusNeighbor(row.id, 1)}
+										onFocusPrevious={() => onFocusNeighbor(row.id, -1)}
+										onMoveDrop={onMoveDrop}
+									/>
+								);
+							})}
+						</div>
+					)}
+				</div>
 				<Button
 					icon={<PlusIcon className="size-4" />}
 					onClick={onAddRoot}

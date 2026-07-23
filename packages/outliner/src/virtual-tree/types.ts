@@ -15,6 +15,11 @@ export interface VirtualTreeProps {
 		node: Pick<VisibleTree["rows"][number], "id" | "content">,
 	) => ReactNode;
 	header?: ReactNode;
+	/** Rendered inside the tree's own `role="tree"` region, above the real
+	 * rows, in normal document flow (not virtualized) — e.g. the always-
+	 * present Calendar entry. Unlike `header`, this is part of the outline
+	 * itself: no divider separates it from the rows that follow. */
+	treeLeading?: ReactNode;
 	/** Overrides the scroll container's default full-viewport-height sizing. */
 	className?: string;
 	/** Overrides the inner content wrapper's default max-width/padding. */

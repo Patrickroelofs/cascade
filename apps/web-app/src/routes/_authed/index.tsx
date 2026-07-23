@@ -57,20 +57,20 @@ function RootTree() {
 			)}
 			contentClassName="rr-block"
 			header={
-				<>
-					<CalendarNode
-						{...calendarNodeData}
-						renderNodeLink={(node) => (
-							<NodeLink id={node.id} content={node.content} />
-						)}
-						indentSize={settings.indentSize}
-					/>
-					<FiltersBar
-						filters={filters}
-						existingTags={existingTags}
-						onFiltersChange={setFilters}
-					/>
-				</>
+				<FiltersBar
+					filters={filters}
+					existingTags={existingTags}
+					onFiltersChange={setFilters}
+				/>
+			}
+			treeLeading={
+				<CalendarNode
+					{...calendarNodeData}
+					renderNodeLink={(node) => (
+						<NodeLink id={node.id} content={node.content} />
+					)}
+					indentSize={settings.indentSize}
+				/>
 			}
 			hiddenRowIds={visibility.hiddenIds}
 			contextRowIds={visibility.contextIds}
