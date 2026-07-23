@@ -1,22 +1,25 @@
 import {
 	createNode,
 	deleteNode,
-	deleteTag,
-	duplicateNode,
 	getNode,
-	getNodeAncestors,
-	listNodes,
-	listTags,
-	moveNode,
-	resolveNodeSlug,
 	restoreNode,
-	setNodeDueDate,
-	setNodeTags,
 	setNodeType,
-	toggleNodeExpanded,
 	updateNodeContent,
-	visibleTree,
-} from "@/core/nodes/node.procedures";
+} from "@/core/nodes/node-crud.procedures";
+import { setNodeDueDate } from "@/core/nodes/node-due-date.procedures";
+import { resolveNodeSlug } from "@/core/nodes/node-slug.procedures";
+import {
+	duplicateNode,
+	getNodeAncestors,
+	moveNode,
+	toggleNodeExpanded,
+} from "@/core/nodes/node-structure.procedures";
+import {
+	deleteTag,
+	listTags,
+	setNodeTags,
+} from "@/core/nodes/node-tags.procedures";
+import { listNodes, visibleTree } from "@/core/nodes/node-tree-read.procedures";
 import {
 	getPremiumStatus,
 	requestPremiumSeat,

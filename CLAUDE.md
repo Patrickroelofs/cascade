@@ -80,7 +80,9 @@ Requires Node 22+, pnpm, and Postgres (`docker compose up -d` starts one on `:54
 
 `nodes` (`apps/app/src/db/schema.ts`) is a self-referencing tree table (`parent_id` FK to `nodes.id`, cascade delete). Sibling order is a fractional index string (`order`, via `fractional-indexing`'s `generateKeyBetween`), stored with a custom `COLLATE "C"` text type so that byte-order comparison matches the fractional-indexing library's ordering. Because of that, moves and inserts only ever need to touch the moved/inserted row.
 
-Reads for the tree view go through a single recursive CTE (`visibleTree` in `apps/app/src/core/nodes/node.procedures.ts`) that walks expanded nodes depth-first server-side, building a `path` array of `order` values per row for cursor pagination (`WHERE path > cursor`) and correct DFS ordering. `moveNode` takes a `pg_advisory_xact_lock` keyed on the user id to serialize concurrent reorders, and validates the destination isn't inside the moved node's own subtree via another recursive CTE before recomputing the fractional index.
+Reads for the tree view go through a single recursive CTE (`visibleTree` in `apps/app/src/core/nodes/node-tree-read.procedures.ts`) that walks expanded nodes depth-first server-side, building a `path` array of `order` values per row for cursor pagination (`WHERE path > cursor`) and correct DFS ordering. `moveNode` (`node-structure.procedures.ts`) takes a `pg_advisory_xact_lock` keyed on the user id to serialize concurrent reorders, and validates the destination isn't inside the moved node's own subtree via another recursive CTE before recomputing the fractional index.
+
+Node procedures are split by sub-domain rather than living in one file: `node-tree-read.procedures.ts` (reads), `node-crud.procedures.ts` (create/get/update-content/delete/restore/set-type), `node-structure.procedures.ts` (ancestors/expand/move/duplicate), `node-tags.procedures.ts`, `node-due-date.procedures.ts`, and `node-slug.procedures.ts` — all under `apps/app/src/core/nodes/`, assembled directly into the router in `apps/app/src/orpc/router/index.ts`.
 
 ### API: oRPC, not REST
 
@@ -94,11 +96,11 @@ Path aliases: within a workspace, `@/*` and `#/*` both resolve to that workspace
 
 ### Node content: Lexical
 
-Node text is stored as serialized Lexical editor state (`jsonb` `content` column). `packages/outliner/src/lexical/edit` has the editable view, `.../lexical/read` has a read-only renderer, and `lexical-content.ts` has plain-text extraction (`lexicalToPlainText`) used for slugs and breadcrumb labels. `node.procedures.ts` validates incoming content against a recursive Zod schema shaped like a minimal Lexical tree before writing it.
+Node text is stored as serialized Lexical editor state (`jsonb` `content` column). `packages/outliner/src/lexical/edit` has the editable view, `.../lexical/read` has a read-only renderer, and `lexical-content.ts` has plain-text extraction (`lexicalToPlainText`) used for slugs and breadcrumb labels. `node-crud.procedures.ts` validates incoming content against a recursive Zod schema shaped like a minimal Lexical tree before writing it.
 
 ### Node URL slugs
 
-Node detail URLs are `/<slug-from-content>-<uuid-first-block>` (see `apps/app/src/ui/nodes/node-slug.ts`). The content-derived slug is normalized (lowercased, diacritics stripped, non-alphanumerics collapsed to hyphens) and capped in length; the trailing UUID-first-block suffix disambiguates duplicate titles while keeping links stable. `resolveNodeSlug` (`node.procedures.ts`) resolves a slug back to a node id, falling back to a full-UUID match and, when the first-block prefix is ambiguous, filtering candidates by the slug text before raising `SLUG_AMBIGUOUS`.
+Node detail URLs are `/<slug-from-content>-<uuid-first-block>` (see `apps/app/src/ui/nodes/node-slug.ts`). The content-derived slug is normalized (lowercased, diacritics stripped, non-alphanumerics collapsed to hyphens) and capped in length; the trailing UUID-first-block suffix disambiguates duplicate titles while keeping links stable. `resolveNodeSlug` (`node-slug.procedures.ts`) resolves a slug back to a node id, falling back to a full-UUID match and, when the first-block prefix is ambiguous, filtering candidates by the slug text before raising `SLUG_AMBIGUOUS`.
 
 ### i18n
 
