@@ -16,6 +16,7 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as AuthedNodeSlugRouteImport } from './routes/_authed/$nodeSlug'
 import { Route as ApiRpcSplatRouteImport } from './routes/api.rpc.$'
+import { Route as ApiMaintenancePurgeTreeHistoryRouteImport } from './routes/api.maintenance.purge-tree-history'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -52,6 +53,12 @@ const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
   path: '/api/rpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMaintenancePurgeTreeHistoryRoute =
+  ApiMaintenancePurgeTreeHistoryRouteImport.update({
+    id: '/api/maintenance/purge-tree-history',
+    path: '/api/maintenance/purge-tree-history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/$nodeSlug': typeof AuthedNodeSlugRoute
   '/api/$': typeof ApiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/maintenance/purge-tree-history': typeof ApiMaintenancePurgeTreeHistoryRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesByTo {
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/maintenance/purge-tree-history': typeof ApiMaintenancePurgeTreeHistoryRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesById {
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/_authed/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/maintenance/purge-tree-history': typeof ApiMaintenancePurgeTreeHistoryRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRouteTypes {
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/$nodeSlug'
     | '/api/$'
     | '/api/auth/$'
+    | '/api/maintenance/purge-tree-history'
     | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/'
     | '/api/auth/$'
+    | '/api/maintenance/purge-tree-history'
     | '/api/rpc/$'
   id:
     | '__root__'
@@ -115,6 +127,7 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/_authed/'
     | '/api/auth/$'
+    | '/api/maintenance/purge-tree-history'
     | '/api/rpc/$'
   fileRoutesById: FileRoutesById
 }
@@ -124,6 +137,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiMaintenancePurgeTreeHistoryRoute: typeof ApiMaintenancePurgeTreeHistoryRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
@@ -178,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/maintenance/purge-tree-history': {
+      id: '/api/maintenance/purge-tree-history'
+      path: '/api/maintenance/purge-tree-history'
+      fullPath: '/api/maintenance/purge-tree-history'
+      preLoaderRoute: typeof ApiMaintenancePurgeTreeHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -208,6 +229,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiMaintenancePurgeTreeHistoryRoute: ApiMaintenancePurgeTreeHistoryRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
 export const routeTree = rootRouteImport

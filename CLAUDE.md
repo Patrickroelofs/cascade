@@ -92,7 +92,10 @@ Premium users' semantic node mutations are also recorded atomically in
 `tree_history_snapshots` rows rather than one oversized JSON payload. History is
 visible for 30 days and should be purged periodically by a deployment cron or
 systemd timer with `pnpm db:purge-tree-history:app` (pass `-- --dry-run` to
-preview or `-- --days=N` to override the maintenance cutoff).
+preview or `-- --days=N` to override the maintenance cutoff). Deployments can
+instead set a 32+ character `TREE_HISTORY_PURGE_TOKEN` and schedule an
+authenticated `POST /api/maintenance/purge-tree-history` request with JSON
+`{"days":30,"dryRun":false}`; `days: 0` removes all existing history.
 
 ### API: oRPC, not REST
 

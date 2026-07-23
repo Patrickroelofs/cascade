@@ -26,6 +26,7 @@ import {
 	listTreeHistory,
 	restoreTreeHistoryEntry,
 } from "./tree-history-procedures";
+import { handleTreeHistoryPurgeRequest } from "./tree-history-purge-api";
 import { treeHistoryEvents } from "./tree-history-table";
 
 let userId: string;
@@ -275,6 +276,49 @@ describe("tree history restoration", () => {
 });
 
 describe("tree history retention", () => {
+	it("purges through the token-protected maintenance API", async () => {
+		await call(requestPremiumSeat, undefined, { context });
+		await call(createNode, { parentId: null }, { context });
+		const token = "tree-history-test-token-32-characters";
+		const request = (authorization: string) =>
+			new Request("http://localhost/api/maintenance/purge-tree-history", {
+				method: "POST",
+				headers: {
+					authorization,
+					"content-type": "application/json",
+				},
+				body: JSON.stringify({ days: 0, dryRun: false }),
+			});
+
+		const unauthorized = await handleTreeHistoryPurgeRequest(
+			request("Bearer wrong"),
+			token,
+		);
+		expect(unauthorized.status).toBe(401);
+
+		const response = await handleTreeHistoryPurgeRequest(
+			request(`Bearer ${token}`),
+			token,
+		);
+		expect(response.status).toBe(200);
+		const body = (await response.json()) as {
+			days: number;
+			dryRun: boolean;
+			purgedCount: number;
+		};
+		expect(body).toMatchObject({
+			days: 0,
+			dryRun: false,
+		});
+		expect(body.purgedCount).toBeGreaterThan(0);
+		expect(
+			await db
+				.select()
+				.from(treeHistoryEvents)
+				.where(eq(treeHistoryEvents.userId, userId)),
+		).toHaveLength(0);
+	});
+
 	it("--days=0 purges all existing history", async () => {
 		await call(requestPremiumSeat, undefined, { context });
 		await call(createNode, { parentId: null }, { context });
