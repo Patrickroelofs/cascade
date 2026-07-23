@@ -3,6 +3,7 @@ import { patchRow } from "@cascade/outliner/visible-rows";
 import type { QueryKey } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import { client, orpc } from "@/orpc/client";
+import { calendarRefreshStore } from "@/ui/nodes/calendar-refresh-store";
 import { useOptimisticNodeMutation } from "@/ui/nodes/use-optimistic-node-mutation";
 import { undoStore } from "@/ui/undo/undo-store";
 import { patchRows } from "../cache-helpers";
@@ -19,14 +20,20 @@ export function useSetDueDateMutation(queryKey: QueryKey) {
 		mutationFn: (vars) => client.nodes.setDueDate(vars),
 		patch: (old, { id, dueDate }) =>
 			patchRows((rows) => patchRow(rows, id, { dueDate }), old),
-		onSuccess: () =>
+		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: orpc.nodes.visibleTree.key(),
-			}),
+			});
+			// Fired on success, not alongside the fire-and-forget mutate() call
+			// below — a calendar branch refetching before the write actually
+			// lands would just read the old, stale state.
+			calendarRefreshStore.notify();
+		},
 	});
 
-	const rawSetDueDate = (id: string, dueDate: string | null) =>
+	const rawSetDueDate = (id: string, dueDate: string | null) => {
 		mutation.mutate({ id, dueDate });
+	};
 
 	return (id: string, dueDate: Date | null) => {
 		const rows = queryClient.getQueryData<VisibleTreeData>(queryKey)?.rows;

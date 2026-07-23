@@ -11,6 +11,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Suspense } from "react";
 import { GenericErrorComponent } from "@/ui/error/generic-error";
 import { useCalendarNodeData } from "@/ui/nodes/calendar-node-data";
+import { useCalendarRefreshToken } from "@/ui/nodes/calendar-refresh-store";
 import { NodeLink } from "@/ui/nodes/node-link";
 import {
 	existingTagsOptions,
@@ -47,6 +48,7 @@ function RootTree() {
 	const existingTags = useExistingTags();
 	const deleteTag = useDeleteTag();
 	const calendarNodeData = useCalendarNodeData();
+	const calendarRefreshToken = useCalendarRefreshToken();
 
 	function handleTagClick(tag: string) {
 		setFilters({
@@ -85,6 +87,7 @@ function RootTree() {
 					existingTags={existingTags}
 					onDeleteTag={deleteTag}
 					onTagClick={handleTagClick}
+					refreshToken={calendarRefreshToken}
 				/>
 			}
 			hiddenRowIds={visibility.hiddenIds}

@@ -10,6 +10,7 @@ import type { QueryKey } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { m } from "#/paraglide/messages.js";
 import { client } from "@/orpc/client";
+import { calendarRefreshStore } from "@/ui/nodes/calendar-refresh-store";
 import { undoStore } from "@/ui/undo/undo-store";
 import { makeSetRows } from "../cache-helpers";
 import type { VisibleTreeData } from "../types";
@@ -80,6 +81,7 @@ export function useCreateMutation(
 		await queryClient.cancelQueries({ queryKey });
 		setRows((currentRows) => appendRow(currentRows, row));
 		pushCreateUndo(row, { position: "append", parentId: rootId });
+		if (row.dueDate) calendarRefreshStore.notify();
 		return created.id;
 	};
 
@@ -123,6 +125,7 @@ export function useCreateMutation(
 			targetId: afterId,
 			parentId: sibling.parentId,
 		});
+		if (row.dueDate) calendarRefreshStore.notify();
 		return created.id;
 	};
 

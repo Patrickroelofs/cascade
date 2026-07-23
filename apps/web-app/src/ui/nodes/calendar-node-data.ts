@@ -5,6 +5,7 @@ import { toast } from "@cascade/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { m } from "#/paraglide/messages.js";
 import { client, orpc } from "@/orpc/client";
+import { calendarRefreshStore } from "@/ui/nodes/calendar-refresh-store";
 import { existingTagsOptions } from "@/ui/nodes/use-existing-tags";
 import { undoStore } from "@/ui/undo/undo-store";
 
@@ -19,6 +20,11 @@ import { undoStore } from "@/ui/undo/undo-store";
  * and delete don't — `useDuplicateMutation`/`useRemoveMutation` support it
  * for the real tree by reading a full subtree snapshot out of that tree's
  * cache first, which isn't available here.
+ *
+ * Due-date changes, deletes, and duplicates also call
+ * `calendarRefreshStore.notify()` so any other already-expanded calendar
+ * branch (and the real tree's own due-date changes call it too) picks up
+ * the change — see that module.
  */
 export function useCalendarNodeData(): Omit<
 	CalendarNodeProps,
@@ -43,11 +49,18 @@ export function useCalendarNodeData(): Omit<
 		client.nodes.setType({ id, ...typed }).then(invalidateTree);
 
 	// The calendar's own year/month/day/day-node lists are plain one-off
-	// loads (see calendar-node.tsx), not a TanStack Query cache, so a due-
-	// date change has nothing further to invalidate here — CalendarNode
-	// already drops the node from its current day's list optimistically.
+	// loads (see calendar-node.tsx), not a TanStack Query cache; CalendarNode
+	// already drops the node from its current day's list optimistically, and
+	// `calendarRefreshStore.notify()` (see that module) tells every other
+	// currently-expanded branch — this due node might now belong to a
+	// different, already-open day/month/year, or change a count badge. Fired
+	// after the write actually lands, not alongside it, so a refetch doesn't
+	// race ahead and read stale state.
 	const rawSetDueDate = (id: string, dueDate: string | null) =>
-		client.nodes.setDueDate({ id, dueDate }).then(invalidateTree);
+		client.nodes.setDueDate({ id, dueDate }).then(() => {
+			invalidateTree();
+			calendarRefreshStore.notify();
+		});
 
 	const rawSetTags = (id: string, tags: string[]) =>
 		client.nodes.setTags({ id, tags }).then(() => {
@@ -101,12 +114,16 @@ export function useCalendarNodeData(): Omit<
 					success: m.node_duplicated(),
 					error: m.node_duplicate_failed(),
 				})
+				.then(() => calendarRefreshStore.notify())
 				.catch(() => {
 					// Already surfaced by the error toast above.
 				});
 		},
 		onDelete: (id) => {
-			client.nodes.delete({ id }).then(invalidateTree);
+			client.nodes.delete({ id }).then(() => {
+				invalidateTree();
+				calendarRefreshStore.notify();
+			});
 		},
 	};
 }

@@ -1,5 +1,5 @@
 import { CircleNotchIcon } from "@phosphor-icons/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { CalendarDateString } from "./calendar-date";
 import { useOutlinerLabels } from "./labels-context";
 import type { BlockType } from "./lexical/lexical-content";
@@ -81,6 +81,12 @@ export interface CalendarNodeProps extends CalendarNodeActions {
 	 * link to a due node's real position in the outline. */
 	renderNodeLink?: (node: Pick<CalendarDueNode, "id" | "content">) => ReactNode;
 	indentSize?: number;
+	/** Bump this (e.g. a counter) whenever a due date changed anywhere in the
+	 * app — the real tree, another calendar row, undo/redo — so that any
+	 * already-expanded year/month/day/day-node list here re-fetches instead
+	 * of going stale. A no-op for branches that aren't expanded yet: they'll
+	 * fetch fresh data the first time they're opened regardless. */
+	refreshToken?: number;
 }
 
 const monthFormatter = new Intl.DateTimeFormat(undefined, { month: "long" });
@@ -307,6 +313,7 @@ interface CalendarDayRowProps {
 	focusPoint: FocusPoint | null;
 	onStartEdit: (id: string, point?: FocusPoint) => void;
 	onExitEdit: (id: string) => void;
+	refreshToken?: number;
 }
 
 function CalendarDayRow({
@@ -323,6 +330,7 @@ function CalendarDayRow({
 	focusPoint,
 	onStartEdit,
 	onExitEdit,
+	refreshToken,
 }: CalendarDayRowProps) {
 	const [expanded, setExpanded] = useState(false);
 	const [dueNodes, setDueNodes] = useState<CalendarDueNode[] | null>(null);
@@ -340,6 +348,12 @@ function CalendarDayRow({
 			}
 		}
 	}
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-fetches on refreshToken changes, not on every loadDayNodes/dueDate identity change
+	useEffect(() => {
+		if (dueNodes === null) return;
+		loadDayNodes(dueDate).then(setDueNodes);
+	}, [refreshToken]);
 
 	function patchNode(id: string, patch: Partial<CalendarDueNode>) {
 		setDueNodes(
@@ -401,6 +415,7 @@ interface CalendarMonthRowProps {
 	focusPoint: FocusPoint | null;
 	onStartEdit: (id: string, point?: FocusPoint) => void;
 	onExitEdit: (id: string) => void;
+	refreshToken?: number;
 }
 
 function CalendarMonthRow({
@@ -417,6 +432,7 @@ function CalendarMonthRow({
 	focusPoint,
 	onStartEdit,
 	onExitEdit,
+	refreshToken,
 }: CalendarMonthRowProps) {
 	const [expanded, setExpanded] = useState(false);
 	const [days, setDays] = useState<CalendarDayCount[] | null>(null);
@@ -433,6 +449,12 @@ function CalendarMonthRow({
 			}
 		}
 	}
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-fetches on refreshToken changes, not on every loadDays/year/month identity change
+	useEffect(() => {
+		if (days === null) return;
+		loadDays(year, month).then(setDays);
+	}, [refreshToken]);
 
 	return (
 		<>
@@ -462,6 +484,7 @@ function CalendarMonthRow({
 						focusPoint={focusPoint}
 						onStartEdit={onStartEdit}
 						onExitEdit={onExitEdit}
+						refreshToken={refreshToken}
 					/>
 				))}
 		</>
@@ -482,6 +505,7 @@ interface CalendarYearRowProps {
 	focusPoint: FocusPoint | null;
 	onStartEdit: (id: string, point?: FocusPoint) => void;
 	onExitEdit: (id: string) => void;
+	refreshToken?: number;
 }
 
 function CalendarYearRow({
@@ -498,6 +522,7 @@ function CalendarYearRow({
 	focusPoint,
 	onStartEdit,
 	onExitEdit,
+	refreshToken,
 }: CalendarYearRowProps) {
 	const [expanded, setExpanded] = useState(false);
 	const [months, setMonths] = useState<CalendarMonthCount[] | null>(null);
@@ -514,6 +539,12 @@ function CalendarYearRow({
 			}
 		}
 	}
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-fetches on refreshToken changes, not on every loadMonths/year identity change
+	useEffect(() => {
+		if (months === null) return;
+		loadMonths(year).then(setMonths);
+	}, [refreshToken]);
 
 	return (
 		<>
@@ -543,6 +574,7 @@ function CalendarYearRow({
 						focusPoint={focusPoint}
 						onStartEdit={onStartEdit}
 						onExitEdit={onExitEdit}
+						refreshToken={refreshToken}
 					/>
 				))}
 		</>
@@ -569,6 +601,7 @@ export function CalendarNode({
 	loadDayNodes,
 	renderNodeLink,
 	indentSize = 16,
+	refreshToken,
 	...actions
 }: CalendarNodeProps) {
 	const labels = useOutlinerLabels();
@@ -589,6 +622,12 @@ export function CalendarNode({
 			}
 		}
 	}
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only re-fetches on refreshToken changes, not on every loadYears identity change
+	useEffect(() => {
+		if (years === null) return;
+		loadYears().then(setYears);
+	}, [refreshToken]);
 
 	const handleStartEdit = (id: string, point?: FocusPoint) => {
 		setEditingNodeId(id);
@@ -633,6 +672,7 @@ export function CalendarNode({
 						focusPoint={focusPoint}
 						onStartEdit={handleStartEdit}
 						onExitEdit={handleExitEdit}
+						refreshToken={refreshToken}
 					/>
 				))}
 		</>

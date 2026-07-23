@@ -11,6 +11,7 @@ import { toast } from "@cascade/ui/toast";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { m } from "#/paraglide/messages.js";
 import { client } from "@/orpc/client";
+import { calendarRefreshStore } from "@/ui/nodes/calendar-refresh-store";
 import { makeSetRows } from "../cache-helpers";
 
 export interface DeleteSnapshot {
@@ -73,6 +74,10 @@ export function makeRawDeleteRestore(
 							: m.node_deleted(),
 				);
 			}
+			// Fired on success, not alongside the optimistic patch above — a
+			// calendar branch refetching before the delete actually lands would
+			// just read the old, stale state.
+			calendarRefreshStore.notify();
 		} catch {
 			toast.error(m.node_delete_failed());
 			queryClient.invalidateQueries({ queryKey });
@@ -91,6 +96,7 @@ export function makeRawDeleteRestore(
 		);
 		try {
 			await client.nodes.restore(toRestoreInput(snapshot));
+			calendarRefreshStore.notify();
 		} catch {
 			toast.error(m.undo_restore_failed());
 			queryClient.invalidateQueries({ queryKey });
