@@ -1,4 +1,4 @@
-import { CircleNotchIcon } from "@phosphor-icons/react";
+import { CalendarIcon, CircleNotchIcon } from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useState } from "react";
 import type { CalendarDateString } from "./calendar-date";
 import { useOutlinerLabels } from "./labels-context";
@@ -139,11 +139,14 @@ interface StructuralRowProps {
 	expanded: boolean;
 	loading: boolean;
 	onToggle: (expanded: boolean) => void;
+	/** Overrides the default dot marker — just for the root "Calendar" row,
+	 * so it reads as the entry point into the calendar rather than a node. */
+	icon?: ReactNode;
 }
 
 /** A Calendar/Year/Month/Day entry: styled identically to a real node row
- * (same shell, same link marker, same text) since it isn't one — it has no
- * content of its own to edit, just a label and a count of due nodes. */
+ * (same shell, same text) since it isn't one — it has no content of its own
+ * to edit, just a label and a count of due nodes. */
 function StructuralRow({
 	depth,
 	indentSize,
@@ -152,12 +155,13 @@ function StructuralRow({
 	expanded,
 	loading,
 	onToggle,
+	icon,
 }: StructuralRowProps) {
 	return (
 		<CalendarTreeItem depth={depth} hasChildren expanded={expanded}>
 			<StaticRowShell depth={depth} indentSize={indentSize}>
 				<NodeToggle hasChildren expanded={expanded} onToggle={onToggle} />
-				<DefaultNodeLink />
+				{icon ?? <DefaultNodeLink />}
 				<span className="flex-1 min-w-0 truncate">{label}</span>
 				<div className="flex gap-1 pr-1">
 					{loading ? (
@@ -646,6 +650,7 @@ export function CalendarNode({
 				expanded={expanded}
 				loading={loading}
 				onToggle={handleToggle}
+				icon={<CalendarIcon size={14} weight="bold" />}
 			/>
 			{expanded && years !== null && years.length === 0 && (
 				<div
