@@ -80,7 +80,10 @@ export function VirtualTreeView({
 	onToggleTask: Interactions["handleToggleTask"];
 }) {
 	return (
-		<div ref={scrollRef} className={twMerge("h-dvh overflow-auto", className)}>
+		<div
+			ref={scrollRef}
+			className={twMerge("isolate h-dvh overflow-auto", className)}
+		>
 			<div
 				className={twMerge("max-w-6xl mx-auto px-4 py-16", contentClassName)}
 			>
