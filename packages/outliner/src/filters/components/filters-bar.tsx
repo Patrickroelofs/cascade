@@ -1,0 +1,43 @@
+import { useOutlinerLabels } from "../../i18n/outliner-labels-context";
+import type { FiltersBarProps } from "../model/filters-bar.types";
+import { hasActiveFilters, noFilters } from "../model/node-filters";
+import { ActiveFilterChips } from "./active-filter-chips";
+import { clearAll } from "./filters-bar.styles";
+import { FiltersMenu } from "./filters-menu";
+
+/** Filter controls and active-filter summary for an outliner view. */
+export function FiltersBar({
+	filters,
+	existingTags = [],
+	onFiltersChange,
+}: FiltersBarProps) {
+	const labels = useOutlinerLabels();
+
+	return (
+		<div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-ink/10 pb-3 dark:border-surface/10">
+			<div className="flex flex-wrap items-center gap-1.5">
+				<FiltersMenu
+					filters={filters}
+					existingTags={existingTags}
+					onFiltersChange={onFiltersChange}
+				/>
+				<ActiveFilterChips
+					filters={filters}
+					onFiltersChange={onFiltersChange}
+				/>
+			</div>
+
+			{hasActiveFilters(filters) && (
+				<div className="flex items-center gap-3">
+					<button
+						type="button"
+						className={clearAll()}
+						onClick={() => onFiltersChange(noFilters)}
+					>
+						{labels.filtersClear}
+					</button>
+				</div>
+			)}
+		</div>
+	);
+}
