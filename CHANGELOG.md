@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-07-23
+- [chore] Split the 900-line `node.procedures.ts` data-access file into six sub-domain files (`node-tree-read`, `node-crud`, `node-slug`, `node-structure`, `node-tags`, `node-due-date`) under `apps/app/src/core/nodes/`, with shared helpers extracted into `node-batch.ts` and `node-due-date-schema.ts`. No behavior change.
+
 ## 2026-07-22
 - Added undo/redo for creating, editing, moving, deleting, tagging, and setting due dates on nodes: press Cmd/Ctrl+Z to undo the last change and Shift+Cmd/Ctrl+Z to redo it. Undoing a delete restores the node and its full subtree, including content, tags, due date, and type, to its prior position. [#269](https://github.com/Patrickroelofs/cascade/issues/269)
 - [feat] Non-Cascade themes (Catppuccin, Nord, Dracula) now require a premium seat: the theme picker in Settings shows them as locked for non-premium users, and the server rejects saving one of them without an active seat. [#411](https://github.com/Patrickroelofs/cascade/issues/411)
