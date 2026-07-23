@@ -46,7 +46,11 @@ export function renderNode(
 			return renderTextNode(node as LexicalTextNode, key);
 
 		case "paragraph": {
-			return <p key={key}>{renderChildren(node.children)}</p>;
+			return (
+				<p key={key}>
+					{node.children?.length ? renderChildren(node.children) : " "}
+				</p>
+			);
 		}
 
 		case "heading": {
@@ -54,7 +58,7 @@ export function renderNode(
 			const Tag = tag;
 			return (
 				<Tag key={key} className={HEADING_CLASSES[tag]}>
-					{renderChildren(node.children)}
+					{node.children?.length ? renderChildren(node.children) : " "}
 				</Tag>
 			);
 		}

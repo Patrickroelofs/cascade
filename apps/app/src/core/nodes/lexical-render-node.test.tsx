@@ -117,6 +117,23 @@ describe("renderNode", () => {
 		expect(container.querySelector("a")).toBe(null);
 	});
 
+	// Regression test for #415: an empty element rendered with zero children
+	// gets no line box at all (0 height), not just no visible glyph, so the
+	// row's click target disappears entirely. This happens whenever "Convert
+	// into" leaves a block with no children behind, most visibly for headings.
+	it("renders a non-breaking space placeholder for an empty paragraph so it keeps a click target", () => {
+		const { container } = render(renderNode(paragraph([]), 0));
+		const p = container.querySelector("p");
+		expect(p?.textContent).toBe(" ");
+	});
+
+	it("renders a non-breaking space placeholder for an empty heading so it keeps a click target", () => {
+		const heading = { type: "heading", tag: "h1", children: [] } as never;
+		const { container } = render(renderNode(heading, 0));
+		const h1 = container.querySelector("h1");
+		expect(h1?.textContent).toBe(" ");
+	});
+
 	it("renders a trailing icon anchor that opens the URL directly", () => {
 		const link = {
 			type: "link",
