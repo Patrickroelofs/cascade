@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authed")({
 		return { settings, premium };
 	},
 	pendingComponent: CascadeLoader,
+	pendingMs: 0,
 	pendingMinMs: 200,
 	component: AuthedLayout,
 });
