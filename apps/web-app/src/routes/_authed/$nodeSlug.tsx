@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authed/$nodeSlug")({
 		return { nodeId };
 	},
 	pendingComponent: CascadeLoader,
+	pendingMs: 0,
 	pendingMinMs: 200,
 	errorComponent: GenericErrorComponent,
 	component: () => {

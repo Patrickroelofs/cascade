@@ -1,3 +1,4 @@
+import { CascadeLoader } from "@cascade/ui/cascade-loader";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppHeader } from "@/app/app-header";
 import { getSession } from "@/features/auth/server/get-session";
@@ -23,6 +24,9 @@ export const Route = createFileRoute("/_authed")({
 			.catch((): PremiumStatus => ({ isPremium: false, grantedAt: null }));
 		return { settings, premium };
 	},
+	pendingComponent: CascadeLoader,
+	pendingMs: 0,
+	pendingMinMs: 200,
 	component: AuthedLayout,
 });
 
