@@ -1,6 +1,6 @@
 # Proposal: a dedicated `apps/api` app for mobile + external integrations
 
-Status: proposed (not yet implemented)
+Status: Phase 0 implemented; Phases 1-4 proposed
 Related: #444
 
 ## Summary
@@ -38,39 +38,60 @@ cost entirely.
 
 ## Proposal
 
-### Phase 0 — Extract shared packages (pure refactor, no behavior change)
+### Phase 0 — Extract a shared package (pure refactor, no behavior change) — **done**
 
-- **`packages/db`** (new, `@cascade/db`): move `apps/web-app/src/db/schema.ts`
-  and the drizzle client factory (currently `apps/web-app/src/db/index.ts`)
-  here, along with `DATABASE_URL` env validation. Export `schema` and a
-  `createDb(databaseUrl)` factory — not a singleton — so each app process
-  builds its own connection. Update `drizzle.config.ts` and `apps/web-app`'s
-  db scripts accordingly; rename `@/db` imports in `apps/web-app` to
-  `@cascade/db`.
-- **`packages/api-core`** (new): move the actual business logic —
-  `apps/web-app/src/orpc/router.ts`, `context.ts`, and the `server/` folders
-  of `nodes`, `premium`, `settings`, `tree-history` (~10k LOC). These files
-  already depend only on `db` and `authed`, with no TanStack Start imports,
-  so the move is mechanical. Client-side feature code (React
-  components/hooks) stays in `apps/web-app`.
-- Export a **factory**, not instances: `createRouter({ db, auth })`.
-  better-auth instances shouldn't be shared across process boundaries —
-  each app constructs its own `createAuth(db)` (from `@cascade/auth`,
-  already framework-agnostic) bound to its own connection; the processes
-  only need to agree on `BETTER_AUTH_SECRET` and schema for sessions to
-  validate identically.
-- `apps/web-app`'s existing routes keep working unchanged, importing the
-  router from the new package instead of `src/orpc`.
-- **Verification**: `pnpm build:app && pnpm test:app` unchanged, plus a
-  manual smoke test of the outliner UI. This phase ships independently of
-  the rest and is worth doing regardless of whether `apps/api` happens.
+Implemented as a single `@cascade/api` package (`packages/api`) rather than
+the originally-sketched `packages/db` + `packages/api-core` split. Two
+things discovered during implementation drove that:
+
+- **One package, not two.** `db/schema.ts` is a barrel that re-exports the
+  per-feature `*-table.ts` files, which live inside the feature folders. A
+  separate `packages/db` owning the schema would therefore have to depend on
+  the feature code that also depends on it — a cycle. Keeping the drizzle
+  client, the schema barrel, and the feature server code in one package
+  avoids that and preserves the existing convention of co-locating each
+  feature's table with its procedures.
+- **Module singletons, not a `createRouter({ db, auth })` factory.**
+  Converting 26 procedures to take an injected `db` would have been an
+  invasive rewrite of every query, and it buys nothing here: module-level
+  singletons are already per-process, so a second app importing the package
+  gets its own `db`/`auth` instances and its own connection pool for free.
+  The package keeps the existing `db` and `auth` singletons as-is.
+
+What moved into `packages/api/src`: `db/{index,schema}.ts`,
+`orpc/{context,router}.ts`, `auth.ts` (was
+`features/auth/server/auth.ts`), the `server/` folders of `nodes`,
+`premium`, `settings`, `tree-history`, the `model/` schema files those
+depend on, and `test-support/database-harness.ts`. Package-internal imports
+use relative paths; `apps/web-app` now imports through the package's
+`exports` map (`@cascade/api/db`, `/router`, `/context`, …).
+
+What deliberately stayed in `apps/web-app`: `orpc/client.ts` and
+`features/auth/server/get-session.ts` (both import `@tanstack/react-start`,
+so they are app-level, not portable), the route files that mount the
+handlers, `db/{migrate,seed,seed-tree}.ts`, and the React/Lexical contract
+tests under `features/nodes/model/contracts/` plus
+`settings/model/theme-registry.test.ts` (it reads the app's
+`public/manifest.json`) — keeping React and Lexical out of the API
+package's dependency tree.
+
+Also updated: `drizzle.config.ts` schema globs, `db:purge-tree-history`
+script path, `test:api`/`test:db:api`/`tsc:api` root scripts, and the
+`typecheck`/`test`/`perf` workflows.
+
+**Verified**: `pnpm check`, both typechecks, `test:api` (28), `test:app`
+(153), `test:web`, `test:db:api` (36 against a real Postgres),
+`pnpm build:app`, and a runtime smoke test of the built server — register
+via better-auth, `401` on an unauthenticated RPC call, then
+`nodes/create`, `nodes/visibleTree`, `settings/get`, and `premium/get` all
+returning correctly through the extracted package.
 
 ### Phase 1 — Scaffold `apps/api`
 
 - New TanStack Start app shaped like `apps/website` (no Lexical/outliner
   deps), package name `api`, dev port `3002`.
-- Constructs its own `db` (`@cascade/db`) and `auth`, calls
-  `createRouter({ db, auth })` from `packages/api-core`.
+- Depends on `@cascade/api`, which brings its own `db`/`auth` singletons
+  and the assembled router.
 - Routes:
   - `src/routes/openapi.$.ts` — `OpenAPIHandler`, same shape as today's
     `apps/web-app/src/routes/api.$.ts`. This is the mobile app's primary
@@ -89,7 +110,7 @@ cost entirely.
 - Add an API-key/token plugin to the shared `createAuth` config in
   `packages/auth` (mobile gets a long-lived token after login; MCP/third
   party integrations get OAuth-issued scoped tokens).
-- Add a parallel procedure builder in `packages/api-core`, e.g.
+- Add a parallel procedure builder in `packages/api`, e.g.
   `apiKeyAuthed`, alongside the existing `authed` — validates a bearer
   token instead of a session cookie.
 - Define scopes per token (`nodes:read`, `nodes:write`, etc.) so an MCP
@@ -140,8 +161,6 @@ Phase 3 → Phase 4.**
 
 ## Open questions
 
-- Exact package name for the extracted business logic (`packages/api-core`
-  used above as a placeholder).
 - Whether `apps/api` needs cookie-based session support at all (e.g. for a
   future API-key management dashboard) or is strictly token-authed.
 - Production deploy topology for three processes, given none exists yet
@@ -149,8 +168,6 @@ Phase 3 → Phase 4.**
 
 ## Verification (once implemented)
 
-- Phase 0: `pnpm build:app && pnpm test:app` pass unchanged; manual UI
-  smoke test.
 - Phase 1: `pnpm dev:api` boots; `/openapi/...` responds and round-trips
   against the same Postgres instance as `apps/web-app`.
 - Phase 2: automated test that a request with a valid API key succeeds and
